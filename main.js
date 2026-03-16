@@ -1,14 +1,222 @@
-import { geoData } from './geo_data.js';
+import { geoData as defaultGeoData } from './geo_data.js';
+import { renderAdminPanel } from './adminView.js';
+import { supabase } from './supabaseClient.js';
 
 // Application State
+const DEFAULT_ASESORES = ['Yaisen Herrera', 'Lorena Esqueda', 'Cindy Infante', 'Roxana Yepez', 'Carlos Ruiz', 'Patricia Mendoza', 'Maria Quintero', 'Haymar Barros', 'Yailin Rojas'];
+
 let appState = {
-  currentView: 'home', // 'home', 'form', or 'history'
+  currentView: 'home', // 'home', 'form', 'history', or 'admin'
   currentAsesor: localStorage.getItem('current_asesor') || '',
   activities: JSON.parse(localStorage.getItem('current_activities') || '[]'),
   history: [],
   historyLoading: false,
-  historyError: null
+  historyError: null,
+  asesores: [],
+  geoData: {}
 };
+
+// Global Initialization Flag
+let isAppInitialized = false;
+
+// Initialize Config from Supabase
+async function loadGlobalConfig() {
+  try {
+    // 1. Fetch Asesores
+    const { data: qAsesores, error: errA } = await supabase.from('asesores_config').select('*').order('nombre');
+    // 2. Fetch GeoData
+    const { data: qGeo, error: errG } = await supabase.from('geodata_config').select('*').order('parroquia').order('sector');
+
+    if (errA || errG) {
+       console.error("Error loading config from Supabase:", errA || errG);
+       // Fallback on error
+       appState.asesores = [...DEFAULT_ASESORES];
+       appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
+    } else {
+       // Map Asesores
+       if(qAsesores && qAsesores.length > 0) {
+          appState.asesores = qAsesores.map(row => row.nombre);
+       } else {
+          appState.asesores = [...DEFAULT_ASESORES]; // fallback if empty table
+       }
+       
+       // Map GeoData
+       if(qGeo && qGeo.length > 0) {
+          const newGeo = {};
+          qGeo.forEach(row => {
+             if(!newGeo[row.parroquia]) newGeo[row.parroquia] = [];
+             newGeo[row.parroquia].push(row.sector);
+          });
+          appState.geoData = newGeo;
+       } else {
+          appState.geoData = JSON.parse(JSON.stringify(defaultGeoData)); // fallback if empty table
+       }
+    }
+  } catch(e) {
+     console.error("Critical error connecting to Supabase:", e);
+     appState.asesores = [...DEFAULT_ASESORES];
+     appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
+  } finally {
+     isAppInitialized = true;
+     render();
+  }
+}
+
+
+// State Persisters (Now replaced with Supabase inline queries)
+
+function attachAdminEvents() {
+  document.getElementById('btnAdminBack')?.addEventListener('click', () => {
+    appState.currentView = 'home';
+    render();
+  });
+
+  // Helper to set loading state on buttons
+  const setLoading = (btn, isLoading) => {
+    if(!btn) return;
+    if(isLoading) {
+      btn.dataset.ogText = btn.innerHTML;
+      btn.innerHTML = `<div class="h-4 w-4 border-2 border-white border-t-transparent flex-shrink-0 rounded-full animate-spin"></div>`;
+      btn.disabled = true;
+      btn.classList.add('opacity-70');
+    } else {
+      btn.innerHTML = btn.dataset.ogText || 'OK';
+      btn.disabled = false;
+      btn.classList.remove('opacity-70');
+    }
+  };
+
+  // ASESORES
+  document.getElementById('btnAddAsesor')?.addEventListener('click', async (e) => {
+    const name = document.getElementById('inputNewAsesor').value.trim();
+    if (name && !appState.asesores.includes(name)) {
+      const btn = e.currentTarget;
+      setLoading(btn, true);
+      const { error } = await supabase.from('asesores_config').insert([{ nombre: name }]);
+      setLoading(btn, false);
+      
+      if(error) {
+        console.error("Supabase Error:", error);
+        alert('Error al guardar en Supabase: ' + error.message);
+      } else {
+        appState.asesores.push(name);
+        appState.asesores.sort();
+        render(); // Renders the admin panel with new data
+      }
+    }
+  });
+
+  document.querySelectorAll('.btn-delete-asesor').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      if(confirm('¿Seguro que deseas eliminar este asesor?')) {
+        const idx = e.currentTarget.getAttribute('data-index');
+        const name = appState.asesores[idx];
+        
+        setLoading(btn, true);
+        const { error } = await supabase.from('asesores_config').delete().eq('nombre', name);
+        
+        if (error) {
+           setLoading(btn, false);
+           alert("Error al eliminar: " + error.message);
+           return;
+        }
+
+        appState.asesores.splice(idx, 1);
+        if(!appState.asesores.includes(appState.currentAsesor)) {
+           appState.currentAsesor = '';
+           localStorage.setItem('current_asesor', '');
+        }
+        render();
+      }
+    });
+  });
+
+  // PARROQUIAS
+  document.getElementById('btnAddParroquia')?.addEventListener('click', async (e) => {
+    const p = document.getElementById('inputNewParroquia').value.trim();
+    if (p && !appState.geoData[p]) {
+      const btn = e.currentTarget;
+      setLoading(btn, true);
+      // Creamos la parroquia insertando su primer sector como "S/N" provisional si queremos,
+      // Pero como necesitamos que existan sectores separados, basta con un "General" o "Casco Central"
+      // para inicializar la parroquia en la BD (Supabase no tiene tablas dinámicas para arrays).
+      const dummySector = "General";
+      const { error } = await supabase.from('geodata_config').insert([{ parroquia: p, sector: dummySector }]);
+      setLoading(btn, false);
+
+      if (error) {
+         alert("Error creando parroquia: " + error.message);
+      } else {
+         appState.geoData[p] = [dummySector];
+         render();
+      }
+    }
+  });
+
+  document.querySelectorAll('.btn-delete-parroquia').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const p = e.currentTarget.getAttribute('data-parroquia');
+      if(confirm(`¿Seguro que deseas eliminar la parroquia "${p}" y todos sus sectores?`)) {
+        setLoading(btn, true);
+        const { error } = await supabase.from('geodata_config').delete().eq('parroquia', p);
+        if(error) {
+           setLoading(btn, false);
+           alert("Error al eliminar parroquia: " + error.message);
+           return;
+        }
+        delete appState.geoData[p];
+        render();
+      }
+    });
+  });
+
+  // SECTORES
+  document.querySelectorAll('.btn-add-sector').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const p = e.currentTarget.getAttribute('data-parroquia');
+      const container = e.currentTarget.closest('.p-3');
+      const s = container.querySelector('.input-new-sector').value.trim();
+      
+      if (s && !appState.geoData[p].includes(s)) {
+        setLoading(btn, true);
+        const { error } = await supabase.from('geodata_config').insert([{ parroquia: p, sector: s }]);
+        setLoading(btn, false);
+
+        if(error) {
+           alert("Error añadiendo sector: " + error.message);
+        } else {
+           appState.geoData[p].push(s);
+           appState.geoData[p].sort();
+           render();
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-delete-sector').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const p = e.currentTarget.getAttribute('data-parroquia');
+      const idx = e.currentTarget.getAttribute('data-index');
+      const s = appState.geoData[p][idx];
+
+      if(confirm('¿Eliminar sector?')) {
+        const btnDom = e.currentTarget;
+        // visual feedback for the small 'x' button
+        btnDom.innerHTML = '...'; 
+        
+        const { error } = await supabase.from('geodata_config').delete().match({ parroquia: p, sector: s });
+        if(error) {
+           btnDom.innerHTML = '&times;';
+           alert("Error al eliminar sector: " + error.message);
+           return;
+        }
+
+        appState.geoData[p].splice(idx, 1);
+        render();
+      }
+    });
+  });
+}
 
 // URL for Secure Node.js Backend Server
 const GOOGLE_SCRIPT_URL_SAVE = "/api/save-jornada";
@@ -17,6 +225,17 @@ const GOOGLE_SCRIPT_URL_HISTORY = "/api/history";
 // Update View Routine
 function render() {
   const appContainer = document.getElementById('app');
+
+  if (!isAppInitialized) {
+     appContainer.innerHTML = `
+      <div class="flex flex-col items-center justify-center p-8 text-center mt-40">
+        <div class="h-10 w-10 border-4 border-[#C6C6C8] border-t-[#007AFF] rounded-full animate-spin mb-4"></div>
+        <p class="text-[#8E8E93] text-sm">Cargando configuración global...</p>
+      </div>
+     `;
+     return;
+  }
+
   if (appState.currentView === 'home') {
     appContainer.innerHTML = renderHome();
     attachHomeEvents();
@@ -28,6 +247,9 @@ function render() {
     // If arriving at history tab, fetch data
     appContainer.innerHTML = renderHistory();
     attachTabEvents();
+  } else if (appState.currentView === 'admin') {
+    appContainer.innerHTML = renderAdminPanel();
+    attachAdminEvents();
   }
 }
 
@@ -165,9 +387,17 @@ function renderHome() {
 
   return `
     <div class="px-6 py-10 pb-[150px]">
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-black mb-1">Actividades</h1>
-        <p class="text-[#8E8E93]">${formattedDate}</p>
+      <header class="mb-8 flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-black mb-1">Actividades</h1>
+          <p class="text-[#8E8E93]">${formattedDate}</p>
+        </div>
+        <button id="btnAdminAccess" class="p-2 text-[#8E8E93] hover:text-black transition-colors rounded-full hover:bg-black/5 active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
       </header>
 
       <!-- Asesor Selection in Home -->
@@ -187,8 +417,7 @@ function renderHome() {
           <!-- Dropdown Options -->
           <div id="hAsesorOptions" class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar hidden">
             <div class="py-1">
-              ${['Yaisen Herrera', 'Lorena Esqueda', 'Cindy Infante', 'Roxana Yepez', 'Carlos Ruiz', 'Patricia Mendoza', 'Maria Quintero', 'Haymar Barros', 'Yailin Rojas']
-                .map(name => `
+              ${appState.asesores.map(name => `
                   <button type="button" data-value="${name}" class="asesor-option w-full text-left px-4 py-3 text-[15px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
                     <span class="${appState.currentAsesor === name ? 'font-semibold text-[#007AFF]' : 'text-black group-hover:text-black'}">${name}</span>
                     ${appState.currentAsesor === name ? `
@@ -249,6 +478,16 @@ function attachHomeEvents() {
   ddBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleDropdown();
+  });
+
+  document.getElementById('btnAdminAccess')?.addEventListener('click', () => {
+    const password = prompt('Ingrese la contraseña de administrador:');
+    if (password === '25531617') {
+      appState.currentView = 'admin';
+      render();
+    } else if (password !== null) {
+      alert('Contraseña incorrecta');
+    }
   });
 
   // Close when clicking outside
@@ -470,7 +709,7 @@ function renderHistory() {
 
 // ------------- GLOBALS PARA UI -------------
 window.getParroquiasOptionsHTML = function() {
-  return Object.keys(geoData).sort().map(p => `<option value="${p}">${p}</option>`).join('');
+  return Object.keys(appState.geoData).sort().map(p => `<option value="${p}">${p}</option>`).join('');
 };
 
 window.renderLocationBlock = function(idx) {
@@ -788,7 +1027,7 @@ function attachFormEvents() {
   locContainer?.addEventListener('change', (e) => {
     if (e.target.classList.contains('loc-parroquia')) {
       const p = e.target.value;
-      const sectores = geoData[p] || [];
+      const sectores = appState.geoData[p] || [];
       const parentBlock = e.target.closest('.location-block');
       const scSelect = parentBlock.querySelector('.loc-sector');
       
@@ -1163,5 +1402,6 @@ function showHistoryDetail(jorJson) {
 window.showHistoryDetail = showHistoryDetail;
 
 // ----------------- INIT -----------------
-render();
+render(); // Show loading screen
+loadGlobalConfig();
 
