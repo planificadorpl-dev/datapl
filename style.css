@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* Minimalist iOS style inputs */
+  .ios-input {
+    @apply w-full px-4 py-3 bg-white border border-[#E5E5EA] rounded-xl text-black 
+           focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent
+           transition-all duration-200 placeholder-[#8E8E93];
+  }
+
+  .ios-select {
+    @apply ios-input appearance-none bg-no-repeat bg-[right_1rem_center];
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238E8E93'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 1.2em;
+  }
+
+  .ios-label {
+    @apply block text-sm font-medium text-[#3A3A3C] mb-1.5 ml-1;
+  }
+
+  .ios-btn-primary {
+    @apply w-full py-4 bg-black text-white font-semibold rounded-2xl 
+           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
+           hover:bg-[#1C1C1E];
+  }
+
+  .ios-btn-secondary {
+    @apply w-full py-4 bg-white text-black font-semibold rounded-2xl border border-[#E5E5EA]
+           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
+           hover:bg-[#F2F2F7];
+  }
+  
+  /* Utilities for the clean flat buttons */
+  .btn-flat-success {
+    @apply w-full py-3.5 bg-[#E8F5E9] text-[#2E7D32] font-semibold rounded-2xl
+           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
+           hover:bg-[#C8E6C9];
+  }
+
+  .btn-flat-danger {
+    @apply w-full py-3.5 bg-[#FFEBEE] text-[#C62828] font-semibold rounded-2xl
+           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
+           hover:bg-[#FFCDD2] border border-transparent;
+  }
+
+  /* Minimalist Custom Scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #C6C6C8 transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #C6C6C8;
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  /* Hidden Select for validation */
+  .hidden-real-select {
+    @apply absolute inset-0 w-full h-[48px] opacity-0 cursor-pointer pointer-events-none;
+  }
+
+  /* Custom Toggle Switch (iOS) */
+  .toggle-checkbox:checked {
+    right: 0;
+    border-color: #34C759;
+  }
+  .toggle-checkbox:checked + .toggle-label {
+    background-color: #34C759;
+  }
+  .toggle-checkbox {
+    right: 1.5rem;
+    z-index: 10;
+  }
+}
+
+/* Base styles for the app container */
+body {
+  -webkit-tap-highlight-color: transparent;
+}
