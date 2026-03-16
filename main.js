@@ -168,10 +168,9 @@ function attachAdminEvents() {
 
   document.querySelectorAll('.btn-delete-asesor').forEach(btn => {
     btn.addEventListener('click', async (e) => {
+      const idx = e.currentTarget.getAttribute('data-index');
+      const name = appState.asesores[idx];
       if(await showConfirm('¿Seguro que deseas eliminar este asesor?')) {
-        const idx = e.currentTarget.getAttribute('data-index');
-        const name = appState.asesores[idx];
-        
         setLoading(btn, true);
         const { error } = await supabase.from('asesores_config').delete().eq('nombre', name);
         
@@ -255,12 +254,12 @@ function attachAdminEvents() {
 
   document.querySelectorAll('.btn-delete-sector').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const p = e.currentTarget.getAttribute('data-parroquia');
-      const idx = e.currentTarget.getAttribute('data-index');
+      const btnDom = e.currentTarget;
+      const p = btnDom.getAttribute('data-parroquia');
+      const idx = btnDom.getAttribute('data-index');
       const s = appState.geoData[p][idx];
 
       if(await showConfirm('¿Eliminar sector?')) {
-        const btnDom = e.currentTarget;
         // visual feedback for the small 'x' button
         btnDom.innerHTML = '...'; 
         
