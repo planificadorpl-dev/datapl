@@ -481,13 +481,67 @@ function attachHomeEvents() {
   });
 
   document.getElementById('btnAdminAccess')?.addEventListener('click', () => {
-    const password = prompt('Ingrese la contraseña de administrador:');
-    if (password === '25531617') {
-      appState.currentView = 'admin';
-      render();
-    } else if (password !== null) {
-      alert('Contraseña incorrecta');
-    }
+    // Check if modal already exists to prevent duplicates
+    if (document.getElementById('adminLoginModal')) return;
+
+    const modalHtml = `
+      <div id="adminLoginModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-[90%] max-w-sm rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+          <div class="p-6">
+            <h3 class="text-xl font-bold text-center text-black mb-2">Acceso Administrador</h3>
+            <p class="text-sm text-center text-[#8E8E93] mb-6">Por favor, ingresa la contraseña para continuar.</p>
+            
+            <input type="password" id="adminPasswordInput" class="w-full bg-[#F2F2F7] rounded-xl px-4 py-3 text-black text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-[#007AFF] transition-all mb-2" placeholder="••••••••" autocomplete="off">
+            <p id="adminLoginError" class="text-red-500 text-xs text-center h-4 invisible">Contraseña incorrecta</p>
+          </div>
+          
+          <div class="flex border-t border-[#E5E5EA]">
+            <button id="btnCancelAdmin" class="flex-1 py-3 text-[#007AFF] font-medium hover:bg-gray-50 transition-colors border-r border-[#E5E5EA]">Cancelar</button>
+            <button id="btnSubmitAdmin" class="flex-1 py-3 text-[#007AFF] font-bold hover:bg-gray-50 transition-colors">Ingresar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = document.getElementById('adminLoginModal');
+    const modalContent = modal.querySelector('.bg-white');
+    const input = document.getElementById('adminPasswordInput');
+    const errorMsg = document.getElementById('adminLoginError');
+
+    // Animate in
+    setTimeout(() => {
+      modal.classList.remove('opacity-0');
+      modalContent.classList.remove('scale-95');
+      input.focus();
+    }, 10);
+
+    const closeModal = () => {
+      modal.classList.add('opacity-0');
+      modalContent.classList.add('scale-95');
+      setTimeout(() => modal.remove(), 300);
+    };
+
+    const attemptLogin = () => {
+      if (input.value === '25531617') {
+        closeModal();
+        appState.currentView = 'admin';
+        render();
+      } else {
+        errorMsg.classList.remove('invisible');
+        input.classList.add('animate-shake', 'border', 'border-red-400');
+        setTimeout(() => input.classList.remove('animate-shake', 'border', 'border-red-400'), 500);
+        input.value = '';
+        input.focus();
+      }
+    };
+
+    document.getElementById('btnCancelAdmin').addEventListener('click', closeModal);
+    document.getElementById('btnSubmitAdmin').addEventListener('click', attemptLogin);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') attemptLogin();
+    });
   });
 
   // Close when clicking outside
