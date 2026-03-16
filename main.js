@@ -63,6 +63,66 @@ async function loadGlobalConfig() {
 }
 
 
+// ── Custom UI helpers (replaces alert/confirm) ──────────────────────────
+function showToast(message, type = 'error') {
+  const id = 'toast-' + Date.now();
+  const colors = {
+    error:   'bg-red-500',
+    success: 'bg-[#34C759]',
+    info:    'bg-[#007AFF]'
+  };
+  const icons = {
+    error:   '✕',
+    success: '✓',
+    info:    'ℹ'
+  };
+  const html = `
+    <div id="${id}" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 ${colors[type]} text-white px-5 py-3 rounded-2xl shadow-lg text-sm font-medium max-w-[90%] opacity-0 -translate-y-4 transition-all duration-300">
+      <span class="text-base">${icons[type]}</span>
+      <span>${message}</span>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const el = document.getElementById(id);
+  setTimeout(() => { el.classList.remove('opacity-0', '-translate-y-4'); }, 10);
+  setTimeout(() => {
+    el.classList.add('opacity-0', '-translate-y-4');
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+function showConfirm(message) {
+  return new Promise(resolve => {
+    const id = 'confirmModal-' + Date.now();
+    const html = `
+      <div id="${id}" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-[85%] max-w-sm rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+          <div class="p-6 pb-4">
+            <p class="text-center text-black font-medium leading-snug">${message}</p>
+          </div>
+          <div class="flex border-t border-[#E5E5EA]">
+            <button data-action="cancel" class="flex-1 py-3.5 text-[#007AFF] font-medium hover:bg-gray-50 transition-colors border-r border-[#E5E5EA]">Cancelar</button>
+            <button data-action="ok" class="flex-1 py-3.5 text-[#FF3B30] font-bold hover:bg-gray-50 transition-colors">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+    const modal = document.getElementById(id);
+    const box = modal.querySelector('.bg-white');
+    setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+
+    const close = (result) => {
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => modal.remove(), 300);
+      resolve(result);
+    };
+    modal.querySelector('[data-action="cancel"]').addEventListener('click', () => close(false));
+    modal.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+  });
+}
+
 // State Persisters (Now replaced with Supabase inline queries)
 
 function attachAdminEvents() {
@@ -97,7 +157,7 @@ function attachAdminEvents() {
       
       if(error) {
         console.error("Supabase Error:", error);
-        alert('Error al guardar en Supabase: ' + error.message);
+        showToast('Error al guardar en Supabase: ' + error.message);
       } else {
         appState.asesores.push(name);
         appState.asesores.sort();
@@ -108,7 +168,7 @@ function attachAdminEvents() {
 
   document.querySelectorAll('.btn-delete-asesor').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      if(confirm('¿Seguro que deseas eliminar este asesor?')) {
+      if(await showConfirm('¿Seguro que deseas eliminar este asesor?')) {
         const idx = e.currentTarget.getAttribute('data-index');
         const name = appState.asesores[idx];
         
@@ -117,7 +177,7 @@ function attachAdminEvents() {
         
         if (error) {
            setLoading(btn, false);
-           alert("Error al eliminar: " + error.message);
+           showToast('Error al eliminar: ' + error.message);
            return;
         }
 
@@ -145,7 +205,7 @@ function attachAdminEvents() {
       setLoading(btn, false);
 
       if (error) {
-         alert("Error creando parroquia: " + error.message);
+         showToast('Error creando parroquia: ' + error.message);
       } else {
          appState.geoData[p] = [dummySector];
          render();
@@ -156,12 +216,12 @@ function attachAdminEvents() {
   document.querySelectorAll('.btn-delete-parroquia').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const p = e.currentTarget.getAttribute('data-parroquia');
-      if(confirm(`¿Seguro que deseas eliminar la parroquia "${p}" y todos sus sectores?`)) {
+      if(await showConfirm(`¿Seguro que deseas eliminar la parroquia "${p}" y todos sus sectores?`)) {
         setLoading(btn, true);
         const { error } = await supabase.from('geodata_config').delete().eq('parroquia', p);
         if(error) {
            setLoading(btn, false);
-           alert("Error al eliminar parroquia: " + error.message);
+           showToast('Error al eliminar parroquia: ' + error.message);
            return;
         }
         delete appState.geoData[p];
@@ -183,7 +243,7 @@ function attachAdminEvents() {
         setLoading(btn, false);
 
         if(error) {
-           alert("Error añadiendo sector: " + error.message);
+           showToast('Error añadiendo sector: ' + error.message);
         } else {
            appState.geoData[p].push(s);
            appState.geoData[p].sort();
@@ -199,7 +259,7 @@ function attachAdminEvents() {
       const idx = e.currentTarget.getAttribute('data-index');
       const s = appState.geoData[p][idx];
 
-      if(confirm('¿Eliminar sector?')) {
+      if(await showConfirm('¿Eliminar sector?')) {
         const btnDom = e.currentTarget;
         // visual feedback for the small 'x' button
         btnDom.innerHTML = '...'; 
@@ -207,7 +267,7 @@ function attachAdminEvents() {
         const { error } = await supabase.from('geodata_config').delete().match({ parroquia: p, sector: s });
         if(error) {
            btnDom.innerHTML = '&times;';
-           alert("Error al eliminar sector: " + error.message);
+           showToast('Error al eliminar sector: ' + error.message);
            return;
         }
 
@@ -248,7 +308,7 @@ function render() {
     appContainer.innerHTML = renderHistory();
     attachTabEvents();
   } else if (appState.currentView === 'admin') {
-    appContainer.innerHTML = renderAdminPanel();
+    appContainer.innerHTML = renderAdminPanel(appState);
     attachAdminEvents();
   }
 }
@@ -563,7 +623,7 @@ function attachHomeEvents() {
 
   document.getElementById('btnAddActivity')?.addEventListener('click', () => {
     if(!appState.currentAsesor) {
-       alert('Por favor, seleccione un asesor antes de añadir actividades.');
+       showToast('Por favor, seleccione un asesor antes de añadir actividades.', 'info');
        return;
     }
     appState.currentView = 'form';
@@ -656,7 +716,7 @@ async function finalizeJornada() {
     }
   } catch (err) {
     console.error("Error al enviar al servidor (Sheets):", err);
-    alert("Hubo un error al guardar en Google Sheets. Asegúrate de que node server.js esté corriendo.");
+    showToast('Hubo un error al guardar en Google Sheets.', 'error');
   }
 
   // 2. Clear current activities
@@ -1399,7 +1459,7 @@ function generateWhatsappReport() {
 }
 
 function sendHistoryReportToWhatsapp(alreadyEncoded) {
-  if (!alreadyEncoded) return alert('No hay reporte guardado para esta jornada.');
+  if (!alreadyEncoded) { showToast('No hay reporte guardado para esta jornada.', 'info'); return; }
   // The text arrives pre-encoded from the onclick HTML attribute — use it directly in the URL
   window.open(`https://wa.me/?text=${alreadyEncoded}`, '_blank');
 }
