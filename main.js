@@ -1193,7 +1193,7 @@ function attachFormEvents() {
   });
 
   const form = document.getElementById('activityForm');
-  form?.addEventListener('submit', (e) => {
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     // Gather locations
