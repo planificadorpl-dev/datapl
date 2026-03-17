@@ -64,6 +64,23 @@ async function loadGlobalConfig() {
 
 
 // ── Custom UI helpers (replaces alert/confirm) ──────────────────────────
+async function syncActivity(activity, action = 'ADD') {
+  try {
+    const response = await fetch('/api/sync-activity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activity, action })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Error en sync');
+    return result;
+  } catch (err) {
+    console.error("Sync Error:", err);
+    showToast("Error de sincronización con la nube", "error");
+    return null;
+  }
+}
+
 function showToast(message, type = 'error') {
   const id = 'toast-' + Date.now();
   const colors = {
@@ -630,11 +647,18 @@ function attachHomeEvents() {
   });
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = e.currentTarget.getAttribute('data-index');
-      appState.activities.splice(idx, 1);
-      saveActivities();
-      render();
+    btn.addEventListener('click', async (e) => {
+      if(await showConfirm('¿Seguro que deseas eliminar esta actividad?')) {
+        const idx = e.currentTarget.getAttribute('data-index');
+        const activity = appState.activities[idx];
+        
+        // Remove from Google Sheets in real-time
+        syncActivity(activity, 'DELETE');
+        
+        appState.activities.splice(idx, 1);
+        saveActivities();
+        render();
+      }
     });
   });
 
@@ -700,23 +724,8 @@ async function finalizeJornada() {
     reporteWhatsapp: buildWhatsappReport([...appState.activities], asesor, formattedDate)
   };
 
-  // 1. Send to Google Sheets (via local secure Node.js Backend)
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL_SAVE, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(jornada)
-    });
-    
-    if (!response.ok) {
-        throw new Error("HTTP Status " + response.status);
-    }
-  } catch (err) {
-    console.error("Error al enviar al servidor (Sheets):", err);
-    showToast('Hubo un error al guardar en Google Sheets.', 'error');
-  }
+  // 1. (Opcional) Guardar localmente que la jornada terminó
+  // showToast('Jornada finalizada y sincronizada.', 'success');
 
   // 2. Clear current activities
   appState.activities = [];
@@ -1206,7 +1215,9 @@ function attachFormEvents() {
     }
     
     const activity = {
+      uid: 'act_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       time: convertTo12h(document.getElementById('fTime').value),
+      date: new Date().toLocaleDateString('es-VE'), // Consistent date for sync
       asesor: appState.currentAsesor,
       activityType: document.getElementById('fType').value,
       ubicaciones: ubicaciones,
@@ -1222,6 +1233,9 @@ function attachFormEvents() {
 
     appState.activities.push(activity);
     saveActivities();
+    
+    // Push to Google Sheets in real-time
+    syncActivity(activity, 'ADD');
 
     const submitterValue = e.submitter ? e.submitter.value : 'save_return';
     if(submitterValue === 'add_another') {
