@@ -902,14 +902,14 @@ function renderForm() {
         
         <!-- Tiempo (y Asesor Readonly Visual) -->
         <fieldset class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-4">
             <div>
               <label class="ios-label">Hora</label>
               <input type="time" id="fTime" value="${timeDefault}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
             </div>
             <div>
               <label class="ios-label">Asesor</label>
-              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-semibold cursor-default pointer-events-none truncate">
+              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-semibold cursor-default pointer-events-none">
             </div>
           </div>
         </fieldset>
