@@ -65,6 +65,7 @@ async function loadGlobalConfig() {
 
 // ── Custom UI helpers (replaces alert/confirm) ──────────────────────────
 async function syncActivity(activity, action = 'ADD') {
+  console.log(`Syncing ${action}:`, activity.uid);
   try {
     const response = await fetch('/api/sync-activity', {
       method: 'POST',
@@ -72,7 +73,11 @@ async function syncActivity(activity, action = 'ADD') {
       body: JSON.stringify({ activity, action })
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Error en sync');
+    if (!response.ok) {
+        console.error("Sync Error Details:", result.error);
+        throw new Error(result.error || 'Error en sync');
+    }
+    console.log(`Sync ${action} success:`, activity.uid);
     return result;
   } catch (err) {
     console.error("Sync Error:", err);
@@ -1203,20 +1208,23 @@ function attachFormEvents() {
     // Checkbox data
     const receivedCalls = document.getElementById('fPhoneContact').checked;
     
-    // Convert HH:MM (24h, from input) to 12h AM/PM
-    function convertTo12h(hhmm) {
-      if (!hhmm) return '';
-      const [hStr, mStr] = hhmm.split(':');
+    // Simplified time handler: if already formatted, return as is.
+    function formatTimeValue(val) {
+      if (!val) return '';
+      // If it already has am/pm, just return it
+      if (val.toLowerCase().includes('m.')) return val;
+      
+      const [hStr, mStr] = val.split(':');
       let h = parseInt(hStr, 10);
       const m = mStr;
-      const period = h >= 12 ? 'p.m.' : 'a.m.';
+      const period = h >= 12 ? 'p. m.' : 'a. m.';
       h = h % 12 || 12;
       return `${h}:${m} ${period}`;
     }
     
     const activity = {
       uid: 'act_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-      time: convertTo12h(document.getElementById('fTime').value),
+      time: formatTimeValue(document.getElementById('fTime').value),
       date: new Date().toLocaleDateString('es-VE'), // Consistent date for sync
       asesor: appState.currentAsesor,
       activityType: document.getElementById('fType').value,
@@ -1235,7 +1243,7 @@ function attachFormEvents() {
     saveActivities();
     
     // Push to Google Sheets in real-time
-    syncActivity(activity, 'ADD');
+    await syncActivity(activity, 'ADD');
 
     const submitterValue = e.submitter ? e.submitter.value : 'save_return';
     if(submitterValue === 'add_another') {
