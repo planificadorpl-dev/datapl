@@ -653,10 +653,10 @@ function attachHomeEvents() {
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
+      const idx = e.currentTarget.getAttribute('data-index');
+      const activity = appState.activities[idx];
+
       if(await showConfirm('¿Seguro que deseas eliminar esta actividad?')) {
-        const idx = e.currentTarget.getAttribute('data-index');
-        const activity = appState.activities[idx];
-        
         // Remove from Google Sheets in real-time
         syncActivity(activity, 'DELETE');
         
