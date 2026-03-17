@@ -5,13 +5,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { activity, action } = req.body;
-  
   const credsStr = process.env.GOOGLE_CREDENTIALS;
   const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
   if (!credsStr || !SPREADSHEET_ID) {
-    return res.status(500).json({ error: 'Faltan variables de entorno (GOOGLE_CREDENTIALS o SPREADSHEET_ID).' });
+    return res.status(500).json({ error: 'Faltan variables de entorno.' });
   }
 
   let auth;
@@ -30,35 +28,36 @@ export default async function handler(req, res) {
 
   const sheets = google.sheets('v4');
   const sheetName = 'REPORTES DE ASESORES';
+  const { activity, action } = req.body;
 
   try {
     const authClient = await auth.getClient();
 
+    // ── ADD ─────────────────────────────────────────────────────────────────
     if (action === 'ADD') {
-      // Logic from save-jornada.js but for a single activity
-      let parroquiasStr = "";
-      let sectoresStr = "";
-      if(activity.ubicaciones && activity.ubicaciones.length > 0) {
-         parroquiasStr = activity.ubicaciones.map(u => u.parroquia).join(" | ");
-         sectoresStr = activity.ubicaciones.map(u => u.sector).join(" | ");
+      let parroquiasStr = '';
+      let sectoresStr = '';
+      if (activity.ubicaciones && activity.ubicaciones.length > 0) {
+        parroquiasStr = activity.ubicaciones.map(u => u.parroquia).join(' | ');
+        sectoresStr   = activity.ubicaciones.map(u => u.sector).join(' | ');
       }
-      
+
       const row = [
-        activity.date || "",                 // A
-        activity.time || "",                 // B
-        activity.asesor || "",               // C
-        activity.activityType || "",         // D
-        activity.solicitudes || 0,           // E
-        activity.clientesCaptados || 0,      // F
-        activity.volantes || "",             // G
-        activity.llamadasInfo || "",         // H
-        activity.llamadasAgenda || "",       // I
-        parroquiasStr,                       // J
-        sectoresStr,                         // K
-        activity.condominio || "",           // L
-        activity.notes || "",                // M
-        "",                                  // N (Was Whatsapp Report)
-        activity.uid                         // O (Unique ID for deletion)
+        activity.date          || '',   // A
+        activity.time          || '',   // B
+        activity.asesor        || '',   // C
+        activity.activityType  || '',   // D
+        activity.solicitudes   || 0,    // E
+        activity.clientesCaptados || 0, // F
+        activity.volantes      || '',   // G
+        activity.llamadasInfo  || '',   // H
+        activity.llamadasAgenda|| '',   // I
+        parroquiasStr,                  // J
+        sectoresStr,                    // K
+        activity.condominio    || '',   // L
+        activity.notes         || '',   // M
+        '',                             // N — WhatsApp report (filled on FINALIZE)
+        activity.uid,                   // O — Unique ID
       ];
 
       await sheets.spreadsheets.values.append({
@@ -71,32 +70,27 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true, action: 'ADDED' });
 
+    // ── DELETE ───────────────────────────────────────────────────────────────
     } else if (action === 'DELETE') {
       const uid = activity.uid;
       if (!uid) return res.status(400).json({ error: 'UID faltante para eliminar.' });
 
-      // 1. Find the row index by UID in column O
-      const response = await sheets.spreadsheets.values.get({
+      const colRes = await sheets.spreadsheets.values.get({
         auth: authClient,
         spreadsheetId: SPREADSHEET_ID,
         range: `'${sheetName}'!O:O`,
       });
 
-      const values = response.data.values;
-      if (!values) return res.status(404).json({ error: 'Hoja vacía o columna UID no encontrada.' });
+      const allUids = colRes.data.values || [];
+      const rowIndex = allUids.findIndex(row => row[0] === uid);
 
-      // Google Sheets is 1-indexed. rowIndex will be index + 1
-      const rowIndex = values.findIndex(row => row[0] === uid);
-      
       if (rowIndex === -1) {
         return res.status(404).json({ error: 'Actividad no encontrada en la hoja.' });
       }
 
-      // 2. Delete the row
-      // We need the internal sheetId for batchUpdate
       const spreadsheet = await sheets.spreadsheets.get({
         auth: authClient,
-        spreadsheetId: SPREADSHEET_ID
+        spreadsheetId: SPREADSHEET_ID,
       });
       const targetSheet = spreadsheet.data.sheets.find(s => s.properties.title === sheetName);
       const sheetId = targetSheet.properties.sheetId;
@@ -105,25 +99,65 @@ export default async function handler(req, res) {
         auth: authClient,
         spreadsheetId: SPREADSHEET_ID,
         requestBody: {
-          requests: [
-            {
-              deleteDimension: {
-                range: {
-                  sheetId: sheetId,
-                  dimension: 'ROWS',
-                  startIndex: rowIndex, // startIndex inclusive
-                  endIndex: rowIndex + 1  // endIndex exclusive
-                }
-              }
-            }
-          ]
-        }
+          requests: [{
+            deleteDimension: {
+              range: {
+                sheetId,
+                dimension: 'ROWS',
+                startIndex: rowIndex,
+                endIndex: rowIndex + 1,
+              },
+            },
+          }],
+        },
       });
 
       return res.status(200).json({ success: true, action: 'DELETED' });
-    }
 
-    return res.status(400).json({ error: 'Acción inválida.' });
+    // ── FINALIZE ─────────────────────────────────────────────────────────────
+    } else if (action === 'FINALIZE') {
+      const { uids, reporteWhatsapp } = req.body;
+      if (!uids || !Array.isArray(uids) || uids.length === 0) {
+        return res.status(400).json({ error: 'Lista de UIDs vacía para FINALIZE.' });
+      }
+
+      // Fetch column O to locate each row
+      const colRes = await sheets.spreadsheets.values.get({
+        auth: authClient,
+        spreadsheetId: SPREADSHEET_ID,
+        range: `'${sheetName}'!O:O`,
+      });
+
+      const allUids = colRes.data.values || [];
+
+      // Build a batch of range-value pairs for column N
+      const batchData = [];
+      uids.forEach(uid => {
+        const rowIndex = allUids.findIndex(row => row[0] === uid);
+        if (rowIndex !== -1) {
+          batchData.push({
+            range: `'${sheetName}'!N${rowIndex + 1}`,
+            values: [[reporteWhatsapp]],
+          });
+        }
+      });
+
+      if (batchData.length > 0) {
+        await sheets.spreadsheets.values.batchUpdate({
+          auth: authClient,
+          spreadsheetId: SPREADSHEET_ID,
+          requestBody: {
+            valueInputOption: 'USER_ENTERED',
+            data: batchData,
+          },
+        });
+      }
+
+      return res.status(200).json({ success: true, action: 'FINALIZE', updated: batchData.length });
+
+    } else {
+      return res.status(400).json({ error: 'Acción inválida.' });
+    }
 
   } catch (error) {
     console.error('Error en sync-activity:', error);

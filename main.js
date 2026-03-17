@@ -729,14 +729,32 @@ async function finalizeJornada() {
     reporteWhatsapp: buildWhatsappReport([...appState.activities], asesor, formattedDate)
   };
 
-  // 1. (Opcional) Guardar localmente que la jornada terminó
-  // showToast('Jornada finalizada y sincronizada.', 'success');
+  // 1. Build the WhatsApp report and collect UIDs from this session's activities
+  const reporteWhatsapp = buildWhatsappReport([...appState.activities], asesor, formattedDate);
+  const uids = appState.activities.map(a => a.uid).filter(Boolean);
 
-  // 2. Clear current activities
+  // 2. Update column N in all existing Sheets rows with the WhatsApp report
+  if (uids.length > 0) {
+    try {
+      const res = await fetch('/api/sync-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'FINALIZE', uids, reporteWhatsapp })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Error FINALIZE');
+      console.log('FINALIZE OK – rows updated:', result.updated);
+    } catch (err) {
+      console.error('Error al finalizar en Sheets:', err);
+      showToast('Error al guardar el reporte final en Sheets.', 'error');
+    }
+  }
+
+  // 3. Clear current activities
   appState.activities = [];
   saveActivities();
 
-  // 3. Re-render
+  // 4. Re-render
   render();
 }
 
