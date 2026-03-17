@@ -905,7 +905,7 @@ function renderForm() {
           <div class="space-y-4">
             <div>
               <label class="ios-label">Hora</label>
-              <input type="time" id="fTime" value="${timeDefault}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
+              <input type="text" id="fTime" value="${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
             </div>
             <div>
               <label class="ios-label">Asesor</label>
