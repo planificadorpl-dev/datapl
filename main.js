@@ -321,6 +321,9 @@ function render() {
     appContainer.innerHTML = renderHome();
     attachHomeEvents();
     attachTabEvents();
+  } else if (appState.currentView === 'activities_panel') {
+    appContainer.innerHTML = renderActivitiesPanel();
+    attachActivitiesPanelEvents();
   } else if (appState.currentView === 'form') {
     appContainer.innerHTML = renderForm();
     attachFormEvents();
@@ -398,77 +401,6 @@ function renderHome() {
   const dateStr = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const formattedDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-  let activitiesHtml = '';
-  if (appState.activities.length === 0) {
-    activitiesHtml = `
-      <div class="flex flex-col items-center justify-center p-8 text-center mt-10">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[#C6C6C8] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <p class="text-[#8E8E93] text-lg font-medium">No hay actividades hoy</p>
-        <p class="text-[#8E8E93] text-sm mt-1">Añade una actividad para comenzar tu reporte.</p>
-      </div>
-    `;
-  } else {
-    activitiesHtml = `
-      <div class="space-y-3 mt-6">
-        <h2 class="text-sm font-semibold text-[#8E8E93] uppercase tracking-wider ml-2 mb-3">Registradas hoy (${appState.activities.length})</h2>
-        ${appState.activities.map((act, index) => `
-          <div class="bg-white rounded-2xl p-4 shadow-ios relative border border-[#E5E5EA]">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-xs font-semibold px-2 py-1 bg-[#F2F2F7] text-[#8E8E93] rounded-md">${act.time}</span>
-              <button class="delete-btn text-red-500 p-1" data-index="${index}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-            <h3 class="font-bold text-lg leading-tight mb-1 text-black">${act.activityType}</h3>
-            ${act.ubicaciones && act.ubicaciones.length > 0 ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.length > 1 ? act.ubicaciones.length + ' Sectores (' + act.ubicaciones[0].parroquia + '...)' : (act.ubicaciones[0].parroquia + ', ' + act.ubicaciones[0].sector)}</p>` : ''}
-            ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
-            ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Recibió llamadas (I:${act.llamadasInfo} | A:${act.llamadasAgenda})</p>` : ''}
-            <p class="text-[#8E8E93] text-sm mt-1 font-medium bg-[#F2F2F7] inline-block px-2 py-0.5 rounded">S:${act.solicitudes} | C:${act.clientesCaptados}${act.volantes > 0 ? ' | V:'+act.volantes : ''}</p>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  const sendWhatsappBtn = appState.activities.length > 0 ? `
-    <div class="mt-6 flex flex-col gap-3">
-      <button id="btnSendWhatsapp" class="btn-flat-success">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-        </svg>
-        Enviar Reporte por WhatsApp
-      </button>
-      <button id="btnFinalizeJornada" class="btn-flat-danger">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Finalizar Jornada y Guardar
-      </button>
-    </div>
-    
-    <!-- Custom Dialog Modal -->
-    <dialog id="confirmModal" class="bg-white rounded-3xl p-6 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm outline-none border border-[#E5E5EA] w-[90%] max-w-[340px]">
-      <div class="flex flex-col items-center text-center">
-        <div class="w-12 h-12 bg-[#FFEBEE] text-[#C62828] rounded-full flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-black mb-2 leading-tight">¿Finalizar Jornada?</h3>
-        <p class="text-[#3A3A3C] text-sm mb-6">Esto agrupará las actividades de hoy y las preparará para guardarse en tu base de datos de Sheets.</p>
-        
-        <div class="flex w-full gap-3">
-          <button id="btnModalCancel" class="w-1/2 py-3 bg-[#F2F2F7] text-[#3A3A3C] font-semibold rounded-xl active:scale-[0.98] transition-all">Cancelar</button>
-          <button id="btnModalConfirm" class="w-1/2 py-3 bg-[#007AFF] text-white font-semibold rounded-xl text-center active:scale-[0.98] transition-all">Aceptar</button>
-        </div>
-      </div>
-    </dialog>
-  ` : '';
-
   return `
     <div class="px-6 py-10 pb-[150px]">
       <header class="mb-8 flex justify-between items-start">
@@ -514,6 +446,8 @@ function renderHome() {
             </div>
           </div>
         </div>
+      </div>
+
       <!-- DUAL CARDS SECTION -->
       <div class="px-6 grid grid-cols-1 gap-4">
         
@@ -534,7 +468,7 @@ function renderHome() {
             <h2 class="text-[22px] font-bold text-black mb-1.5 tracking-tight">Actividades</h2>
             <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4">Reporte diario de visitas, recorridos y publicidad.</p>
             <span class="text-[13px] font-bold text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              Añadir reporte 
+              Ver Panel de Actividades 
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
@@ -569,9 +503,6 @@ function renderHome() {
         </button>
 
       </div>
-
-      ${activitiesHtml}
-      ${appState.activities.length === 0 ? '<div class="h-16"></div>' : ''} <!-- Spacer when empty -->
 
       ${renderBottomTabs('home')}
     </div>
@@ -692,10 +623,10 @@ function attachHomeEvents() {
 
   document.getElementById('btnGoToActivity')?.addEventListener('click', () => {
     if(!appState.currentAsesor) {
-       showToast('Por favor, seleccione un asesor antes de añadir actividades.', 'info');
+       showToast('Por favor, seleccione un asesor antes de ver actividades.', 'info');
        return;
     }
-    appState.currentView = 'form';
+    appState.currentView = 'activities_panel';
     render();
   });
 
@@ -707,6 +638,120 @@ function attachHomeEvents() {
     appState.currentView = 'solicitud_form';
     render();
   });
+}
+
+// ----------------- ACTIVITIES PANEL VIEW -----------------
+
+function renderActivitiesPanel() {
+  let activitiesHtml = '';
+  if (appState.activities.length === 0) {
+    activitiesHtml = `
+      <div class="flex flex-col items-center justify-center p-8 text-center mt-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[#C6C6C8] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-[#8E8E93] text-lg font-medium">No hay actividades hoy</p>
+        <p class="text-[#8E8E93] text-sm mt-1">Añade una actividad para comenzar tu reporte.</p>
+      </div>
+    `;
+  } else {
+    activitiesHtml = `
+      <div class="space-y-3 mt-6">
+        <h2 class="text-sm font-semibold text-[#8E8E93] uppercase tracking-wider ml-2 mb-3">Registradas hoy (${appState.activities.length})</h2>
+        ${appState.activities.map((act, index) => `
+          <div class="bg-white rounded-2xl p-4 shadow-ios relative border border-[#E5E5EA]">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-1 bg-[#F2F2F7] text-[#8E8E93] rounded-md">${act.time}</span>
+              <button class="delete-btn text-red-500 p-1" data-index="${index}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+            <h3 class="font-bold text-lg leading-tight mb-1 text-black">${act.activityType}</h3>
+            ${act.ubicaciones && act.ubicaciones.length > 0 ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.length > 1 ? act.ubicaciones.length + ' Sectores (' + act.ubicaciones[0].parroquia + '...)' : (act.ubicaciones[0].parroquia + ', ' + act.ubicaciones[0].sector)}</p>` : ''}
+            ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
+            ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Recibió llamadas (I:${act.llamadasInfo} | A:${act.llamadasAgenda})</p>` : ''}
+            <p class="text-[#8E8E93] text-sm mt-1 font-medium bg-[#F2F2F7] inline-block px-2 py-0.5 rounded">S:${act.solicitudes} | C:${act.clientesCaptados}${act.volantes > 0 ? ' | V:'+act.volantes : ''}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  const sendWhatsappBtn = appState.activities.length > 0 ? `
+    <div class="mt-6 flex flex-col gap-3">
+      <button id="btnSendWhatsapp" class="btn-flat-success">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+        </svg>
+        Enviar Reporte por WhatsApp
+      </button>
+      <button id="btnFinalizeJornada" class="btn-flat-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Finalizar Jornada y Guardar
+      </button>
+    </div>
+    
+    <!-- Custom Dialog Modal -->
+    <dialog id="confirmModal" class="bg-white rounded-3xl p-6 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm outline-none border border-[#E5E5EA] w-[90%] max-w-[340px]">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-12 h-12 bg-[#FFEBEE] text-[#C62828] rounded-full flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-black mb-2 leading-tight">¿Finalizar Jornada?</h3>
+        <p class="text-[#3A3A3C] text-sm mb-6">Esto agrupará las actividades de hoy y las preparará para guardarse en tu base de datos de Sheets.</p>
+        
+        <div class="flex w-full gap-3">
+          <button id="btnModalCancel" class="w-1/2 py-3 bg-[#F2F2F7] text-[#3A3A3C] font-semibold rounded-xl active:scale-[0.98] transition-all">Cancelar</button>
+          <button id="btnModalConfirm" class="w-1/2 py-3 bg-[#007AFF] text-white font-semibold rounded-xl text-center active:scale-[0.98] transition-all">Aceptar</button>
+        </div>
+      </div>
+    </dialog>
+  ` : '';
+
+  return `
+    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
+      <header class="flex flex-col mb-6 pb-4 border-b border-[#E5E5EA]">
+        <div class="flex items-center justify-between w-full mb-3">
+          <button id="btnBackToHome" class="text-[#007AFF] font-medium text-lg flex items-center gap-1 active:opacity-70 transition-opacity">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+             </svg>
+             Inicio
+          </button>
+          <h2 class="text-lg font-semibold text-black">Panel de Actividades</h2>
+          <div class="w-[74px]"></div> <!-- Spacer -->
+        </div>
+      </header>
+      
+      <button id="btnGoToFormFromPanel" class="w-full flex items-center justify-center gap-2 py-3.5 bg-[#007AFF] rounded-xl text-[15px] font-semibold text-white active:scale-[0.98] transition-all mb-4 shadow-sm shadow-[#007AFF]/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Añadir reporte de Actividad
+      </button>
+
+      ${activitiesHtml}
+      ${sendWhatsappBtn}
+    </div>
+  `;
+}
+
+function attachActivitiesPanelEvents() {
+  document.getElementById('btnBackToHome')?.addEventListener('click', () => {
+    appState.currentView = 'home';
+    render();
+  });
+
+  document.getElementById('btnGoToFormFromPanel')?.addEventListener('click', () => {
+    appState.currentView = 'form';
+    render();
+  });
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
@@ -714,12 +759,10 @@ function attachHomeEvents() {
       const activity = appState.activities[idx];
 
       if(await showConfirm('¿Seguro que deseas eliminar esta actividad?')) {
-        // Remove from Google Sheets in real-time
         syncActivity(activity, 'DELETE');
-        
         appState.activities.splice(idx, 1);
         saveActivities();
-        render();
+        render(); // Renders activities panel
       }
     });
   });
@@ -1113,7 +1156,7 @@ function renderForm() {
 
 function attachFormEvents() {
   document.getElementById('btnCancel')?.addEventListener('click', () => {
-    appState.currentView = 'home';
+    appState.currentView = 'activities_panel';
     render();
   });
 
@@ -1386,12 +1429,101 @@ function attachFormEvents() {
         }, 2000);
 
     } else {
-        appState.currentView = 'home';
+        appState.currentView = 'activities_panel';
         render();
     }
   });
 
   initCustomFormDropdowns();
+}
+
+// ----------------- DROPDOWN SYSTEM -----------------
+function initCustomFormDropdowns() {
+    const container = document.getElementById('activityForm');
+    if(container) {
+      container.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(dd => {
+         dd.classList.add('initialized');
+         const realSelect = dd.querySelector('select');
+         const btn = dd.querySelector('.custom-dd-btn');
+         const textSpan = dd.querySelector('.custom-dd-text');
+         const icon = dd.querySelector('.custom-dd-icon');
+         const optionsContainer = dd.querySelector('.custom-dd-options');
+         let isOpen = false;
+         
+         function renderOpt() {
+           const optionsHTML = Array.from(realSelect.options).map(opt => {
+              if (opt.disabled) return '';
+              const isSelected = opt.selected || opt.value === realSelect.value;
+              return `<button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-4 py-3 text-[14px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group"><span class="${isSelected ? 'font-semibold text-[#007AFF]' : 'text-[#3A3A3C] group-hover:text-black'}">${opt.text}</span></button>`;
+           }).join('');
+           optionsContainer.innerHTML = `<div class="py-1">${optionsHTML}</div>`;
+           optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
+             optBtn.addEventListener('click', (ev) => {
+               ev.stopPropagation();
+               realSelect.value = optBtn.getAttribute('data-value');
+               realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+               updateVis();
+               toggleDd();
+             });
+           });
+         }
+
+         function updateVis() {
+           const selectedOpt = realSelect.options[realSelect.selectedIndex];
+           if(!selectedOpt || selectedOpt.disabled || !realSelect.value) {
+               textSpan.textContent = realSelect.options[0]?.text || "Seleccionar...";
+               textSpan.classList.add('text-[#8E8E93]');
+               textSpan.classList.remove('font-medium', 'text-black');
+           } else {
+               textSpan.textContent = selectedOpt.text;
+               textSpan.classList.remove('text-[#8E8E93]');
+               textSpan.classList.add('font-medium', 'text-black');
+           }
+           if(realSelect.disabled) {
+              btn.classList.add('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
+              btn.classList.remove('bg-white', 'hover:bg-[#F2F2F7]', 'border-[#E5E5EA]', 'ring-2', 'ring-[#007AFF]/20');
+           } else {
+              btn.classList.remove('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
+              btn.classList.add('bg-white', 'border-[#E5E5EA]', 'hover:bg-[#F2F2F7]');
+           }
+         }
+
+         function toggleDd() {
+           if(realSelect.disabled) return;
+           isOpen = !isOpen;
+           if (isOpen) {
+             document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
+               if(el !== optionsContainer) {
+                   el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
+                   el.classList.remove('opacity-100', 'visible', 'scale-100');
+               }
+             });
+             renderOpt();
+             optionsContainer.classList.remove('hidden');
+             void optionsContainer.offsetWidth; // trigger reflow
+             optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
+             optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
+             icon.classList.add('rotate-180');
+             btn.classList.add('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
+           } else {
+             optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
+             optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
+             icon.classList.remove('rotate-180');
+             btn.classList.remove('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
+             setTimeout(() => optionsContainer.classList.add('hidden'), 200);
+           }
+         }
+         
+         const existingListener = btn.onclick;
+         if(!existingListener) {
+            btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
+            realSelect.addEventListener('refreshCustomUI', () => updateVis());
+            document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
+         }
+         
+         updateVis();
+      });
+    }
 }
 
 // ----------------- SOLICITUD FORM VIEW -----------------
