@@ -1239,7 +1239,30 @@ function attachFormEvents() {
       h = h % 12 || 12;
       return `${h}:${m} ${period}`;
     }
-    
+
+    // ── Duplicate sector validation ────────────────────────────────────────
+    // Build a set of all parroquia+sector pairs already registered today
+    const usedLocations = new Set();
+    appState.activities.forEach(act => {
+      (act.ubicaciones || []).forEach(loc => {
+        if (loc.parroquia && loc.sector && loc.sector !== 'N/A') {
+          usedLocations.add(`${loc.parroquia}|||${loc.sector}`);
+        }
+      });
+    });
+
+    const duplicates = ubicaciones.filter(loc =>
+      loc.parroquia && loc.sector && loc.sector !== 'N/A' &&
+      usedLocations.has(`${loc.parroquia}|||${loc.sector}`)
+    );
+
+    if (duplicates.length > 0) {
+      const names = duplicates.map(d => `${d.parroquia} – ${d.sector}`).join(', ');
+      showToast(`⚠️ Sector ya registrado hoy: ${names}. Por favor edita la actividad existente en lugar de crear una nueva.`, 'error');
+      return; // Block submission
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     const activity = {
       uid: 'act_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       time: formatTimeValue(document.getElementById('fTime').value),
