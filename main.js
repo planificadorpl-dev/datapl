@@ -1240,25 +1240,26 @@ function attachFormEvents() {
       return `${h}:${m} ${period}`;
     }
 
-    // ── Duplicate sector validation ────────────────────────────────────────
-    // Build a set of all parroquia+sector pairs already registered today
+    // ── Duplicate sector validation (por tipo de actividad) ────────────────
+    // La misma combinación de tipo + parroquia + sector no puede repetirse en la misma jornada
+    const currentType = document.getElementById('fType').value;
     const usedLocations = new Set();
     appState.activities.forEach(act => {
       (act.ubicaciones || []).forEach(loc => {
-        if (loc.parroquia && loc.sector && loc.sector !== 'N/A') {
-          usedLocations.add(`${loc.parroquia}|||${loc.sector}`);
+        if (act.activityType && loc.parroquia && loc.sector && loc.sector !== 'N/A') {
+          usedLocations.add(`${act.activityType}|||${loc.parroquia}|||${loc.sector}`);
         }
       });
     });
 
     const duplicates = ubicaciones.filter(loc =>
       loc.parroquia && loc.sector && loc.sector !== 'N/A' &&
-      usedLocations.has(`${loc.parroquia}|||${loc.sector}`)
+      usedLocations.has(`${currentType}|||${loc.parroquia}|||${loc.sector}`)
     );
 
     if (duplicates.length > 0) {
       const names = duplicates.map(d => `${d.parroquia} – ${d.sector}`).join(', ');
-      showToast(`⚠️ Sector ya registrado hoy: ${names}. Por favor edita la actividad existente en lugar de crear una nueva.`, 'error');
+      showToast(`⚠️ Ya registraste "${currentType}" en: ${names}. Edita esa actividad en vez de crear una nueva.`, 'error');
       return; // Block submission
     }
     // ──────────────────────────────────────────────────────────────────────
