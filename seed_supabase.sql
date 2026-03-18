@@ -1,17 +1,15 @@
--- INSERTAR ASESORES
-INSERT INTO asesores_config (nombre) VALUES 
-('Carlos Ruiz'),
-('Cindy Infante'),
-('Haymar Barros'),
-('Lorena Esqueda'),
-('Maria Quintero'),
-('Patricia Mendoza'),
-('Roxana Yepez'),
-('Yailin Rojas'),
-('Yaisen Herrera');
+-- ============================================================
+-- ACTUALIZACIÓN COMPLETA DE geodata_config
+-- Ejecutar en el SQL Editor de Supabase
+-- ============================================================
 
--- INSERTAR PARROQUIAS Y SECTORES
+-- 1. Borrar todos los registros existentes
+DELETE FROM geodata_config;
+
+-- 2. Insertar todos los sectores actualizados y correctos
 INSERT INTO geodata_config (parroquia, sector) VALUES 
+
+-- Carrizal (24)
 ('Carrizal', 'Barola'),
 ('Carrizal', 'Brisas de Oriente'),
 ('Carrizal', 'C.C. Coliseo'),
@@ -36,6 +34,8 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Carrizal', 'Potrerito del Medio'),
 ('Carrizal', 'Santa Eduvigis'),
 ('Carrizal', 'Yerbabuena'),
+
+-- Cecilio Acosta (24)
 ('Cecilio Acosta', 'Agua Fría'),
 ('Cecilio Acosta', 'C.C. Pasatiempo'),
 ('Cecilio Acosta', 'Carmen Sur'),
@@ -60,6 +60,8 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Cecilio Acosta', 'Santa Eduvigis'),
 ('Cecilio Acosta', 'Urbanización Cerro Alto'),
 ('Cecilio Acosta', 'Urbanización Vista Hermosa'),
+
+-- Coche (7)
 ('Coche', 'Coche (Casco Central)'),
 ('Coche', 'Cochecito'),
 ('Coche', 'La Rinconada'),
@@ -67,11 +69,17 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Coche', 'Mercado Mayor de Coche'),
 ('Coche', 'Turmerito'),
 ('Coche', 'Veredas de Coche'),
+
+-- El Consejo (4)
 ('El Consejo', 'Centro'),
 ('El Consejo', 'Sabaneta'),
 ('El Consejo', 'Santo Domingo'),
 ('El Consejo', 'Zona Industrial'),
+
+-- El Paraíso
 ('El Paraíso', 'N/A'),
+
+-- El Valle (7)
 ('El Valle', 'Casco Central'),
 ('El Valle', 'La Bandera'),
 ('El Valle', 'Las Casitas'),
@@ -79,7 +87,11 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('El Valle', 'Los Jardines de El Valle'),
 ('El Valle', 'Los Rosales'),
 ('El Valle', 'Prado de María'),
+
+-- La Vega
 ('La Vega', 'N/A'),
+
+-- Las Tejerías (22)
 ('Las Tejerías', 'Bella Vista'),
 ('Las Tejerías', 'Brisas de Bucaral'),
 ('Las Tejerías', 'Bucaral'),
@@ -102,6 +114,8 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Las Tejerías', 'Santa Maria'),
 ('Las Tejerías', 'Trapiche del Medio'),
 ('Las Tejerías', 'Variante de Guayas'),
+
+-- Los Teques (96)
 ('Los Teques', '23 de Enero'),
 ('Los Teques', 'Alberto Ravell'),
 ('Los Teques', 'Alto Verde'),
@@ -190,11 +204,11 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Los Teques', 'Punta Brava'),
 ('Los Teques', 'Quebrada La Virgen'),
 ('Los Teques', 'Ramo Verde'),
-('Los Teques', 'Res. (Aldebaran'),
+('Los Teques', 'Res. (Aldebaran, Yati)'),
 ('Los Teques', 'Retamal'),
 ('Los Teques', 'Romerito'),
-('Los Teques', 'Rómulo Gallegos'),
 ('Los Teques', 'Río Arriba'),
+('Los Teques', 'Rómulo Gallegos'),
 ('Los Teques', 'San Omero'),
 ('Los Teques', 'San Pedro'),
 ('Los Teques', 'Santa Eulalia'),
@@ -209,6 +223,8 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('Los Teques', 'Urb. Tina Antonia'),
 ('Los Teques', 'Valle Alto'),
 ('Los Teques', 'Yati'),
+
+-- San Antonio de los Altos (30)
 ('San Antonio de los Altos', 'Barrio Las Minas'),
 ('San Antonio de los Altos', 'Bosque Alegre'),
 ('San Antonio de los Altos', 'C.C. Casa Blanca'),
@@ -236,14 +252,17 @@ INSERT INTO geodata_config (parroquia, sector) VALUES
 ('San Antonio de los Altos', 'Los Samanes'),
 ('San Antonio de los Altos', 'OPS'),
 ('San Antonio de los Altos', 'Pueblo de San Antonio'),
-('San Antonio de los Altos', 'Res. (Anita'),
-('San Antonio de los Altos', 'San Antonio)'),
+('San Antonio de los Altos', 'Res. (Anita, San Antonio)'),
 ('San Antonio de los Altos', 'Sierra Brava'),
 ('San Antonio de los Altos', 'Terrazas de La Rosaleda'),
+
+-- San Pedro de los Altos (4)
 ('San Pedro de los Altos', 'Bosque de Pinos'),
 ('San Pedro de los Altos', 'El Garabato'),
 ('San Pedro de los Altos', 'Pozo de Rosas'),
 ('San Pedro de los Altos', 'Pueblo'),
+
+-- Sucre (12)
 ('Sucre', 'Alta Vista'),
 ('Sucre', 'Blandín'),
 ('Sucre', 'Casalta'),

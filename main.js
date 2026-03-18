@@ -324,6 +324,9 @@ function render() {
   } else if (appState.currentView === 'form') {
     appContainer.innerHTML = renderForm();
     attachFormEvents();
+  } else if (appState.currentView === 'solicitud_form') {
+    appContainer.innerHTML = renderSolicitudForm();
+    attachSolicitudEvents();
   } else if (appState.currentView === 'history') {
     // If arriving at history tab, fetch data
     appContainer.innerHTML = renderHistory();
@@ -511,19 +514,64 @@ function renderHome() {
             </div>
           </div>
         </div>
+      <!-- DUAL CARDS SECTION -->
+      <div class="px-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- CARD 1: ACTIVIDADES -->
+        <button id="btnGoToActivity" class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] text-left transition-transform active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
+          <!-- Main Icon -->
+          <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white mb-6 z-10 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+              <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
+            </svg>
+          </div>
+          <!-- Background Faded Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="absolute -right-4 -top-2 w-32 h-32 text-[#F2F2F7] z-0 transition-transform duration-500 group-hover:scale-110" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1z"/>
+          </svg>
+          <!-- Texts -->
+          <div class="relative z-10">
+            <h2 class="text-[22px] font-bold text-black mb-1.5 tracking-tight">Actividades</h2>
+            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4">Reporte diario de visitas, recorridos y publicidad.</p>
+            <span class="text-[13px] font-bold text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
+              Añadir reporte 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+          </div>
+        </button>
+
+        <!-- CARD 2: SOLICITUDES -->
+        <button id="btnGoToSolicitud" class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] text-left transition-transform active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
+          <!-- Main Icon -->
+          <div class="w-12 h-12 bg-[#F2F2F7] rounded-2xl flex items-center justify-center text-black mb-6 z-10 relative border border-[#E5E5EA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
+              <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
+              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+            </svg>
+          </div>
+          <!-- Background Faded Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="absolute -right-4 top-2 w-32 h-32 text-[#F2F2F7] z-0 transition-transform duration-500 group-hover:-rotate-12" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+          </svg>
+          <!-- Texts -->
+          <div class="relative z-10">
+            <h2 class="text-[22px] font-bold text-black mb-1.5 tracking-tight">Solicitudes</h2>
+            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4">Registro de ventas e instalaciones de fibra.</p>
+            <span class="text-[13px] font-bold text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
+              Nueva Solicitud 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+          </div>
+        </button>
+
       </div>
 
       ${activitiesHtml}
-      ${sendWhatsappBtn}
-
-      <div class="fixed bottom-[68px] left-0 right-0 p-6 bg-gradient-to-t from-[#F2F2F7] via-[#F2F2F7] to-transparent max-w-md mx-auto z-10">
-        <button id="btnAddActivity" class="ios-btn-primary shadow-lg shadow-[#007AFF]/20 ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          ${!appState.currentAsesor ? 'Seleccione un Asesor Arriba' : 'Añadir Actividad'}
-        </button>
-      </div>
+      ${appState.activities.length === 0 ? '<div class="h-16"></div>' : ''} <!-- Spacer when empty -->
 
       ${renderBottomTabs('home')}
     </div>
@@ -642,12 +690,21 @@ function attachHomeEvents() {
     });
   });
 
-  document.getElementById('btnAddActivity')?.addEventListener('click', () => {
+  document.getElementById('btnGoToActivity')?.addEventListener('click', () => {
     if(!appState.currentAsesor) {
        showToast('Por favor, seleccione un asesor antes de añadir actividades.', 'info');
        return;
     }
     appState.currentView = 'form';
+    render();
+  });
+
+  document.getElementById('btnGoToSolicitud')?.addEventListener('click', () => {
+    if(!appState.currentAsesor) {
+       showToast('Por favor, seleccione un asesor antes de crear una solicitud.', 'info');
+       return;
+    }
+    appState.currentView = 'solicitud_form';
     render();
   });
 
@@ -1334,107 +1391,502 @@ function attachFormEvents() {
     }
   });
 
-  function initCustomFormDropdowns() {
-    document.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(container => {
-      container.classList.add('initialized');
-      const realSelect = container.querySelector('select');
-      const btn = container.querySelector('.custom-dd-btn');
-      const textSpan = container.querySelector('.custom-dd-text');
-      const icon = container.querySelector('.custom-dd-icon');
-      const optionsContainer = container.querySelector('.custom-dd-options');
-      let isOpen = false;
+  initCustomFormDropdowns();
+}
 
-      function renderOptions() {
-        if(realSelect.disabled) return;
-        const optionsHTML = Array.from(realSelect.options).map(opt => {
-          if (opt.disabled) return '';
-          const isSelected = opt.selected || opt.value === realSelect.value;
-          return `
-            <button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-4 py-3 text-[14px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
-              <span class="${isSelected ? 'font-semibold text-[#007AFF]' : 'text-[#3A3A3C] group-hover:text-black'}">${opt.text}</span>
-              ${isSelected ? `<svg class="h-4 w-4 text-[#007AFF]" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>` : ''}
-            </button>
-          `;
-        }).join('');
-        optionsContainer.innerHTML = `<div class="py-1">${optionsHTML}</div>`;
+// ----------------- SOLICITUD FORM VIEW -----------------
 
-        optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
-          optBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const val = optBtn.getAttribute('data-value');
-            realSelect.value = val;
-            realSelect.dispatchEvent(new Event('change', { bubbles: true }));
-            updateVisuals();
-            toggleDropdown();
-          });
-        });
-      }
+function renderSolicitudForm() {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
 
-      function updateVisuals() {
-         const selectedOpt = realSelect.options[realSelect.selectedIndex];
-         if(!selectedOpt || selectedOpt.disabled || !realSelect.value) {
-             textSpan.textContent = realSelect.options[0]?.text || "Seleccionar...";
-             textSpan.classList.add('text-[#8E8E93]');
-             textSpan.classList.remove('font-medium', 'text-black');
-         } else {
-             textSpan.textContent = selectedOpt.text;
-             textSpan.classList.remove('text-[#8E8E93]');
-             textSpan.classList.add('font-medium', 'text-black');
-         }
-         
-         if(realSelect.disabled) {
-            btn.classList.add('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-            btn.classList.remove('bg-white', 'border-[#E5E5EA]', 'hover:bg-[#F2F2F7]', 'ring-2', 'ring-[#007AFF]/20');
-         } else {
-            btn.classList.remove('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-            btn.classList.add('bg-white', 'border-[#E5E5EA]', 'hover:bg-[#F2F2F7]');
-         }
-      }
-
-      function toggleDropdown() {
-        if(realSelect.disabled) return;
-        isOpen = !isOpen;
-        if (isOpen) {
-          document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
-            if(el !== optionsContainer) {
-                el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
-                el.classList.remove('opacity-100', 'visible', 'scale-100');
-            }
-          });
-          renderOptions();
-          optionsContainer.classList.remove('hidden');
-          void optionsContainer.offsetWidth; // trigger reflow
-          optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
-          optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
-          icon.classList.add('rotate-180');
-          btn.classList.add('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-        } else {
-          optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
-          optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
-          icon.classList.remove('rotate-180');
-          btn.classList.remove('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-          setTimeout(() => optionsContainer.classList.add('hidden'), 200);
-        }
-      }
-
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleDropdown();
-      });
-
-      realSelect.addEventListener('refreshCustomUI', () => updateVisuals());
+  return `
+    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
+      <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
+        <div class="flex items-center justify-between w-full mb-3">
+          <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
+          <h2 class="text-lg font-semibold text-black">Nueva Solicitud</h2>
+          <div class="w-[74px]"></div> <!-- Spacer to balance flex centering -->
+        </div>
+      </header>
       
-      // Close on outside click
-      document.addEventListener('click', (e) => {
-        if (isOpen && !container.contains(e.target)) toggleDropdown();
-      });
-      
-      updateVisuals(); // initial load
+      <form id="solicitudForm" class="space-y-6">
+        
+        <!-- Fechas y Promotor -->
+        <fieldset class="space-y-4">
+          <div class="space-y-4">
+            <div>
+              <label class="ios-label">Fecha de Solicitud (Actual)</label>
+              <input type="date" id="sFechaSoli" value="${dateStr}" required readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
+            </div>
+            <div>
+              <label class="ios-label">Promotor/a</label>
+              <input type="text" id="sPromotor" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-semibold cursor-default pointer-events-none">
+            </div>
+          </div>
+          <div>
+            <label class="ios-label">Fecha de Disponibilidad</label>
+            <input type="date" id="sFechaDisp" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+          </div>
+        </fieldset>
+
+        <hr class="border-[#E5E5EA]">
+
+        <!-- Datos del Cliente -->
+        <fieldset class="space-y-4">
+          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Datos del Cliente</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="ios-label">Nombres</label>
+              <input type="text" id="sNombres" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+            </div>
+            <div>
+              <label class="ios-label">Apellidos</label>
+              <input type="text" id="sApellidos" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex gap-2 relative">
+              <div class="w-1/3 relative custom-dropdown-container">
+                <select id="sCedulaTipo" required class="hidden-real-select">
+                  <option value="V-">V-</option>
+                  <option value="E-">E-</option>
+                  <option value="J-">J-</option>
+                </select>
+                <button type="button" class="w-full h-[48px] bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl flex justify-center items-center custom-dd-btn">
+                  <span class="custom-dd-text font-medium text-black">V-</span>
+                </button>
+                <div class="absolute z-50 w-[80px] mt-1.5 bg-white border border-[#E5E5EA] rounded-xl shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden custom-dd-options"></div>
+              </div>
+              <div class="w-2/3">
+                <label class="ios-label absolute -top-6 left-0">Cédula/RIF</label>
+                <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+              </div>
+            </div>
+            <div>
+              <label class="ios-label">Género</label>
+              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+                <select id="sGenero" required class="hidden-real-select">
+                  <option value="" disabled selected>Elegir...</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-white custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93]">Elegir...</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden custom-dd-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="ios-label">Fecha de Nacimiento</label>
+            <input type="date" id="sFechaNac" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+          </div>
+        </fieldset>
+
+        <hr class="border-[#E5E5EA]">
+
+        <!-- Ubicación -->
+        <fieldset class="space-y-4">
+          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Ubicación</h3>
+          
+          <div>
+            <label class="ios-label">Estado</label>
+            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+              <select id="sEstado" required class="hidden-real-select">
+                <option value="Miranda" selected>Miranda</option>
+                <option value="Distrito Capital">Distrito Capital</option>
+                <option value="Aragua">Aragua</option>
+              </select>
+              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                <span class="custom-dd-text font-medium text-black">Miranda</span>
+                <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="ios-label">Municipio</label>
+              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+                <select id="sMunicipio" required class="hidden-real-select">
+                  <option value="Guaicaipuro" selected>Guaicaipuro</option>
+                  <option value="Carrizal">Carrizal</option>
+                  <option value="Los Salias">Los Salias</option>
+                  <option value="Libertador">Libertador</option>
+                  <option value="Santos Michelena">Santos Michelena</option>
+                  <option value="Revenga">Revenga</option>
+                </select>
+                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                  <span class="custom-dd-text font-medium text-black">Guaicaipuro</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+              </div>
+            </div>
+            
+            <div>
+              <label class="ios-label">Parroquia</label>
+              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+                <select id="sParroquia" required class="hidden-real-select loc-parroquia-soli">
+                  <option value="" disabled selected>Seleccione...</option>
+                  ${Object.keys(appState.geoData).sort().map(p => `<option value="${p}">${p}</option>`).join('')}
+                </select>
+                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Seleccione...</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="ios-label">Calle / Casa / Apto / Sector</label>
+            <textarea id="sDireccion" required rows="2" class="ios-input focus:bg-white text-black bg-[#F8F8F8] resize-none" placeholder="Ej: Res. Las Rosas, Torre B, Apto 24"></textarea>
+          </div>
+        </fieldset>
+
+        <hr class="border-[#E5E5EA]">
+
+        <!-- Servicio Técnico -->
+        <fieldset class="space-y-4">
+          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Detalles del Servicio</h3>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="ios-label">Tipo de Servicio</label>
+              <div class="relative w-full text-black h-[48px] custom-dropdown-container" id="ddTipoSrv">
+                <select id="sTipoServicio" required class="hidden-real-select">
+                  <option value="Domiciliario" selected>Domiciliario</option>
+                  <option value="Empresarial">Empresarial</option>
+                </select>
+                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                  <span class="custom-dd-text font-medium text-black">Domiciliario</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
+              </div>
+            </div>
+
+            <div>
+              <label class="ios-label">Power Go</label>
+              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+                <select id="sPowerGo" required class="hidden-real-select">
+                  <option value="NO" selected>NO</option>
+                  <option value="SI">SI</option>
+                </select>
+                <button type="button" id="btnPowerGo" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                  <span class="custom-dd-text font-medium text-black">NO</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="ios-label">Plan</label>
+            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+              <select id="sPlan" required class="hidden-real-select">
+                <option value="" disabled selected>Seleccione plan...</option>
+                <!-- Opciones dinámicas base tipo de servicio -->
+              </select>
+              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Seleccione plan...</span>
+                <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <hr class="border-[#E5E5EA]">
+
+        <!-- Contacto Adicional -->
+        <fieldset class="space-y-4">
+          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Contacto / Varios</h3>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="ios-label">Teléfono Ppal.</label>
+              <input type="tel" id="sTelefonoP" required placeholder="0414-0000000" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+            </div>
+            <div>
+              <label class="ios-label">Teléfono Sec. <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
+              <input type="tel" id="sTelefonoS" placeholder="0412-0000000" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+            </div>
+          </div>
+
+          <div>
+            <label class="ios-label">Correo Electrónico <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
+            <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+          </div>
+
+          <div>
+            <label class="ios-label">Fuente</label>
+            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+              <select id="sFuente" required class="hidden-real-select">
+                <option value="" disabled selected>Seleccionar...</option>
+                <option value="Volante">Volante</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Recorrido">Recorrido</option>
+                <option value="Referido">Referido</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
+                <span class="custom-dd-text text-[#8E8E93]">Seleccionar...</span>
+                <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+            </div>
+          </div>
+
+        </fieldset>
+
+        <div class="pt-6">
+          <button type="submit" class="ios-btn-primary shadow-lg shadow-[#007AFF]/20 w-full mb-3">Guardar y Enviar WhatsApp</button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function attachSolicitudEvents() {
+  document.getElementById('btnCancelSolicitud')?.addEventListener('click', () => {
+    appState.currentView = 'home';
+    render();
+  });
+
+  const tipoSrv = document.getElementById('sTipoServicio');
+  const planSelect = document.getElementById('sPlan');
+  const powerGoSelect = document.getElementById('sPowerGo');
+
+  // Logic arrays based on user plans
+  const planesDom = [
+    '200MB', '300MB', '400MB', '600MB', '1GB',
+    '200MB + TV', '300MB + TV', '400MB + TV', '600MB + TV', '1GB + TV'
+  ];
+  const planesEmp = [
+    '50MB', '100MB', '200MB', 'Plan Dedicado'
+  ];
+
+  function updatePlanes() {
+    planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
+    let arr = tipoSrv.value === 'Empresarial' ? planesEmp : planesDom;
+    arr.forEach(p => {
+      planSelect.innerHTML += `<option value="${p}">${p}</option>`;
     });
+
+    if (tipoSrv.value === 'Empresarial') {
+      powerGoSelect.value = 'NO';
+      powerGoSelect.disabled = true;
+    } else {
+      powerGoSelect.disabled = false;
+    }
+
+    planSelect.dispatchEvent(new Event('refreshCustomUI'));
+    powerGoSelect.dispatchEvent(new Event('refreshCustomUI'));
   }
 
-  initCustomFormDropdowns();
+  tipoSrv?.addEventListener('change', updatePlanes);
+  
+  // Prevent Custom dropdowns from failing if not instantly updated
+  setTimeout(() => {
+    // Only init inside this view to prevent double binding other forms
+    const container = document.getElementById('solicitudForm');
+    if(container) {
+      container.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(dd => {
+         // Same initialization logic as in form
+         dd.classList.add('initialized');
+         const realSelect = dd.querySelector('select');
+         const btn = dd.querySelector('.custom-dd-btn');
+         const textSpan = dd.querySelector('.custom-dd-text');
+         const icon = dd.querySelector('.custom-dd-icon');
+         const optionsContainer = dd.querySelector('.custom-dd-options');
+         let isOpen = false;
+         
+         function renderOpt() {
+           const optionsHTML = Array.from(realSelect.options).map(opt => {
+              if (opt.disabled) return '';
+              const isSelected = opt.selected || opt.value === realSelect.value;
+              return `<button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-4 py-3 text-[14px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group"><span class="${isSelected ? 'font-semibold text-[#007AFF]' : 'text-[#3A3A3C] group-hover:text-black'}">${opt.text}</span></button>`;
+           }).join('');
+           optionsContainer.innerHTML = `<div class="py-1">${optionsHTML}</div>`;
+           optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
+             optBtn.addEventListener('click', (ev) => {
+               ev.stopPropagation();
+               realSelect.value = optBtn.getAttribute('data-value');
+               realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+               updateVis();
+               toggleDd();
+             });
+           });
+         }
+
+         function updateVis() {
+           const selectedOpt = realSelect.options[realSelect.selectedIndex];
+           if(!selectedOpt || selectedOpt.disabled || !realSelect.value) {
+               textSpan.textContent = realSelect.options[0]?.text || "Elegir...";
+               textSpan.classList.add('text-[#8E8E93]');
+               textSpan.classList.remove('font-medium', 'text-black');
+           } else {
+               textSpan.textContent = selectedOpt.text;
+               textSpan.classList.remove('text-[#8E8E93]');
+               textSpan.classList.add('font-medium', 'text-black');
+           }
+           if(realSelect.disabled) {
+              btn.classList.add('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
+              btn.classList.remove('bg-white', 'hover:bg-white', 'border-[#E5E5EA]', 'ring-2', 'ring-[#007AFF]/20');
+           } else {
+              btn.classList.remove('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
+              btn.classList.add('bg-[#F8F8F8]', 'border-[#E5E5EA]', 'hover:bg-white');
+           }
+         }
+
+         function toggleDd() {
+           if(realSelect.disabled) return;
+           isOpen = !isOpen;
+           if (isOpen) {
+             document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
+               if(el !== optionsContainer) {
+                   el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
+                   el.classList.remove('opacity-100', 'visible', 'scale-100');
+               }
+             });
+             renderOpt();
+             optionsContainer.classList.remove('hidden');
+             void optionsContainer.offsetWidth; // trigger reflow
+             optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
+             optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
+             icon.classList.add('rotate-180');
+             btn.classList.add('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
+           } else {
+             optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
+             optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
+             icon.classList.remove('rotate-180');
+             btn.classList.remove('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
+             setTimeout(() => optionsContainer.classList.add('hidden'), 200);
+           }
+         }
+         btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
+         realSelect.addEventListener('refreshCustomUI', () => updateVis());
+         document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
+         updateVis();
+      });
+      updatePlanes(); // Init first load
+    }
+  }, 10);
+
+  // Form submit handler to validate and send to WA
+  const formEl = document.getElementById('solicitudForm');
+  formEl?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btnSubmit = formEl.querySelector('button[type="submit"]');
+    const ogText = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = `<div class="h-5 w-5 border-2 border-white border-t-transparent flex-shrink-0 rounded-full animate-spin mx-auto"></div>`;
+    btnSubmit.disabled = true;
+
+    try {
+      // 1. Recopilar datos
+      const formData = {
+        fecha_disp: document.getElementById('sFechaDisp').value,
+        promotor: appState.currentAsesor,
+        nombres: document.getElementById('sNombres').value.trim(),
+        apellidos: document.getElementById('sApellidos').value.trim(),
+        cedula: document.getElementById('sCedulaTipo').value + document.getElementById('sCedulaNum').value.trim(),
+        genero: document.getElementById('sGenero').value,
+        estado: document.getElementById('sEstado').value,
+        municipio: document.getElementById('sMunicipio').value,
+        parroquia: document.getElementById('sParroquia').value,
+        direccion: document.getElementById('sDireccion').value.trim(),
+        tipo_servicio: document.getElementById('sTipoServicio').value,
+        plan: document.getElementById('sPlan').value,
+        telefono_principal: document.getElementById('sTelefonoP').value.trim(),
+        telefono_secundario: document.getElementById('sTelefonoS').value.trim(),
+        correo: document.getElementById('sCorreo').value.trim(),
+        power_go: document.getElementById('sPowerGo').value === 'SI',
+        fecha_nacimiento: document.getElementById('sFechaNac').value || null,
+        fuente: document.getElementById('sFuente').value
+      };
+
+      // 2. Guardar en Supabase
+      const { data, error } = await supabase.from('solicitudes').insert([{
+        fecha_disponibilidad: formData.fecha_disp,
+        promotor: formData.promotor,
+        nombres: formData.nombres,
+        apellidos: formData.apellidos,
+        cedula: formData.cedula,
+        genero: formData.genero,
+        estado: formData.estado,
+        municipio: formData.municipio,
+        parroquia: formData.parroquia,
+        direccion: formData.direccion,
+        tipo_servicio: formData.tipo_servicio,
+        plan: formData.plan,
+        telefono_principal: formData.telefono_principal,
+        telefono_secundario: formData.telefono_secundario || null,
+        correo: formData.correo || null,
+        power_go: formData.power_go,
+        fecha_nacimiento: formData.fecha_nacimiento,
+        fuente: formData.fuente
+      }]);
+
+      if (error) throw error;
+
+      // 3. Generar Reporte de WhatsApp
+      let formatDate = (dateString) => {
+        if (!dateString) return '';
+        const [y, m, d] = dateString.split('-');
+        return `${d}/${m}/${y}`;
+      };
+
+      let todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+      let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
+      waMsg += `*Fecha de solicitud:* ${todayStr}\n`;
+      waMsg += `*Fecha de Disponibilidad:* ${formatDate(formData.fecha_disp)}\n\n`;
+      waMsg += `*Nombres:* ${formData.nombres} *Apellidos:* ${formData.apellidos}\n`;
+      waMsg += `*Cédula/RIF:* ${formData.cedula}\n`;
+      waMsg += `*Género:* ${formData.genero}\n`;
+      waMsg += `*Estado:* ${formData.estado}\n`;
+      waMsg += `*Municipio:* ${formData.municipio}\n`;
+      waMsg += `*Parroquia:* ${formData.parroquia}\n`;
+      waMsg += `*Calle / Casa / Apto:* ${formData.direccion}\n`;
+      waMsg += `*Tipo de Servicio:* ${formData.tipo_servicio}\n`;
+      waMsg += `*Plan:* ${formData.plan}\n`;
+      waMsg += `*Promotor/a:* ${formData.promotor}\n`;
+      waMsg += `*Teléfono principal:* ${formData.telefono_principal}\n`;
+      if (formData.telefono_secundario) {
+        waMsg += `*Teléfono secundario:* ${formData.telefono_secundario}\n`;
+      }
+      if (formData.correo) {
+        waMsg += `*Correo Electrónico:* ${formData.correo}\n`;
+      }
+      waMsg += `*Power Go:* ${formData.power_go ? 'SI' : 'NO'}\n`;
+      waMsg += `*Fuente:* ${formData.fuente}`;
+
+      // Open WA
+      window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, '_blank');
+
+      // 4. Reset & Return home
+      showToast('Solicitud guardada correctamente', 'success');
+      appState.currentView = 'home';
+      render();
+
+    } catch (err) {
+      console.error('Error guardando solicitud:', err);
+      showToast('Error al guardar la solicitud: ' + err.message, 'error');
+      btnSubmit.innerHTML = ogText;
+      btnSubmit.disabled = false;
+    }
+  });
 }
 
 // ----------------- WHATSAPP LOGIC -----------------
