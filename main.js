@@ -515,7 +515,7 @@ function renderHome() {
           </div>
         </div>
       <!-- DUAL CARDS SECTION -->
-      <div class="px-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="px-6 grid grid-cols-1 gap-4">
         
         <!-- CARD 1: ACTIVIDADES -->
         <button id="btnGoToActivity" class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] text-left transition-transform active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
