@@ -1659,7 +1659,7 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Parroquia</label>
               <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sParroquia" required class="hidden-real-select loc-parroquia-soli" disabled>
+                <select id="sParroquia" required class="hidden-real-select" disabled>
                   <option value="" disabled selected>Esperando...</option>
                 </select>
                 <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
@@ -1672,7 +1672,21 @@ function renderSolicitudForm() {
           </div>
 
           <div>
-            <label class="ios-label">Calle / Casa / Apto / Sector</label>
+            <label class="ios-label">Sector</label>
+            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+              <select id="sSector" required class="hidden-real-select" disabled>
+                <option value="" disabled selected>Esperando...</option>
+              </select>
+              <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+                <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
+                <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="ios-label">Calle / Casa / Apto</label>
             <textarea id="sDireccion" required rows="2" class="ios-input focus:bg-white text-black bg-[#F8F8F8] resize-none" placeholder="Ej: Res. Las Rosas, Torre B, Apto 24"></textarea>
           </div>
         </fieldset>
@@ -1826,6 +1840,7 @@ function attachSolicitudEvents() {
   const estadoSelect = document.getElementById('sEstado');
   const municipioSelect = document.getElementById('sMunicipio');
   const parroquiaSelect = document.getElementById('sParroquia');
+  const sectorSelect = document.getElementById('sSector');
 
   estadoSelect?.addEventListener('change', () => {
     const estado = estadoSelect.value;
@@ -1833,7 +1848,9 @@ function attachSolicitudEvents() {
     
     municipioSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
     parroquiaSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
+    sectorSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
     parroquiaSelect.disabled = true;
+    sectorSelect.disabled = true;
 
     if (municipios.length > 0) {
       municipioSelect.disabled = false;
@@ -1849,6 +1866,7 @@ function attachSolicitudEvents() {
     
     municipioSelect.dispatchEvent(new Event('refreshCustomUI'));
     parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
+    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
   });
 
   municipioSelect?.addEventListener('change', () => {
@@ -1859,6 +1877,8 @@ function attachSolicitudEvents() {
       : [];
 
     parroquiaSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
+    sectorSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
+    sectorSelect.disabled = true;
     
     if (parroquias.length > 0) {
       parroquiaSelect.disabled = false;
@@ -1873,6 +1893,32 @@ function attachSolicitudEvents() {
     }
 
     parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
+    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
+  });
+
+  parroquiaSelect?.addEventListener('change', () => {
+    const estado = estadoSelect.value;
+    const municipio = municipioSelect.value;
+    const parroquia = parroquiaSelect.value;
+    const sectores = (geoHierarchy[estado] && geoHierarchy[estado][municipio] && geoHierarchy[estado][municipio][parroquia])
+      ? geoHierarchy[estado][municipio][parroquia].sort()
+      : [];
+
+    sectorSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
+    
+    if (sectores.length > 0) {
+      sectorSelect.disabled = false;
+      sectores.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        sectorSelect.appendChild(opt);
+      });
+    } else {
+      sectorSelect.disabled = true;
+    }
+
+    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
   });
   
   // Prevent Custom dropdowns from failing if not instantly updated
@@ -1984,6 +2030,7 @@ function attachSolicitudEvents() {
         estado: document.getElementById('sEstado').value,
         municipio: document.getElementById('sMunicipio').value,
         parroquia: document.getElementById('sParroquia').value,
+        sector: document.getElementById('sSector').value,
         direccion: document.getElementById('sDireccion').value.trim(),
         tipo_servicio: document.getElementById('sTipoServicio').value,
         plan: document.getElementById('sPlan').value,
@@ -2006,6 +2053,7 @@ function attachSolicitudEvents() {
         estado: formData.estado,
         municipio: formData.municipio,
         parroquia: formData.parroquia,
+        sector: formData.sector,
         direccion: formData.direccion,
         tipo_servicio: formData.tipo_servicio,
         plan: formData.plan,
@@ -2037,6 +2085,7 @@ function attachSolicitudEvents() {
       waMsg += `*Estado:* ${formData.estado}\n`;
       waMsg += `*Municipio:* ${formData.municipio}\n`;
       waMsg += `*Parroquia:* ${formData.parroquia}\n`;
+      waMsg += `*Sector:* ${formData.sector}\n`;
       waMsg += `*Calle / Casa / Apto:* ${formData.direccion}\n`;
       waMsg += `*Tipo de Servicio:* ${formData.tipo_servicio}\n`;
       waMsg += `*Plan:* ${formData.plan}\n`;
