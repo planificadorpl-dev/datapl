@@ -8,13 +8,14 @@ const DEFAULT_ASESORES = ['Yaisen Herrera', 'Lorena Esqueda', 'Cindy Infante', '
 
 let appState = {
   currentView: 'home', // 'home', 'form', 'history', or 'admin'
-  currentAsesor: localStorage.getItem('current_asesor') || '',
+  currentAsesor: localStorage.getItem('lastAsesor') || '',
   activities: JSON.parse(localStorage.getItem('current_activities') || '[]'),
   history: [],
   historyLoading: false,
   historyError: null,
   asesores: [],
-  geoData: {}
+  geoData: {}, // Format: { "Parroquia": ["Sector 1", "Sector 2"] }
+  planes: [],  // Format: [{ nombre, tipo, activo }]
 };
 
 // Global Initialization Flag
@@ -27,12 +28,15 @@ async function loadGlobalConfig() {
     const { data: qAsesores, error: errA } = await supabase.from('asesores_config').select('*').order('nombre');
     // 2. Fetch GeoData
     const { data: qGeo, error: errG } = await supabase.from('geodata_config').select('*').order('parroquia').order('sector');
+    // 3. Fetch Planes
+    const { data: qPlanes, error: errP } = await supabase.from('planes_config').select('*').order('nombre');
 
-    if (errA || errG) {
-       console.error("Error loading config from Supabase:", errA || errG);
+    if (errA || errG || errP) {
+       console.error("Error loading config from Supabase:", errA || errG || errP);
        // Fallback on error
        appState.asesores = [...DEFAULT_ASESORES];
        appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
+       appState.planes = [];
     } else {
        // Map Asesores
        if(qAsesores && qAsesores.length > 0) {
@@ -52,11 +56,19 @@ async function loadGlobalConfig() {
        } else {
           appState.geoData = JSON.parse(JSON.stringify(defaultGeoData)); // fallback if empty table
        }
+
+       // Map Planes
+       if(qPlanes && qPlanes.length > 0) {
+          appState.planes = qPlanes;
+       } else {
+          appState.planes = [];
+       }
     }
   } catch(e) {
      console.error("Critical error connecting to Supabase:", e);
      appState.asesores = [...DEFAULT_ASESORES];
      appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
+     appState.planes = [];
   } finally {
      isAppInitialized = true;
      render();
@@ -411,7 +423,7 @@ function renderHome() {
         </div>
         <button id="btnAdminAccess" class="p-2 text-[#8E8E93] hover:text-black transition-colors rounded-full hover:bg-black/5 active:scale-95">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
@@ -1807,23 +1819,34 @@ function attachSolicitudEvents() {
   const planSelect = document.getElementById('sPlan');
   const powerGoSelect = document.getElementById('sPowerGo');
 
-  // Logic arrays based on user plans
-  const planesDom = [
-    '200MB', '300MB', '400MB', '600MB', '1GB',
-    '200MB + TV', '300MB + TV', '400MB + TV', '600MB + TV', '1GB + TV'
-  ];
-  const planesEmp = [
-    '50MB', '100MB', '200MB', 'Plan Dedicado'
-  ];
-
   function updatePlanes() {
-    planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
-    let arr = tipoSrv.value === 'Empresarial' ? planesEmp : planesDom;
-    arr.forEach(p => {
-      planSelect.innerHTML += `<option value="${p}">${p}</option>`;
-    });
+    const tipo = tipoSrv.value;
+    const availablePlanes = appState.planes.filter(p => p.tipo === tipo && p.activo !== false);
 
-    if (tipoSrv.value === 'Empresarial') {
+    planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
+    
+    if (availablePlanes.length > 0) {
+      availablePlanes.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nombre;
+        opt.textContent = p.nombre;
+        planSelect.appendChild(opt);
+      });
+    } else {
+      // Fallback if no planes are loaded from DB
+      const fallbackPlanes = tipo === 'Domiciliario' ? 
+        ['400MB', '600MB', '1GB', '400MB + TV', '600MB + TV', '1GB + TV'] : 
+        ['50MB', '100MB', '200MB', 'Plan Dedicado'];
+        
+      fallbackPlanes.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        planSelect.appendChild(opt);
+      });
+    }
+
+    if (tipo === 'Empresarial') {
       powerGoSelect.value = 'NO';
       powerGoSelect.disabled = true;
     } else {
