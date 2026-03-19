@@ -15,7 +15,7 @@ let appState = {
   historyError: null,
   asesores: [],
   geoData: {}, // Format: { "Parroquia": ["Sector 1", "Sector 2"] }
-  planes: [],  // Format: [{ nombre, tipo, activo }]
+  planes: [],  // Format: [{ id, nombre, tipo, has_tv, activo }]
 };
 
 // Global Initialization Flag
@@ -181,6 +181,73 @@ function attachAdminEvents() {
     }
   };
 
+  // PLANES
+  document.getElementById('btnAddPlan')?.addEventListener('click', async (e) => {
+     const nombre = document.getElementById('pNombre').value.trim();
+     const tipo = document.getElementById('pTipo').value;
+     const has_tv = document.getElementById('pHasTV').checked;
+     
+     if(nombre) {
+        const btn = e.currentTarget;
+        setLoading(btn, true);
+        const { data, error } = await supabase.from('planes_config').insert([{ nombre, tipo, has_tv }]).select();
+        setLoading(btn, false);
+        
+        if(error) {
+           showToast('Error: ' + error.message);
+        } else {
+           if(data) appState.planes.push(data[0]);
+           render();
+        }
+     }
+  });
+
+  // GLOBAL DELEGATION FOR ADMIN (Check if already attached to avoid duplicates)
+  if (!window._adminClickAttached) {
+    document.addEventListener('click', async (e) => {
+      // Toggle Active
+      if (e.target.closest('.btn-toggle-plan-active')) {
+         const btn = e.target.closest('.btn-toggle-plan-active');
+         const id = btn.dataset.id;
+         const plan = appState.planes.find(p => p.id == id);
+         if(plan) {
+            const newStatus = !plan.activo;
+            const { error } = await supabase.from('planes_config').update({ activo: newStatus }).eq('id', id);
+            if(!error) {
+               plan.activo = newStatus;
+               render();
+            }
+         }
+      }
+      // Toggle TV
+      if (e.target.closest('.btn-toggle-plan-tv')) {
+         const btn = e.target.closest('.btn-toggle-plan-tv');
+         const id = btn.dataset.id;
+         const plan = appState.planes.find(p => p.id == id);
+         if(plan) {
+            const newTV = !plan.has_tv;
+            const { error } = await supabase.from('planes_config').update({ has_tv: newTV }).eq('id', id);
+            if(!error) {
+               plan.has_tv = newTV;
+               render();
+            }
+         }
+      }
+      // Delete Plan
+      if (e.target.closest('.btn-delete-plan')) {
+         if(await showConfirm('¿Estás seguro de eliminar este plan?', 'Eliminar')) {
+            const btn = e.target.closest('.btn-delete-plan');
+            const id = btn.dataset.id;
+            const { error } = await supabase.from('planes_config').delete().eq('id', id);
+            if(!error) {
+               appState.planes = appState.planes.filter(p => p.id != id);
+               render();
+            }
+         }
+      }
+    });
+    window._adminClickAttached = true;
+  }
   // ASESORES
   document.getElementById('btnAddAsesor')?.addEventListener('click', async (e) => {
     const name = document.getElementById('inputNewAsesor').value.trim();
@@ -1821,19 +1888,21 @@ function attachSolicitudEvents() {
 
   function updatePlanes() {
     const tipo = tipoSrv.value;
-    const availablePlanes = appState.planes.filter(p => p.tipo === tipo && p.activo !== false);
+    const availablePlanes = appState.planes.filter(p => !p.activo === false); // Filter only active ones
+    const filtered = availablePlanes.filter(p => p.tipo === tipo);
 
     planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
     
-    if (availablePlanes.length > 0) {
-      availablePlanes.forEach(p => {
+    if (filtered.length > 0) {
+      filtered.forEach(p => {
         const opt = document.createElement('option');
-        opt.value = p.nombre;
-        opt.textContent = p.nombre;
+        const displayName = p.nombre + (p.has_tv ? ' + TV' : '');
+        opt.value = displayName;
+        opt.textContent = displayName;
         planSelect.appendChild(opt);
       });
     } else {
-      // Fallback if no planes are loaded from DB
+      // Fallback
       const fallbackPlanes = tipo === 'Domiciliario' ? 
         ['400MB', '600MB', '1GB', '400MB + TV', '600MB + TV', '1GB + TV'] : 
         ['50MB', '100MB', '200MB', 'Plan Dedicado'];
