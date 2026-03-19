@@ -1,4 +1,5 @@
 import { geoData as defaultGeoData } from './geo_data.js';
+import { geoHierarchy } from './geo_hierarchy.js';
 import { renderAdminPanel } from './adminView.js';
 import { supabase } from './supabaseClient.js';
 
@@ -1629,12 +1630,11 @@ function renderSolicitudForm() {
             <label class="ios-label">Estado</label>
             <div class="relative w-full text-black h-[48px] custom-dropdown-container">
               <select id="sEstado" required class="hidden-real-select">
-                <option value="Miranda" selected>Miranda</option>
-                <option value="Distrito Capital">Distrito Capital</option>
-                <option value="Aragua">Aragua</option>
+                <option value="" disabled selected>Seleccione...</option>
+                ${Object.keys(geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
               </select>
               <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                <span class="custom-dd-text font-medium text-black">Miranda</span>
+                <span class="custom-dd-text text-[#8E8E93]">Seleccione...</span>
                 <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
               </button>
               <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
@@ -1645,16 +1645,11 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Municipio</label>
               <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sMunicipio" required class="hidden-real-select">
-                  <option value="Guaicaipuro" selected>Guaicaipuro</option>
-                  <option value="Carrizal">Carrizal</option>
-                  <option value="Los Salias">Los Salias</option>
-                  <option value="Libertador">Libertador</option>
-                  <option value="Santos Michelena">Santos Michelena</option>
-                  <option value="Revenga">Revenga</option>
+                <select id="sMunicipio" required class="hidden-real-select" disabled>
+                  <option value="" disabled selected>Esperando...</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                  <span class="custom-dd-text font-medium text-black">Guaicaipuro</span>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
                   <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
@@ -1664,12 +1659,11 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Parroquia</label>
               <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sParroquia" required class="hidden-real-select loc-parroquia-soli">
-                  <option value="" disabled selected>Seleccione...</option>
-                  ${Object.keys(appState.geoData).sort().map(p => `<option value="${p}">${p}</option>`).join('')}
+                <select id="sParroquia" required class="hidden-real-select loc-parroquia-soli" disabled>
+                  <option value="" disabled selected>Esperando...</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Seleccione...</span>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
                   <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
@@ -1827,6 +1821,59 @@ function attachSolicitudEvents() {
   }
 
   tipoSrv?.addEventListener('change', updatePlanes);
+
+  // Geographic Filtering Logic
+  const estadoSelect = document.getElementById('sEstado');
+  const municipioSelect = document.getElementById('sMunicipio');
+  const parroquiaSelect = document.getElementById('sParroquia');
+
+  estadoSelect?.addEventListener('change', () => {
+    const estado = estadoSelect.value;
+    const municipios = geoHierarchy[estado] ? Object.keys(geoHierarchy[estado]).sort() : [];
+    
+    municipioSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
+    parroquiaSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
+    parroquiaSelect.disabled = true;
+
+    if (municipios.length > 0) {
+      municipioSelect.disabled = false;
+      municipios.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        municipioSelect.appendChild(opt);
+      });
+    } else {
+      municipioSelect.disabled = true;
+    }
+    
+    municipioSelect.dispatchEvent(new Event('refreshCustomUI'));
+    parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
+  });
+
+  municipioSelect?.addEventListener('change', () => {
+    const estado = estadoSelect.value;
+    const municipio = municipioSelect.value;
+    const parroquias = (geoHierarchy[estado] && geoHierarchy[estado][municipio]) 
+      ? Object.keys(geoHierarchy[estado][municipio]).sort() 
+      : [];
+
+    parroquiaSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
+    
+    if (parroquias.length > 0) {
+      parroquiaSelect.disabled = false;
+      parroquias.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        parroquiaSelect.appendChild(opt);
+      });
+    } else {
+      parroquiaSelect.disabled = true;
+    }
+
+    parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
+  });
   
   // Prevent Custom dropdowns from failing if not instantly updated
   setTimeout(() => {
