@@ -13,6 +13,15 @@ CREATE TABLE IF NOT EXISTS planes_config (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 1.1 Asegurar que la columna 'has_tv' existe (por si la tabla ya fue creada antes)
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='planes_config' AND column_name='has_tv') THEN
+        ALTER TABLE planes_config ADD COLUMN has_tv BOOLEAN DEFAULT FALSE;
+    END IF;
+END $$;
+
 -- 2. Limpiar datos previos si existen
 TRUNCATE TABLE planes_config;
 
