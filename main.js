@@ -2161,7 +2161,8 @@ function attachSolicitudEvents() {
 
       let todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
       
-      let waMsg = `Fecha de solicitud: ${todayStr}\n`;
+      let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
+      waMsg += `Fecha de solicitud: ${todayStr}\n`;
       waMsg += `Fecha de Disponibilidad: ${formatDate(formData.fecha_disp)}\n\n`;
       waMsg += `Nombres y Apellido: ${formData.nombres} ${formData.apellidos}\n`;
       waMsg += `Cédula/RIF: ${formData.cedula}\n`;
