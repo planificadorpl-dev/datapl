@@ -1,4 +1,8 @@
 import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,8 +17,11 @@ export default async function handler(req, res) {
   }
 
   const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-  if (!SPREADSHEET_ID) {
-    return res.status(500).json({ error: 'Falta SPREADSHEET_ID en las variables de entorno.' });
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!credsStr || !SPREADSHEET_ID) {
+    return res.status(500).json({ error: 'Faltan variables de entorno (GOOGLE o SPREADSHEET).' });
   }
 
   let auth;
@@ -33,6 +40,7 @@ export default async function handler(req, res) {
   }
 
   const sheets = google.sheets('v4');
+  const supabase = (SUPABASE_URL && SUPABASE_KEY) ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
   const jornada = req.body;
   
   if (!jornada || !jornada.activitiesDetail || !Array.isArray(jornada.activitiesDetail)) {
@@ -76,12 +84,40 @@ export default async function handler(req, res) {
     await sheets.spreadsheets.values.append({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:N",
+      range: "'REPORTES DE ASESORES'!A:P", 
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: rows },
     });
 
-    return res.status(200).json({ success: true, message: 'Jornada guardada exitosamente en Sheets.' });
+    // 2. Save to Supabase (if configured)
+    if (supabase) {
+      const supabaseRows = jornada.activitiesDetail.map(act => {
+        const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
+        return {
+          fecha: jornada.date.split('/').reverse().join('-'), // "DD/MM/YYYY" -> "YYYY-MM-DD"
+          hora: act.time.includes(' ') ? act.time.split(' ')[0] : act.time,
+          asesor: jornada.asesor,
+          tipo: act.activityType,
+          solicitudes: parseInt(act.solicitudes || 0),
+          clientes_captados: parseInt(act.clientesCaptados || 0),
+          volantes: parseInt(act.volantes || 0),
+          llamadas_info: parseInt(act.llamadasInfo || 0),
+          llamadas_agenda: parseInt(act.llamadasAgenda || 0),
+          estado: u.estado || act.estado || null,
+          municipio: u.municipio || act.municipio || null,
+          parroquia: u.parroquia || act.parroquia || null,
+          sector: u.sector || act.sector || null,
+          condominio: act.condominio || null,
+          notas: act.notes || null,
+          reporte_wa: jornada.reporteWhatsapp || null
+        };
+      });
+
+      const { error: supError } = await supabase.from('actividades').insert(supabaseRows);
+      if (supError) console.error('Error saving to Supabase activities:', supError);
+    }
+
+    return res.status(200).json({ success: true, message: 'Jornada guardada exitosamente en Sheets y Supabase.' });
     
   } catch (error) {
     console.error('Error al guardar en Google Sheets:', error);

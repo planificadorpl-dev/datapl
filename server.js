@@ -1,9 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { google } from 'googleapis';
 
 dotenv.config();
+
+// Supabase Init
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,55 +52,80 @@ app.post('/api/save-jornada', async (req, res) => {
   try {
     const authClient = await auth.getClient();
     
-    // Convert JSON activities to Sheets Row Arrays
+    // 1. Prepare for Google Sheets (Column Mapping)
+    // A: Fecha, B: Hora, C: Asesor, D: Tipo, E: S, F: C, G: Vol, H: Info, I: Agenda, J: Estado, K: Municipio, L: Parroquia, M: Sector, N: Condominio, O: Notas, P: Reporte WA
     const rows = jornada.activitiesDetail.map((act, i) => {
-      let parroquiasStr = "";
-      let sectoresStr = "";
-      if(act.ubicaciones && act.ubicaciones.length > 0) {
-         parroquiasStr = act.ubicaciones.map(u => u.parroquia).join(" | ");
-         sectoresStr = act.ubicaciones.map(u => u.sector).join(" | ");
-      }
+      // Compatibility for individual activities or bulk
+      const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
+      const estado = u.estado || act.estado || "";
+      const municipio = u.municipio || act.municipio || "";
+      const parroquia = u.parroquia || act.parroquia || "";
+      const sector = u.sector || act.sector || "";
       
-      // Parse numbers safely, keep empty strings if blank to avoid Google Sheets shifting
       const vol = act.volantes ? act.volantes : "";
       const info = act.llamadasInfo ? act.llamadasInfo : "";
       const agenda = act.llamadasAgenda ? act.llamadasAgenda : "";
       
       return [
-        jornada.date || "",                 // A: Fecha de la Jornada
-        act.time || "",                     // B: Hora de esta actividad
-        jornada.asesor || "",               // C: Asesor
-        act.activityType || "",             // D: Tipo
-        act.solicitudes || 0,               // E: Solicitudes (S) Confirmados
-        act.clientesCaptados || 0,          // F: Clientes Captados (C)
-        vol,                                // G: Volantes Entregados
-        info,                               // H: Llamadas Info
-        agenda,                             // I: Llamadas Agenda
-        parroquiasStr,                      // J: Parroquia
-        sectoresStr,                        // K: Sector
-        act.condominio || "",               // L: Nombre Condominio
-        act.notes || "",                    // M: Notas
-        (i === 0 ? (jornada.reporteWhatsapp || "") : "") // N: Reporte WhatsApp (solo primera fila)
+        jornada.date || "",                 // A
+        act.time || "",                     // B
+        jornada.asesor || "",               // C
+        act.activityType || "",             // D
+        act.solicitudes || 0,               // E
+        act.clientesCaptados || 0,          // F
+        vol,                                // G
+        info,                               // H
+        agenda,                             // I
+        estado,                             // J (New)
+        municipio,                          // K (New)
+        parroquia,                          // L
+        sector,                             // M
+        act.condominio || "",               // N
+        act.notes || "",                    // O
+        (i === 0 ? (jornada.reporteWhatsapp || "") : "") // P
       ];
     });
 
-    // Append to Sheet "REPORTES DE ASESORES"
-    // We use the 'A1' notation to append to the bottom
+    // Append to Sheet
     await sheets.spreadsheets.values.append({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:N", // Specific Sheet Name
+      range: "'REPORTES DE ASESORES'!A:P", 
       valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: rows,
-      },
+      requestBody: { values: rows },
     });
 
-    return res.json({ success: true, message: 'Jornada guardada exitosamente en Sheets.' });
+    // 2. Save to Supabase (actividades table)
+    const supabaseRows = jornada.activitiesDetail.map(act => {
+      const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
+      return {
+        fecha: jornada.date.split('/').reverse().join('-'), // "DD/MM/YYYY" -> "YYYY-MM-DD"
+        hora: act.time.includes(' ') ? act.time.split(' ')[0] : act.time, // Handle "12:00 AM" if needed, but DB expects TIME
+        asesor: jornada.asesor,
+        tipo: act.activityType,
+        solicitudes: parseInt(act.solicitudes || 0),
+        clientes_captados: parseInt(act.clientesCaptados || 0),
+        volantes: parseInt(act.volantes || 0),
+        llamadas_info: parseInt(act.llamadasInfo || 0),
+        llamadas_agenda: parseInt(act.llamadasAgenda || 0),
+        estado: u.estado || act.estado || null,
+        municipio: u.municipio || act.municipio || null,
+        parroquia: u.parroquia || act.parroquia || null,
+        sector: u.sector || act.sector || null,
+        condominio: act.condominio || null,
+        notas: act.notes || null,
+        reporte_wa: jornada.reporteWhatsapp || null
+      };
+    });
+
+    const { error: supError } = await supabase.from('actividades').insert(supabaseRows);
+    if (supError) console.error('Error saving to Supabase activities:', supError);
+
+    return res.json({ success: true, message: 'Jornada guardada exitosamente en Sheets y Supabase.' });
     
   } catch (error) {
-    console.error('Error al guardar en Google Sheets:', error);
-    return res.status(500).json({ error: 'Error del servidor al comunicarse con Google Sheets.' });
+    console.error('Error al guardar reporte:', error);
+    return res.status(500).json({ error: 'Error del servidor al guardar reporte.' });
   }
 });
 
@@ -116,7 +147,7 @@ app.get('/api/history', async (req, res) => {
     const response = await sheets.spreadsheets.values.get({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:N",
+      range: "'REPORTES DE ASESORES'!A:P",
     });
 
     const rows = response.data.values;
@@ -147,7 +178,7 @@ app.get('/api/history', async (req, res) => {
           details: []
         };
       }
-
+      // group by date/asesor
       jornadasMap[key].activitiesCount++;
       jornadasMap[key].totals.solicitudes += parseInt(row[4] || 0);
       jornadasMap[key].totals.captados += parseInt(row[5] || 0);
@@ -155,15 +186,15 @@ app.get('/api/history', async (req, res) => {
       jornadasMap[key].totals.llamadasInfo += parseInt(row[7] || 0);
       jornadasMap[key].totals.llamadasAgenda += parseInt(row[8] || 0);
       
-      // Capture the WhatsApp report from col N (index 13) if present
-      if (!jornadasMap[key].reporteWhatsapp && row[13]) {
-        jornadasMap[key].reporteWhatsapp = row[13];
+      // Capture the WhatsApp report from col P (index 15) if present
+      if (!jornadasMap[key].reporteWhatsapp && row[15]) {
+        jornadasMap[key].reporteWhatsapp = row[15];
       }
       
       let locLabel = "";
-      if (row[9] || row[10]) {
-        locLabel = `${row[9] || ''}${row[9] && row[10] ? ', ' : ''}${row[10] || ''}`;
-      }
+      // J: Estado(9), K: Mun(10), L: Parr(11), M: Sect(12)
+      const parts = [row[9], row[10], row[11], row[12]].filter(p => p && p !== "").join(', ');
+      locLabel = parts;
 
       jornadasMap[key].details.push({
         time: row[1] || "",

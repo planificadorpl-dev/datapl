@@ -8,13 +8,14 @@ const DEFAULT_ASESORES = ['Yaisen Herrera', 'Lorena Esqueda', 'Cindy Infante', '
 
 let appState = {
   currentView: 'home', // 'home', 'form', 'history', or 'admin'
-  currentAsesor: localStorage.getItem('lastAsesor') || '',
+  currentAsesor: localStorage.getItem('current_asesor') || '',
   activities: JSON.parse(localStorage.getItem('current_activities') || '[]'),
   history: [],
   historyLoading: false,
   historyError: null,
   asesores: [],
-  geoData: {}, // Format: { "Parroquia": ["Sector 1", "Sector 2"] }
+  geoData: {}, // Format: { "Parroquia": ["Sector 1", "Sector 2"] } -- Keep for compatibility if needed
+  geoHierarchy: {}, // New Format: { "Estado": { "Municipio": { "Parroquia": ["Sector"] } } }
   planes: [],  // Format: [{ id, nombre, tipo, has_tv, activo }]
 };
 
@@ -27,7 +28,7 @@ async function loadGlobalConfig() {
     // 1. Fetch Asesores
     const { data: qAsesores, error: errA } = await supabase.from('asesores_config').select('*').order('nombre');
     // 2. Fetch GeoData
-    const { data: qGeo, error: errG } = await supabase.from('geodata_config').select('*').order('parroquia').order('sector');
+    const { data: qGeo, error: errG } = await supabase.from('geodata_config').select('*').order('estado').order('municipio').order('parroquia').order('sector');
     // 3. Fetch Planes
     const { data: qPlanes, error: errP } = await supabase.from('planes_config').select('*').order('nombre');
 
@@ -35,26 +36,44 @@ async function loadGlobalConfig() {
        console.error("Error loading config from Supabase:", errA || errG || errP);
        // Fallback on error
        appState.asesores = [...DEFAULT_ASESORES];
-       appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
+       appState.geoHierarchy = geoHierarchy; // Use the one imported at the top
        appState.planes = [];
     } else {
        // Map Asesores
        if(qAsesores && qAsesores.length > 0) {
           appState.asesores = qAsesores.map(row => row.nombre);
        } else {
-          appState.asesores = [...DEFAULT_ASESORES]; // fallback if empty table
+          appState.asesores = [...DEFAULT_ASESORES];
        }
        
-       // Map GeoData
+       // Map GeoHierarchy
        if(qGeo && qGeo.length > 0) {
-          const newGeo = {};
+          const newHierarchy = {};
           qGeo.forEach(row => {
-             if(!newGeo[row.parroquia]) newGeo[row.parroquia] = [];
-             newGeo[row.parroquia].push(row.sector);
+             const e = row.estado || "N/A";
+             const m = row.municipio || "N/A";
+             const p = row.parroquia || "N/A";
+             const s = row.sector || "N/A";
+             
+             if(!newHierarchy[e]) newHierarchy[e] = {};
+             if(!newHierarchy[e][m]) newHierarchy[e][m] = {};
+             if(!newHierarchy[e][m][p]) newHierarchy[e][m][p] = [];
+             
+             if(!newHierarchy[e][m][p].includes(s)) {
+                newHierarchy[e][m][p].push(s);
+             }
           });
-          appState.geoData = newGeo;
+          appState.geoHierarchy = newHierarchy;
+          
+          // Legacy geoData compatibility (Parroquia -> Sectors)
+          const legacyGeo = {};
+          qGeo.forEach(row => {
+             if(!legacyGeo[row.parroquia]) legacyGeo[row.parroquia] = [];
+             if(!legacyGeo[row.parroquia].includes(row.sector)) legacyGeo[row.parroquia].push(row.sector);
+          });
+          appState.geoData = legacyGeo;
        } else {
-          appState.geoData = JSON.parse(JSON.stringify(defaultGeoData)); // fallback if empty table
+          appState.geoHierarchy = geoHierarchy;
        }
 
        // Map Planes
@@ -292,63 +311,45 @@ function attachAdminEvents() {
     });
   });
 
-  // PARROQUIAS
-  document.getElementById('btnAddParroquia')?.addEventListener('click', async (e) => {
-    const p = document.getElementById('inputNewParroquia').value.trim();
-    if (p && !appState.geoData[p]) {
-      const btn = e.currentTarget;
-      setLoading(btn, true);
-      // Creamos la parroquia insertando su primer sector como "S/N" provisional si queremos,
-      // Pero como necesitamos que existan sectores separados, basta con un "General" o "Casco Central"
-      // para inicializar la parroquia en la BD (Supabase no tiene tablas dinámicas para arrays).
-      const dummySector = "General";
-      const { error } = await supabase.from('geodata_config').insert([{ parroquia: p, sector: dummySector }]);
-      setLoading(btn, false);
-
-      if (error) {
-         showToast('Error creando parroquia: ' + error.message);
-      } else {
-         appState.geoData[p] = [dummySector];
-         render();
-      }
-    }
-  });
+  // Add Parroquia from Admin (Disabled for now as it requires 4 levels)
 
   document.querySelectorAll('.btn-delete-parroquia').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const p = e.currentTarget.getAttribute('data-parroquia');
-      if(await showConfirm(`¿Seguro que deseas eliminar la parroquia "${p}" y todos sus sectores?`)) {
+      const est = e.currentTarget.getAttribute('data-estado');
+      const mun = e.currentTarget.getAttribute('data-municipio');
+      const par = e.currentTarget.getAttribute('data-parroquia');
+      
+      if(await showConfirm(`¿Seguro que deseas eliminar la parroquia "${par}" (${est} > ${mun}) y todos sus sectores?`)) {
         setLoading(btn, true);
-        const { error } = await supabase.from('geodata_config').delete().eq('parroquia', p);
+        const { error } = await supabase.from('geodata_config').delete().match({ estado: est, municipio: mun, parroquia: par });
         if(error) {
            setLoading(btn, false);
            showToast('Error al eliminar parroquia: ' + error.message);
            return;
         }
-        delete appState.geoData[p];
-        render();
+        // Refresh full config to be safe
+        loadGlobalConfig();
       }
     });
   });
 
-  // SECTORES
   document.querySelectorAll('.btn-add-sector').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const p = e.currentTarget.getAttribute('data-parroquia');
+      const est = e.currentTarget.getAttribute('data-estado');
+      const mun = e.currentTarget.getAttribute('data-municipio');
+      const par = e.currentTarget.getAttribute('data-parroquia');
       const container = e.currentTarget.closest('.p-3');
       const s = container.querySelector('.input-new-sector').value.trim();
       
-      if (s && !appState.geoData[p].includes(s)) {
+      if (s) {
         setLoading(btn, true);
-        const { error } = await supabase.from('geodata_config').insert([{ parroquia: p, sector: s }]);
+        const { error } = await supabase.from('geodata_config').insert([{ estado: est, municipio: mun, parroquia: par, sector: s }]);
         setLoading(btn, false);
 
         if(error) {
            showToast('Error añadiendo sector: ' + error.message);
         } else {
-           appState.geoData[p].push(s);
-           appState.geoData[p].sort();
-           render();
+           loadGlobalConfig();
         }
       }
     });
@@ -357,23 +358,20 @@ function attachAdminEvents() {
   document.querySelectorAll('.btn-delete-sector').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const btnDom = e.currentTarget;
-      const p = btnDom.getAttribute('data-parroquia');
-      const idx = btnDom.getAttribute('data-index');
-      const s = appState.geoData[p][idx];
+      const est = btnDom.getAttribute('data-estado');
+      const mun = btnDom.getAttribute('data-municipio');
+      const par = btnDom.getAttribute('data-parroquia');
+      const s = btnDom.getAttribute('data-sector');
 
       if(await showConfirm('¿Eliminar sector?')) {
-        // visual feedback for the small 'x' button
         btnDom.innerHTML = '...'; 
-        
-        const { error } = await supabase.from('geodata_config').delete().match({ parroquia: p, sector: s });
+        const { error } = await supabase.from('geodata_config').delete().match({ estado: est, municipio: mun, parroquia: par, sector: s });
         if(error) {
            btnDom.innerHTML = '&times;';
            showToast('Error al eliminar sector: ' + error.message);
            return;
         }
-
-        appState.geoData[p].splice(idx, 1);
-        render();
+        loadGlobalConfig();
       }
     });
   });
@@ -458,7 +456,7 @@ function attachTabEvents() {
 
 async function fetchHistory() {
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL_HISTORY);
+    const res = await fetch('/api/history');
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     appState.history = data;
@@ -839,7 +837,7 @@ function attachActivitiesPanelEvents() {
       const activity = appState.activities[idx];
 
       if(await showConfirm('¿Seguro que deseas eliminar esta actividad?')) {
-        syncActivity(activity, 'DELETE');
+// syncActivity(activity, 'DELETE'); // Disabled for real-time saving
         appState.activities.splice(idx, 1);
         saveActivities();
         render(); // Renders activities panel
@@ -877,65 +875,53 @@ async function finalizeJornada() {
 
   const btn = document.getElementById('btnFinalizeJornada');
   const ogText = btn.innerHTML;
-  btn.innerHTML = `Guardando...`;
+  btn.innerHTML = `<div class="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>`;
   btn.disabled = true;
 
   const now = new Date();
   const formattedDate = now.toLocaleDateString('es-ES');
-  const asesor = appState.currentAsesor; // Get Asesor from AppState or exactly what is selected in home
-
-  let totalSoli = 0, totalCap = 0, totalVol = 0, totalInfo = 0, totalAgenda = 0;
-  appState.activities.forEach(a => {
-    totalSoli += parseInt(a.solicitudes || 0);
-    totalCap += parseInt(a.clientesCaptados || 0);
-    totalVol += parseInt(a.volantes || 0);
-    totalInfo += parseInt(a.llamadasInfo || 0);
-    totalAgenda += parseInt(a.llamadasAgenda || 0);
-  });
+  const asesor = appState.currentAsesor;
 
   const jornada = {
     date: formattedDate,
     timestamp: now.toISOString(),
     asesor: asesor,
     activitiesCount: appState.activities.length,
-    totals: {
-      solicitudes: totalSoli,
-      captados: totalCap,
-      volantes: totalVol,
-      llamadasInfo: totalInfo,
-      llamadasAgenda: totalAgenda
-    },
     activitiesDetail: [...appState.activities],
     reporteWhatsapp: buildWhatsappReport([...appState.activities], asesor, formattedDate)
   };
 
-  // 1. Build the WhatsApp report and collect UIDs from this session's activities
-  const reporteWhatsapp = buildWhatsappReport([...appState.activities], asesor, formattedDate);
-  const uids = appState.activities.map(a => a.uid).filter(Boolean);
+  try {
+    const res = await fetch('/api/save-jornada', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jornada)
+    });
 
-  // 2. Update column N in all existing Sheets rows with the WhatsApp report
-  if (uids.length > 0) {
-    try {
-      const res = await fetch('/api/sync-activity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'FINALIZE', uids, reporteWhatsapp })
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Error FINALIZE');
-      console.log('FINALIZE OK – rows updated:', result.updated);
-    } catch (err) {
-      console.error('Error al finalizar en Sheets:', err);
-      showToast('Error al guardar el reporte final en Sheets.', 'error');
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error || 'Error al guardar la jornada');
     }
+
+    showToast('Jornada guardada exitosamente en la nube', 'success');
+    
+    // Clear current activities only on success
+    appState.activities = [];
+    saveActivities();
+    
+    // Return to home after success
+    setTimeout(() => {
+      appState.currentView = 'home';
+      render();
+    }, 1500);
+
+  } catch (err) {
+    console.error('Error al finalizar jornada:', err);
+    showToast('Error crítico: ' + err.message, 'error');
+    btn.innerHTML = ogText;
+    btn.disabled = false;
   }
-
-  // 3. Clear current activities
-  appState.activities = [];
-  saveActivities();
-
-  // 4. Re-render
-  render();
 }
 
 // ----------------- HISTORY VIEW -----------------
@@ -1033,25 +1019,57 @@ function renderHistory() {
 }
 
 // ------------- GLOBALS PARA UI -------------
-window.getParroquiasOptionsHTML = function() {
-  return Object.keys(appState.geoData).sort().map(p => `<option value="${p}">${p}</option>`).join('');
+window.getGeoStatesOptionsHTML = function() {
+  return Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('');
 };
 
 window.renderLocationBlock = function(idx) {
-  const pqrOpts = window.getParroquiasOptionsHTML();
+  const estOpts = window.getGeoStatesOptionsHTML();
   return `
     <div class="location-block bg-[#F2F2F7] p-4 rounded-xl border border-[#E5E5EA] shadow-sm flex flex-col gap-4 relative mt-3" data-index="${idx}">
       ${idx > 0 ? `<button type="button" class="btn-remove-loc absolute -top-3 -right-3 bg-[#FF3B30] text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition-colors z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+      
+      <!-- Fila 1: Estado y Municipio -->
+      <div class="flex gap-4">
+        <div class="w-1/2">
+          <label class="ios-label">Estado</label>
+          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+            <select class="hidden-real-select loc-estado" required>
+              <option value="" disabled selected>Seleccione...</option>
+              ${estOpts}
+            </select>
+            <button type="button" class="w-full h-full bg-white border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#F2F2F7] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 custom-dd-btn">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Seleccione...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+        <div class="w-1/2">
+          <label class="ios-label">Municipio</label>
+          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
+            <select class="hidden-real-select loc-municipio" required disabled>
+              <option value="" disabled selected>Esperando...</option>
+            </select>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fila 2: Parroquia y Sector -->
       <div class="flex gap-4">
         <div class="w-1/2">
           <label class="ios-label">Parroquia</label>
           <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select class="hidden-real-select loc-parroquia" required>
-              <option value="" disabled selected>Seleccione...</option>
-              ${pqrOpts}
+            <select class="hidden-real-select loc-parroquia" required disabled>
+              <option value="" disabled selected>Esperando...</option>
             </select>
-            <button type="button" class="w-full h-full bg-white border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#F2F2F7] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 custom-dd-btn">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Seleccione...</span>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
               <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
             <div class="absolute z-50 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
@@ -1063,7 +1081,7 @@ window.renderLocationBlock = function(idx) {
             <select class="hidden-real-select loc-sector" required disabled>
               <option value="" disabled selected>Esperando...</option>
             </select>
-            <button type="button" class="w-full h-full bg-white border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#F2F2F7] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 custom-dd-btn pointer-events-none opacity-60">
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
               <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
               <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
@@ -1075,7 +1093,70 @@ window.renderLocationBlock = function(idx) {
   `;
 };
 
-// ----------------- FORM VIEW -----------------
+// Helper to setup cascading dropdowns for a 4-level hierarchy
+window.setupGeoCascading = function(block, hierarchy) {
+  const selEstado = block.querySelector('.loc-estado');
+  const selMunicipio = block.querySelector('.loc-municipio');
+  const selParroquia = block.querySelector('.loc-parroquia');
+  const selSector = block.querySelector('.loc-sector');
+
+  function resetSelect(sel, text = "Esperando...") {
+    sel.innerHTML = `<option value="" disabled selected>${text}</option>`;
+    sel.disabled = true;
+    sel.dispatchEvent(new Event('refreshCustomUI'));
+  }
+
+  // Estado Change
+  selEstado?.addEventListener('change', () => {
+    const est = selEstado.value;
+    const municipios = hierarchy[est] ? Object.keys(hierarchy[est]).sort() : [];
+    
+    if (municipios.length > 0) {
+      selMunicipio.innerHTML = '<option value="" disabled selected>Seleccione...</option>' + 
+        municipios.map(m => `<option value="${m}">${m}</option>`).join('');
+      selMunicipio.disabled = false;
+    } else {
+      resetSelect(selMunicipio);
+    }
+    resetSelect(selParroquia);
+    resetSelect(selSector);
+    selMunicipio.dispatchEvent(new Event('refreshCustomUI'));
+  });
+
+  // Municipio Change
+  selMunicipio?.addEventListener('change', () => {
+    const est = selEstado.value;
+    const mun = selMunicipio.value;
+    const parroquias = hierarchy[est] && hierarchy[est][mun] ? Object.keys(hierarchy[est][mun]).sort() : [];
+    
+    if (parroquias.length > 0) {
+      selParroquia.innerHTML = '<option value="" disabled selected>Seleccione...</option>' + 
+        parroquias.map(p => `<option value="${p}">${p}</option>`).join('');
+      selParroquia.disabled = false;
+    } else {
+      resetSelect(selParroquia);
+    }
+    resetSelect(selSector);
+    selParroquia.dispatchEvent(new Event('refreshCustomUI'));
+  });
+
+  // Parroquia Change
+  selParroquia?.addEventListener('change', () => {
+    const est = selEstado.value;
+    const mun = selMunicipio.value;
+    const par = selParroquia.value;
+    const sectores = hierarchy[est] && hierarchy[est][mun] && hierarchy[est][mun][par] ? hierarchy[est][mun][par].sort() : [];
+    
+    if (sectores.length > 0) {
+      selSector.innerHTML = '<option value="" disabled selected>Seleccione...</option>' + 
+        sectores.map(s => `<option value="${s}">${s}</option>`).join('');
+      selSector.disabled = false;
+    } else {
+      resetSelect(selSector);
+    }
+    selSector.dispatchEvent(new Event('refreshCustomUI'));
+  });
+};
 
 function renderForm() {
   const now = new Date();
@@ -1246,6 +1327,10 @@ function attachFormEvents() {
   const locContainer = document.getElementById('locationsContainer');
   // Initialize the first block on render
   locContainer.innerHTML = '<h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2 hidden" id="locTitle">Ubicación(es) Visitada(s)</h3>' + window.renderLocationBlock(0);
+  
+  // Setup cascading for initial block
+  const initialBlock = locContainer.querySelector('.location-block');
+  if(initialBlock) window.setupGeoCascading(initialBlock, appState.geoHierarchy);
 
   const metricDoms = {
     condominio: document.getElementById('mCondominio'),
@@ -1349,28 +1434,7 @@ function attachFormEvents() {
       updateFormFields(this.value);
   });
 
-  locContainer?.addEventListener('change', (e) => {
-    if (e.target.classList.contains('loc-parroquia')) {
-      const p = e.target.value;
-      const sectores = appState.geoData[p] || [];
-      const parentBlock = e.target.closest('.location-block');
-      const scSelect = parentBlock.querySelector('.loc-sector');
-      
-      scSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-      if (sectores.length > 0) {
-        scSelect.disabled = false;
-        sectores.forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = s;
-          opt.textContent = s;
-          scSelect.appendChild(opt);
-        });
-      } else {
-        scSelect.disabled = true;
-      }
-      scSelect.dispatchEvent(new Event('refreshCustomUI'));
-    }
-  });
+  // Cascading logic is now handled per block via setupGeoCascading
   
   // Remove location
   locContainer?.addEventListener('click', (e) => {
@@ -1383,10 +1447,16 @@ function attachFormEvents() {
 
   // Add location
   document.getElementById('btnAddLocation')?.addEventListener('click', () => {
+    const existingCount = locContainer.querySelectorAll('.location-block').length;
     // Generate unique index based on timestamp to avoid collision
     const nextIdx = Date.now();
     const locHtml = window.renderLocationBlock(nextIdx);
     locContainer.insertAdjacentHTML('beforeend', locHtml);
+    
+    // Find the newly added block
+    const newBlock = locContainer.querySelector(`.location-block[data-index="${nextIdx}"]`);
+    if(newBlock) window.setupGeoCascading(newBlock, appState.geoHierarchy);
+
     initCustomFormDropdowns();
   });
 
@@ -1394,10 +1464,12 @@ function attachFormEvents() {
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Gather locations
+    // Gather locations (4 levels)
     const ubicaciones = [];
     document.querySelectorAll('.location-block').forEach(block => {
       ubicaciones.push({
+        estado: block.querySelector('.loc-estado').value || '',
+        municipio: block.querySelector('.loc-municipio').value || '',
         parroquia: block.querySelector('.loc-parroquia').value || '',
         sector: block.querySelector('.loc-sector').value || ''
       });
@@ -1465,7 +1537,8 @@ function attachFormEvents() {
     saveActivities();
     
     // Push to Google Sheets in real-time
-    await syncActivity(activity, 'ADD');
+    // syncActivity is now disabled for real-time saving as per user request
+    // await syncActivity(activity, 'ADD');
 
     const submitterValue = e.submitter ? e.submitter.value : 'save_return';
     if(submitterValue === 'add_another') {
@@ -1708,9 +1781,9 @@ function renderSolicitudForm() {
           <div>
             <label class="ios-label">Estado</label>
             <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sEstado" required class="hidden-real-select">
+              <select id="sEstado" required class="hidden-real-select loc-estado">
                 <option value="" disabled selected>Seleccione...</option>
-                ${Object.keys(geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
+                ${Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
               </select>
               <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
                 <span class="custom-dd-text text-[#8E8E93]">Seleccione...</span>
@@ -1724,7 +1797,7 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Municipio</label>
               <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sMunicipio" required class="hidden-real-select" disabled>
+                <select id="sMunicipio" required class="hidden-real-select loc-municipio" disabled>
                   <option value="" disabled selected>Esperando...</option>
                 </select>
                 <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
@@ -1738,7 +1811,7 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Parroquia</label>
               <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sParroquia" required class="hidden-real-select" disabled>
+                <select id="sParroquia" required class="hidden-real-select loc-parroquia" disabled>
                   <option value="" disabled selected>Esperando...</option>
                 </select>
                 <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
@@ -1750,10 +1823,11 @@ function renderSolicitudForm() {
             </div>
           </div>
 
+
           <div>
             <label class="ios-label">Sector</label>
             <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sSector" required class="hidden-real-select" disabled>
+              <select id="sSector" required class="hidden-real-select loc-sector" disabled>
                 <option value="" disabled selected>Esperando...</option>
               </select>
               <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
@@ -1928,90 +2002,9 @@ function attachSolicitudEvents() {
 
   tipoSrv?.addEventListener('change', updatePlanes);
 
-  // Geographic Filtering Logic
-  const estadoSelect = document.getElementById('sEstado');
-  const municipioSelect = document.getElementById('sMunicipio');
-  const parroquiaSelect = document.getElementById('sParroquia');
-  const sectorSelect = document.getElementById('sSector');
-
-  estadoSelect?.addEventListener('change', () => {
-    const estado = estadoSelect.value;
-    const municipios = geoHierarchy[estado] ? Object.keys(geoHierarchy[estado]).sort() : [];
-    
-    municipioSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-    parroquiaSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
-    sectorSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
-    parroquiaSelect.disabled = true;
-    sectorSelect.disabled = true;
-
-    if (municipios.length > 0) {
-      municipioSelect.disabled = false;
-      municipios.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
-        municipioSelect.appendChild(opt);
-      });
-    } else {
-      municipioSelect.disabled = true;
-    }
-    
-    municipioSelect.dispatchEvent(new Event('refreshCustomUI'));
-    parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
-    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
-  });
-
-  municipioSelect?.addEventListener('change', () => {
-    const estado = estadoSelect.value;
-    const municipio = municipioSelect.value;
-    const parroquias = (geoHierarchy[estado] && geoHierarchy[estado][municipio]) 
-      ? Object.keys(geoHierarchy[estado][municipio]).sort() 
-      : [];
-
-    parroquiaSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-    sectorSelect.innerHTML = '<option value="" disabled selected>Esperando...</option>';
-    sectorSelect.disabled = true;
-    
-    if (parroquias.length > 0) {
-      parroquiaSelect.disabled = false;
-      parroquias.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p;
-        opt.textContent = p;
-        parroquiaSelect.appendChild(opt);
-      });
-    } else {
-      parroquiaSelect.disabled = true;
-    }
-
-    parroquiaSelect.dispatchEvent(new Event('refreshCustomUI'));
-    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
-  });
-
-  parroquiaSelect?.addEventListener('change', () => {
-    const estado = estadoSelect.value;
-    const municipio = municipioSelect.value;
-    const parroquia = parroquiaSelect.value;
-    const sectores = (geoHierarchy[estado] && geoHierarchy[estado][municipio] && geoHierarchy[estado][municipio][parroquia])
-      ? geoHierarchy[estado][municipio][parroquia].sort()
-      : [];
-
-    sectorSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-    
-    if (sectores.length > 0) {
-      sectorSelect.disabled = false;
-      sectores.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        sectorSelect.appendChild(opt);
-      });
-    } else {
-      sectorSelect.disabled = true;
-    }
-
-    sectorSelect.dispatchEvent(new Event('refreshCustomUI'));
-  });
+  // Geographical Cascading (Unified)
+  const geoBlock = document.getElementById('solicitudForm');
+  if(geoBlock) window.setupGeoCascading(geoBlock, appState.geoHierarchy);
   
   // Prevent Custom dropdowns from failing if not instantly updated
   setTimeout(() => {
