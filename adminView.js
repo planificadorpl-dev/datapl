@@ -58,72 +58,9 @@ export function renderAdminPanel(appState) {
       </div>
     `).join('');
 
-  // 3. ZONAS (HIERARCHICAL VIEW)
-  const zonesList = [];
-  const geo = appState.geoHierarchy || {};
-  
-  Object.keys(geo).sort().forEach(est => {
-    const municipios = geo[est];
-    let munHtml = '';
-    
-    Object.keys(municipios).sort().forEach(mun => {
-        const parroquias = municipios[mun];
-        let parHtml = '';
-        
-        Object.keys(parroquias).sort().forEach(par => {
-            const sectors = parroquias[par] || [];
-            parHtml += `
-              <div class="parroquia-item mb-4 last:mb-0">
-                <div class="flex justify-between items-center mb-2 px-1">
-                  <span class="text-[11px] font-bold text-[#3A3A3C] uppercase tracking-wide">📍 ${par}</span>
-                  <button class="btn-delete-parroquia text-[#FF3B30] p-1 hover:bg-red-50 rounded-md transition-colors" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
-                </div>
-                <div class="flex flex-wrap gap-1.5 mb-2 pl-1">
-                  ${sectors.map(s => `
-                    <div class="group flex items-center gap-1 bg-white border border-[#E5E5EA] px-2 py-1 rounded-full text-xs shadow-sm shadow-black/5">
-                      <span class="text-[#3A3A3C]">${s}</span>
-                      <button class="btn-delete-sector text-[#8E8E93] hover:text-[#FF3B30] transition-colors" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}" data-sector="${s}">&times;</button>
-                    </div>
-                  `).join('')}
-                </div>
-                <div class="flex gap-2 px-1">
-                  <input type="text" class="input-new-sector ios-input !py-1.5 !px-3 !text-xs !rounded-lg flex-1 focus:bg-white" placeholder="Sectores nuevos...">
-                  <button class="btn-add-sector bg-black text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#1C1C1E] active:scale-95 transition-all" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">Añadir</button>
-                </div>
-              </div>
-            `;
-        });
-        
-        munHtml += `
-          <div class="municipio-card bg-[#F8F8F8] rounded-2xl border border-[#E5E5EA] mb-4 p-4 shadow-sm">
-             <div class="flex items-center gap-2 mb-4 border-b border-[#E5E5EA] pb-3">
-               <div class="w-2 h-4 bg-[#FF9500] rounded-full"></div>
-               <span class="font-bold text-black text-sm uppercase tracking-tight">${mun}</span>
-             </div>
-             <div class="space-y-4">
-                ${parHtml || '<p class="text-xs text-gray-400 italic">No hay parroquias.</p>'}
-             </div>
-          </div>
-        `;
-    });
-
-    zonesList.push(`
-      <div class="estado-section mb-10">
-        <div class="flex items-center justify-between mb-4 px-1">
-           <h3 class="text-lg font-black text-black tracking-tight flex items-center gap-2">
-             <span class="text-[#007AFF]">#</span> ${est}
-           </h3>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-           ${munHtml || '<p class="text-sm text-gray-400 italic ml-4">No hay municipios registrados.</p>'}
-        </div>
-      </div>
-    `);
-  });
 
   // 3. ZONAS (HIERARCHICAL VIEW - OPTIMIZED)
+  const zonesList = [];
   const geo = appState.geoHierarchy || {};
   const query = (appState.geoSearchQuery || '').toLowerCase();
   
