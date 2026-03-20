@@ -82,15 +82,16 @@ export default async function handler(req, res) {
         act.condominio || "",               // L
         act.notes || "",                    // M
         (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
-        estadosStr,                         // O
-        municipiosStr                       // P
+        act.uid || "",                      // O (ID)
+        estadosStr,                         // P
+        municipiosStr                       // Q
       ];
     });
 
     await sheets.spreadsheets.values.append({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:P", 
+      range: "'REPORTES DE ASESORES'!A:Q", 
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: rows },
     });

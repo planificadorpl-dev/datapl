@@ -86,8 +86,9 @@ app.post('/api/save-jornada', async (req, res) => {
         act.condominio || "",               // L
         act.notes || "",                    // M
         (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
-        estadosStr,                         // O
-        municipiosStr                       // P
+        act.uid || "",                      // O (ID)
+        estadosStr,                         // P
+        municipiosStr                       // Q
       ];
     });
 
