@@ -2160,30 +2160,19 @@ function attachSolicitudEvents() {
       };
 
       let todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-      let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
-      waMsg += `*Fecha de solicitud:* ${todayStr}\n`;
-      waMsg += `*Fecha de Disponibilidad:* ${formatDate(formData.fecha_disp)}\n\n`;
-      waMsg += `*Nombres:* ${formData.nombres} *Apellidos:* ${formData.apellidos}\n`;
-      waMsg += `*Cédula/RIF:* ${formData.cedula}\n`;
-      waMsg += `*Género:* ${formData.genero}\n`;
-      waMsg += `*Estado:* ${formData.estado}\n`;
-      waMsg += `*Municipio:* ${formData.municipio}\n`;
-      waMsg += `*Parroquia:* ${formData.parroquia}\n`;
-      waMsg += `*Sector:* ${formData.sector}\n`;
-      waMsg += `*Calle / Casa / Apto:* ${formData.direccion}\n`;
-      waMsg += `*Tipo de Servicio:* ${formData.tipo_servicio}\n`;
-      waMsg += `*Plan:* ${formData.plan}\n`;
-      waMsg += `*Promotor/a:* ${formData.promotor}\n`;
-      waMsg += `*Teléfono principal:* ${formData.telefono_principal}\n`;
-      if (formData.telefono_secundario) {
-        waMsg += `*Teléfono secundario:* ${formData.telefono_secundario}\n`;
-      }
-      if (formData.correo) {
-        waMsg += `*Correo Electrónico:* ${formData.correo}\n`;
-      }
-      waMsg += `*Power Go:* ${formData.power_go ? 'SI' : 'NO'}\n`;
-      waMsg += `*Fuente:* ${formData.fuente}`;
+      
+      let waMsg = `Fecha de solicitud: ${todayStr}\n`;
+      waMsg += `Fecha de Disponibilidad: ${formatDate(formData.fecha_disp)}\n\n`;
+      waMsg += `Nombres y Apellido: ${formData.nombres} ${formData.apellidos}\n`;
+      waMsg += `Cédula/RIF: ${formData.cedula}\n`;
+      waMsg += `Teléfono principal: ${formData.telefono_principal}\n`;
+      waMsg += `Teléfono secundario: ${formData.telefono_secundario || formData.telefono_principal}\n`;
+      waMsg += `Estado: ${formData.estado}, Municipio: ${formData.municipio}, Parroquia: ${formData.parroquia}, Sector: ${formData.sector}, Calle / Casa / Apto: ${formData.direccion}\n`;
+      waMsg += `Tipo de Servicio: Plan: ${formData.plan} ${formData.tipo_servicio}\n`;
+      waMsg += `Promotor/a: ${formData.promotor}\n`;
+      waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
+      waMsg += `Power Go: ${formData.power_go ? 'SI' : 'NO'}\n`;
+      waMsg += `Fuente: ${formData.fuente}`;
 
       // Open WA
       window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, '_blank');
