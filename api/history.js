@@ -8,10 +8,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-  );
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ error: 'Configuración de Supabase incompleta (SUPABASE_URL o SUPABASE_ANON_KEY).' });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     // Fetch from Supabase instead of Sheets to get all fields (including WhatsApp)
@@ -30,7 +34,11 @@ export default async function handler(req, res) {
     const jornadasMap = {};
 
     activities.forEach(act => {
-      const date = new Date(act.fecha).toLocaleDateString('es-ES');
+      // Robust date formatting to avoid timezone shifts
+      // "YYYY-MM-DD" -> "DD/MM/YYYY"
+      const dateParts = act.fecha.split('-');
+      const date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+      
       const asesor = act.asesor;
       const key = `${date}_${asesor}`;
 

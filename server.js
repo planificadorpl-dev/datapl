@@ -175,8 +175,8 @@ app.get('/api/history', async (req, res) => {
       jornadasMap[key].totals.solicitudes += (act.solicitudes || 0);
       jornadasMap[key].totals.captados += (act.clientes_captados || 0);
       jornadasMap[key].totals.volantes += (act.volantes || 0);
-      jornadasMap[key].totals.llamadas_info += (act.llamadas_info || 0); // Corrected property name
-      jornadasMap[key].totals.llamadas_agenda += (act.llamadas_agenda || 0); // Corrected property name
+      jornadasMap[key].totals.llamadasInfo += (act.llamadas_info || 0); 
+      jornadasMap[key].totals.llamadasAgenda += (act.llamadas_agenda || 0); 
       
       if (!jornadasMap[key].reporteWhatsapp && act.reporte_wa) {
         jornadasMap[key].reporteWhatsapp = act.reporte_wa;
