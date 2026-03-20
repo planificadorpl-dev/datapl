@@ -1,64 +1,37 @@
-import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // 1. Get Credentials
-  const credsStr = process.env.GOOGLE_CREDENTIALS;
-  if (!credsStr) {
-    return res.status(500).json({ error: 'Faltan credenciales del servidor (GOOGLE_CREDENTIALS en Vercel).' });
-  }
-
-  const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-  if (!SPREADSHEET_ID) {
-    return res.status(500).json({ error: 'Falta SPREADSHEET_ID en las variables de entorno.' });
-  }
-
-  let auth;
-  try {
-    const creds = JSON.parse(credsStr);
-    auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: creds.client_email,
-        private_key: creds.private_key,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-  } catch (e) {
-    console.error('Error parseando GOOGLE_CREDENTIALS:', e);
-    return res.status(500).json({ error: 'Error del servidor al leer credenciales.' });
-  }
-
-  const sheets = google.sheets('v4');
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
 
   try {
-    const authClient = await auth.getClient();
-    
-    // Fetch from Sheet
-    const response = await sheets.spreadsheets.values.get({
-      auth: authClient,
-      spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:N",
-    });
+    // Fetch from Supabase instead of Sheets to get all fields (including WhatsApp)
+    const { data: activities, error } = await supabase
+      .from('actividades')
+      .select('*')
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false });
 
-    const rows = response.data.values;
-    if (!rows || rows.length <= 1) {
-      // No data or just headers
-      return res.status(200).json([]); 
+    if (error) throw error;
+    if (!activities || activities.length === 0) {
+      return res.status(200).json([]);
     }
-
-    // Skip headers (index 0)
-    const dataRows = rows.slice(1);
 
     // Group rows by Date and Asesor
     const jornadasMap = {};
 
-    dataRows.forEach(row => {
-      if (row.length < 4) return; // Skip empty/malformed rows
-      const date = row[0];
-      const asesor = row[2];
+    activities.forEach(act => {
+      const date = new Date(act.fecha).toLocaleDateString('es-ES');
+      const asesor = act.asesor;
       const key = `${date}_${asesor}`;
 
       if (!jornadasMap[key]) {
@@ -72,36 +45,35 @@ export default async function handler(req, res) {
       }
 
       jornadasMap[key].activitiesCount++;
-      jornadasMap[key].totals.solicitudes += parseInt(row[4] || 0);
-      jornadasMap[key].totals.captados += parseInt(row[5] || 0);
-      jornadasMap[key].totals.volantes += parseInt(row[6] || 0);
-      jornadasMap[key].totals.llamadasInfo += parseInt(row[7] || 0);
-      jornadasMap[key].totals.llamadasAgenda += parseInt(row[8] || 0);
+      jornadasMap[key].totals.solicitudes += (act.solicitudes || 0);
+      jornadasMap[key].totals.captados += (act.clientes_captados || 0);
+      jornadasMap[key].totals.volantes += (act.volantes || 0);
+      jornadasMap[key].totals.llamadasInfo += (act.llamadas_info || 0);
+      jornadasMap[key].totals.llamadasAgenda += (act.llamadas_agenda || 0);
       
-      // Capture the WhatsApp report from col N (index 13) if present
-      if (!jornadasMap[key].reporteWhatsapp && row[13]) {
-        jornadasMap[key].reporteWhatsapp = row[13];
+      if (!jornadasMap[key].reporteWhatsapp && act.reporte_wa) {
+        jornadasMap[key].reporteWhatsapp = act.reporte_wa;
       }
       
       let locLabel = "";
-      if (row[9] || row[10]) {
-        locLabel = `${row[9] || ''}${row[9] && row[10] ? ', ' : ''}${row[10] || ''}`;
+      if (act.estado || act.municipio || act.parroquia || act.sector) {
+        const parts = [act.estado, act.municipio, act.parroquia, act.sector].filter(Boolean);
+        locLabel = parts.join(', ');
       }
 
       jornadasMap[key].details.push({
-        time: row[1] || "",
-        type: row[3] || "Actividad",
+        time: act.hora || "",
+        type: act.tipo || "Actividad",
         location: locLabel
       });
     });
 
-    // Convert map to array and sort by most recent
-    const historyArray = Object.values(jornadasMap).reverse();
-
+    const historyArray = Object.values(jornadasMap);
     return res.status(200).json(historyArray);
 
   } catch (error) {
-    console.error('Error al leer historial desde Google Sheets:', error);
-    return res.status(500).json({ error: 'Error del servidor al leer Google Sheets.' });
+    console.error('Error al leer historial:', error);
+    return res.status(500).json({ error: 'Error del servidor al leer historial.' });
   }
 }
+

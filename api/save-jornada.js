@@ -71,27 +71,25 @@ export default async function handler(req, res) {
         jornada.date || "",                 // A
         act.time || "",                     // B
         jornada.asesor || "",               // C
-        act.activityType || "",             // D
-        act.solicitudes || 0,               // E
-        act.clientesCaptados || 0,          // F
-        vol,                                // G
-        info,                               // H
-        agenda,                             // I
-        parroquiasStr,                      // J
-        sectoresStr,                        // K
-        act.condominio || "",               // L
-        act.notes || "",                    // M
-        (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
-        act.uid || "",                      // O (ID)
-        estadosStr,                         // P
-        municipiosStr                       // Q
+        estadosStr,                         // D
+        municipiosStr,                      // E
+        parroquiasStr,                      // F
+        sectoresStr,                        // G
+        act.activityType || "",             // H
+        act.solicitudes || 0,               // I
+        act.clientesCaptados || 0,          // J
+        vol,                                // K
+        info,                               // L
+        agenda,                             // M
+        act.condominio || "",               // N
+        act.notes || ""                     // O
       ];
     });
 
     await sheets.spreadsheets.values.append({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:Q", 
+      range: "'REPORTES DE ASESORES'!A:O", 
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: rows },
     });
@@ -116,7 +114,8 @@ export default async function handler(req, res) {
           sector: u.sector || act.sector || null,
           condominio: act.condominio || null,
           notas: act.notes || null,
-          reporte_wa: jornada.reporteWhatsapp || null
+          reporte_wa: jornada.reporteWhatsapp || null,
+          uid: act.uid || null
         };
       });
 

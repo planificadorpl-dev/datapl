@@ -75,20 +75,18 @@ app.post('/api/save-jornada', async (req, res) => {
         jornada.date || "",                 // A
         act.time || "",                     // B
         jornada.asesor || "",               // C
-        act.activityType || "",             // D
-        act.solicitudes || 0,               // E
-        act.clientesCaptados || 0,          // F
-        vol,                                // G
-        info,                               // H
-        agenda,                             // I
-        parroquiasStr,                      // J
-        sectoresStr,                        // K
-        act.condominio || "",               // L
-        act.notes || "",                    // M
-        (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
-        act.uid || "",                      // O (ID)
-        estadosStr,                         // P
-        municipiosStr                       // Q
+        estadosStr,                         // D
+        municipiosStr,                      // E
+        parroquiasStr,                      // F
+        sectoresStr,                        // G
+        act.activityType || "",             // H
+        act.solicitudes || 0,               // I
+        act.clientesCaptados || 0,          // J
+        vol,                                // K
+        info,                               // L
+        agenda,                             // M
+        act.condominio || "",               // N
+        act.notes || ""                     // O
       ];
     });
 
@@ -96,7 +94,7 @@ app.post('/api/save-jornada', async (req, res) => {
     await sheets.spreadsheets.values.append({
       auth: authClient,
       spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:P", 
+      range: "'REPORTES DE ASESORES'!A:O", 
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: rows },
     });
@@ -120,7 +118,8 @@ app.post('/api/save-jornada', async (req, res) => {
         sector: u.sector || act.sector || null,
         condominio: act.condominio || null,
         notas: act.notes || null,
-        reporte_wa: jornada.reporteWhatsapp || null
+        reporte_wa: jornada.reporteWhatsapp || null,
+        uid: act.uid || null
       };
     });
 
@@ -137,42 +136,29 @@ app.post('/api/save-jornada', async (req, res) => {
 
 // Endpoint to Get History
 app.get('/api/history', async (req, res) => {
-  if (!auth) {
-    return res.status(500).json({ error: 'Faltan credenciales del servidor (credentials.json).' });
-  }
-
-  const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-  if (!SPREADSHEET_ID) {
-    return res.status(500).json({ error: 'Falta SPREADSHEET_ID en el archivo .env.' });
-  }
-
   try {
-    const authClient = await auth.getClient();
-    
-    // Fetch from Sheet
-    const response = await sheets.spreadsheets.values.get({
-      auth: authClient,
-      spreadsheetId: SPREADSHEET_ID,
-      range: "'REPORTES DE ASESORES'!A:P",
-    });
+    // Fetch from Supabase instead of Sheets
+    const { data: activities, error } = await supabase
+      .from('actividades')
+      .select('*')
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false });
 
-    const rows = response.data.values;
-    if (!rows || rows.length <= 1) {
-      // No data or just headers
-      return res.json([]); 
+    if (error) {
+      console.error('Error fetching history from Supabase:', error);
+      return res.status(500).json({ error: 'Error al leer historial desde la base de datos.' });
     }
 
-    // Skip headers (index 0)
-    const dataRows = rows.slice(1);
+    if (!activities || activities.length === 0) {
+      return res.json([]);
+    }
 
     // Group rows by Date and Asesor
-    // A: Fecha(0), B: Hora(1), C: Asesor(2), D: Tipo(3), E: S(4), F: C(5), G: Vol(6), H: LlI(7), I: LlA(8), J: Parr(9), K: Sect(10), L: Cond(11), M: Notas(12)
     const jornadasMap = {};
 
-    dataRows.forEach(row => {
-      if (row.length < 4) return; // Skip empty/malformed rows
-      const date = row[0];
-      const asesor = row[2];
+    activities.forEach(act => {
+      const date = new Date(act.fecha).toLocaleDateString('es-ES');
+      const asesor = act.asesor;
       const key = `${date}_${asesor}`;
 
       if (!jornadasMap[key]) {
@@ -184,39 +170,37 @@ app.get('/api/history', async (req, res) => {
           details: []
         };
       }
-      // group by date/asesor
+
       jornadasMap[key].activitiesCount++;
-      jornadasMap[key].totals.solicitudes += parseInt(row[4] || 0);
-      jornadasMap[key].totals.captados += parseInt(row[5] || 0);
-      jornadasMap[key].totals.volantes += parseInt(row[6] || 0);
-      jornadasMap[key].totals.llamadasInfo += parseInt(row[7] || 0);
-      jornadasMap[key].totals.llamadasAgenda += parseInt(row[8] || 0);
+      jornadasMap[key].totals.solicitudes += (act.solicitudes || 0);
+      jornadasMap[key].totals.captados += (act.clientes_captados || 0);
+      jornadasMap[key].totals.volantes += (act.volantes || 0);
+      jornadasMap[key].totals.llamadas_info += (act.llamadas_info || 0); // Corrected property name
+      jornadasMap[key].totals.llamadas_agenda += (act.llamadas_agenda || 0); // Corrected property name
       
-      // Capture the WhatsApp report from col P (index 15) if present
-      if (!jornadasMap[key].reporteWhatsapp && row[15]) {
-        jornadasMap[key].reporteWhatsapp = row[15];
+      if (!jornadasMap[key].reporteWhatsapp && act.reporte_wa) {
+        jornadasMap[key].reporteWhatsapp = act.reporte_wa;
       }
       
       let locLabel = "";
-      // J: Estado(9), K: Mun(10), L: Parr(11), M: Sect(12)
-      const parts = [row[9], row[10], row[11], row[12]].filter(p => p && p !== "").join(', ');
-      locLabel = parts;
+      if (act.estado || act.municipio || act.parroquia || act.sector) {
+        const parts = [act.estado, act.municipio, act.parroquia, act.sector].filter(Boolean);
+        locLabel = parts.join(', ');
+      }
 
       jornadasMap[key].details.push({
-        time: row[1] || "",
-        type: row[3] || "Actividad",
+        time: act.hora || "",
+        type: act.tipo || "Actividad",
         location: locLabel
       });
     });
 
-    // Convert map to array and sort by most recent (assuming they are appended in order naturally)
-    const historyArray = Object.values(jornadasMap).reverse();
-
+    const historyArray = Object.values(jornadasMap);
     return res.json(historyArray);
 
   } catch (error) {
-    console.error('Error al leer historial desde Google Sheets:', error);
-    return res.status(500).json({ error: 'Error del servidor al leer Google Sheets.' });
+    console.error('Error general al obtener historial:', error);
+    return res.status(500).json({ error: 'Error del servidor al obtener historial.' });
   }
 });
 
