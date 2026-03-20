@@ -2169,7 +2169,7 @@ function attachSolicitudEvents() {
       waMsg += `Teléfono principal: ${formData.telefono_principal}\n`;
       waMsg += `Teléfono secundario: ${formData.telefono_secundario || formData.telefono_principal}\n`;
       waMsg += `Estado: ${formData.estado}, Municipio: ${formData.municipio}, Parroquia: ${formData.parroquia}, Sector: ${formData.sector}, Calle / Casa / Apto: ${formData.direccion}\n`;
-      waMsg += `Tipo de Servicio: Plan: ${formData.plan} ${formData.tipo_servicio}\n`;
+      waMsg += `Tipo de Servicio: ${formData.plan} ${formData.tipo_servicio}\n`;
       waMsg += `Promotor/a: ${formData.promotor}\n`;
       waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
       waMsg += `Power Go: ${formData.power_go ? 'SI' : 'NO'}\n`;
