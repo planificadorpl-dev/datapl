@@ -57,11 +57,16 @@ app.post('/api/save-jornada', async (req, res) => {
     const rows = jornada.activitiesDetail.map((act, i) => {
       // Compatibility for individual activities or bulk
       const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
-      const estado = u.estado || act.estado || "";
-      const municipio = u.municipio || act.municipio || "";
-      const parroquia = u.parroquia || act.parroquia || "";
-      const sector = u.sector || act.sector || "";
-      
+      let estadosStr = "";
+      let municipiosStr = "";
+      let parroquiasStr = "";
+      let sectoresStr = "";
+      if(act.ubicaciones && act.ubicaciones.length > 0) {
+         estadosStr = act.ubicaciones.map(u => u.estado).join(" | ");
+         municipiosStr = act.ubicaciones.map(u => u.municipio).join(" | ");
+         parroquiasStr = act.ubicaciones.map(u => u.parroquia).join(" | ");
+         sectoresStr = act.ubicaciones.map(u => u.sector).join(" | ");
+      }
       const vol = act.volantes ? act.volantes : "";
       const info = act.llamadasInfo ? act.llamadasInfo : "";
       const agenda = act.llamadasAgenda ? act.llamadasAgenda : "";
@@ -76,13 +81,13 @@ app.post('/api/save-jornada', async (req, res) => {
         vol,                                // G
         info,                               // H
         agenda,                             // I
-        estado,                             // J (New)
-        municipio,                          // K (New)
-        parroquia,                          // L
-        sector,                             // M
-        act.condominio || "",               // N
-        act.notes || "",                    // O
-        (i === 0 ? (jornada.reporteWhatsapp || "") : "") // P
+        parroquiasStr,                      // J
+        sectoresStr,                        // K
+        act.condominio || "",               // L
+        act.notes || "",                    // M
+        (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
+        estadosStr,                         // O
+        municipiosStr                       // P
       ];
     });
 

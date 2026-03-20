@@ -52,9 +52,13 @@ export default async function handler(req, res) {
     
     // Convert JSON activities to Sheets Row Arrays
     const rows = jornada.activitiesDetail.map((act, i) => {
+      let estadosStr = "";
+      let municipiosStr = "";
       let parroquiasStr = "";
       let sectoresStr = "";
       if(act.ubicaciones && act.ubicaciones.length > 0) {
+         estadosStr = act.ubicaciones.map(u => u.estado).join(" | ");
+         municipiosStr = act.ubicaciones.map(u => u.municipio).join(" | ");
          parroquiasStr = act.ubicaciones.map(u => u.parroquia).join(" | ");
          sectoresStr = act.ubicaciones.map(u => u.sector).join(" | ");
       }
@@ -77,7 +81,9 @@ export default async function handler(req, res) {
         sectoresStr,                        // K
         act.condominio || "",               // L
         act.notes || "",                    // M
-        (i === 0 ? (jornada.reporteWhatsapp || "") : "") // N
+        (i === 0 ? (jornada.reporteWhatsapp || "") : ""), // N
+        estadosStr,                         // O
+        municipiosStr                       // P
       ];
     });
 
