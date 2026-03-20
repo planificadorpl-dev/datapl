@@ -52,6 +52,48 @@ export function renderAdminPanel(appState) {
 
   const parishesHtml = zonesList.join('');
 
+  // Generation of Planes Lists (Missing in previous version)
+  const planesDomList = (appState.planes || [])
+    .filter(p => p.tipo === 'Domiciliario')
+    .map(p => `
+      <div class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+        <div class="flex flex-col">
+          <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
+          <span class="text-[10px] text-gray-400">${p.has_tv ? '+ TELEVISIÓN' : 'SOLO INTERNET'}</span>
+        </div>
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button class="btn-toggle-plan-tv p-1.5 hover:bg-blue-50 rounded-md text-blue-500" data-id="${p.id}" title="Toggle TV">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M7 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2zm0 4v8m5-8v8m5-8v8" /></svg>
+          </button>
+          <button class="btn-toggle-plan-active p-1.5 hover:bg-orange-50 rounded-md ${p.activo === false ? 'text-gray-400' : 'text-orange-500'}" data-id="${p.id}" title="Toggle Active">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          </button>
+          <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-red-500" data-id="${p.id}">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+  const planesEmpList = (appState.planes || [])
+    .filter(p => p.tipo === 'Empresarial')
+    .map(p => `
+      <div class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+        <div class="flex flex-col">
+          <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
+          <span class="text-[10px] text-gray-400">EMPRESARIAL</span>
+        </div>
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button class="btn-toggle-plan-active p-1.5 hover:bg-orange-50 rounded-md ${p.activo === false ? 'text-gray-400' : 'text-orange-500'}" data-id="${p.id}">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          </button>
+          <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-red-500" data-id="${p.id}">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
   return `
     <div class="px-6 py-10 pb-20 bg-[#F2F2F7] min-h-screen">
       <header class="flex items-center mb-8 border-b border-[#E5E5EA] pb-4">
