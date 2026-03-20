@@ -185,6 +185,17 @@ function attachAdminEvents() {
     render();
   });
 
+  document.getElementById('adminGeoSearch')?.addEventListener('input', (e) => {
+    appState.geoSearchQuery = e.target.value;
+    render();
+    // Maintain focus on the search input after re-render
+    const searchInput = document.getElementById('adminGeoSearch');
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+    }
+  });
+
   // Helper to set loading state on buttons
   const setLoading = (btn, isLoading) => {
     if(!btn) return;
