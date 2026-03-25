@@ -1486,6 +1486,10 @@ function attachFormEvents() {
   const initialBlock = locContainer.querySelector('.location-block');
   if(initialBlock) window.setupGeoCascading(initialBlock, appState.geoHierarchy);
 
+  setTimeout(() => {
+    initCustomFormDropdowns('activityForm');
+  }, 10);
+
   const metricDoms = {
     condominio: document.getElementById('mCondominio'),
     volantes: document.getElementById('mVolantes'),
