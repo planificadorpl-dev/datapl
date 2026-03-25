@@ -1328,8 +1328,8 @@ function renderForm() {
       <form id="activityForm" class="space-y-6">
         
         <!-- SECTION 1: INFO GENERAL -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black"></div>
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
             Información General
@@ -1367,8 +1367,8 @@ function renderForm() {
         </div>
 
         <!-- SECTION 2: MÉTRICAS Y CONTACTO -->
-        <div id="metricsCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#34C759]"></div>
+        <div id="metricsCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#34C759] rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
             Métricas del Reporte
@@ -1680,8 +1680,8 @@ function renderSolicitudForm() {
             <div>
               <label class="ios-label">Promotor/a</label>
         <!-- CARD 1: DATOS DEL CLIENTE -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black"></div>
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
             Datos del Cliente
@@ -1747,8 +1747,8 @@ function renderSolicitudForm() {
         </div>
 
         <!-- CARD 2: UBICACIÓN -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500]"></div>
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500] rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
             Ubicación de la Instalación
@@ -1822,8 +1822,8 @@ function renderSolicitudForm() {
         </div>
 
         <!-- CARD 3: DETALLES DEL SERVICIO -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#007AFF]"></div>
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#007AFF] rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
             Detalles del Servicio
@@ -1879,8 +1879,8 @@ function renderSolicitudForm() {
         </div>
 
         <!-- CARD 4: CONTACTO Y FUENTE -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE]"></div>
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE] rounded-l-3xl"></div>
           <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 004.812 4.812l.773-1.548a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
             Contacto y Varios
@@ -2038,7 +2038,7 @@ function attachSolicitudEvents() {
 
   function updatePlanes() {
     const tipo = tipoSrv.value;
-    const availablePlanes = appState.planes.filter(p => !p.activo === false);
+    const availablePlanes = appState.planes.filter(p => p.activo !== false);
     const filtered = availablePlanes.filter(p => p.tipo === tipo);
 
     planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
