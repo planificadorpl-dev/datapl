@@ -1659,7 +1659,7 @@ function renderSolicitudForm() {
   const dateStr = now.toISOString().split('T')[0];
 
   return `
-    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
+    <div class="px-6 py-8 pb-10 bg-white min-h-screen overflow-x-hidden">
       <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
         <div class="flex items-center justify-between w-full mb-3">
           <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
@@ -1709,9 +1709,10 @@ function renderSolicitudForm() {
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="ios-label">Cédula/RIF</label>
               <div class="flex gap-2">
-                <div class="w-[75px] shrink-0 relative custom-dropdown-container">
+                <div class="w-[70px] shrink-0 relative custom-dropdown-container">
                   <select id="sCedulaTipo" required class="hidden-real-select">
                     <option value="V-">V-</option>
                     <option value="E-">E-</option>
@@ -1722,11 +1723,13 @@ function renderSolicitudForm() {
                   </button>
                   <div class="absolute z-50 w-[80px] mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
                 </div>
-                <div class="flex-1 min-w-0 relative">
-                  <label class="ios-label absolute -top-6 left-0">Cédula/RIF</label>
+                <div class="flex-1 min-w-0">
                   <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input w-full bg-[#F2F2F7] focus:bg-white">
                 </div>
               </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="ios-label">Género</label>
                 <div class="relative w-full text-black h-[52px] custom-dropdown-container">
@@ -1742,11 +1745,10 @@ function renderSolicitudForm() {
                   <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label class="ios-label">Fecha de Nacimiento <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
-              <input type="date" id="sFechaNac" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              <div>
+                <label class="ios-label">Fecha de Nacimiento <span class="text-[#8E8E93] font-normal">(Opc.)</span></label>
+                <input type="date" id="sFechaNac" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              </div>
             </div>
           </div>
         </div>
