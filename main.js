@@ -1711,7 +1711,7 @@ function renderSolicitudForm() {
 
             <div class="grid grid-cols-2 gap-3">
               <div class="flex gap-2">
-                <div class="w-1/3 relative custom-dropdown-container">
+                <div class="w-[75px] shrink-0 relative custom-dropdown-container">
                   <select id="sCedulaTipo" required class="hidden-real-select">
                     <option value="V-">V-</option>
                     <option value="E-">E-</option>
@@ -1722,9 +1722,9 @@ function renderSolicitudForm() {
                   </button>
                   <div class="absolute z-50 w-[80px] mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
                 </div>
-                <div class="w-2/3">
+                <div class="flex-1 min-w-0 relative">
                   <label class="ios-label absolute -top-6 left-0">Cédula/RIF</label>
-                  <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input bg-[#F2F2F7] focus:bg-white">
+                  <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input w-full bg-[#F2F2F7] focus:bg-white">
                 </div>
               </div>
               <div>
