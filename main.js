@@ -1840,17 +1840,13 @@ function renderSolicitudForm() {
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="ios-label">Tipo de Servicio</label>
-                <div class="relative w-full text-black h-[52px] custom-dropdown-container" id="ddTipoSrv">
-                  <select id="sTipoServicio" required class="hidden-real-select">
-                    <option value="Domiciliario" selected>🏠 Domiciliario</option>
-                    <option value="Empresarial">🏢 Empresarial</option>
-                  </select>
-                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
-                    <span class="custom-dd-text font-bold text-black">🏠 Domiciliario</span>
-                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
+                <div class="bg-[#F2F2F7] p-1 rounded-xl flex items-center w-full relative h-[48px]">
+                  <div id="tipoServicioPill" class="absolute w-[calc(50%-4px)] h-[calc(100%-8px)] left-1 bg-white rounded-lg shadow-sm transition-transform duration-300 translate-x-0"></div>
+                  
+                  <button type="button" id="btnDomic" class="flex-1 h-full text-sm font-semibold z-10 text-black transition-colors">🏠 Domic.</button>
+                  <button type="button" id="btnEmp" class="flex-1 h-full text-sm font-semibold z-10 text-[#8E8E93] transition-colors">🏢 Empres.</button>
                 </div>
+                <input type="hidden" id="sTipoServicio" value="Domiciliario" required>
               </div>
 
               <div>
@@ -2081,7 +2077,29 @@ function attachSolicitudEvents() {
     powerGoSelect.dispatchEvent(new Event('refreshCustomUI'));
   }
 
-  tipoSrv?.addEventListener('change', updatePlanes);
+  const btnDomic = document.getElementById('btnDomic');
+  const btnEmp = document.getElementById('btnEmp');
+  const tsPill = document.getElementById('tipoServicioPill');
+
+  function setTs(val) {
+    if(!tipoSrv) return;
+    tipoSrv.value = val;
+    if (val === 'Domiciliario') {
+      tsPill?.classList.remove('translate-x-[100%]', 'ml-1');
+      tsPill?.classList.add('translate-x-0');
+      btnDomic?.classList.replace('text-[#8E8E93]', 'text-black');
+      btnEmp?.classList.replace('text-black', 'text-[#8E8E93]');
+    } else {
+      tsPill?.classList.remove('translate-x-0');
+      tsPill?.classList.add('translate-x-[100%]', 'ml-1');
+      btnEmp?.classList.replace('text-[#8E8E93]', 'text-black');
+      btnDomic?.classList.replace('text-black', 'text-[#8E8E93]');
+    }
+    updatePlanes();
+  }
+
+  btnDomic?.addEventListener('click', () => setTs('Domiciliario'));
+  btnEmp?.addEventListener('click', () => setTs('Empresarial'));
 
   const geoBlock = document.getElementById('solicitudForm');
   if(geoBlock) window.setupGeoCascading(geoBlock, appState.geoHierarchy);
@@ -2168,7 +2186,7 @@ function attachSolicitudEvents() {
       waMsg += `Power Go: ${formData.power_go ? 'SI' : 'NO'}\n`;
       waMsg += `Fuente: ${formData.fuente}`;
 
-      window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, '_blank');
+      window.location.href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
 
       showToast('Solicitud guardada correctamente', 'success');
       appState.currentView = 'home';
