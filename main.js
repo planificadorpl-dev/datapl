@@ -1679,6 +1679,11 @@ function renderSolicitudForm() {
             </div>
             <div>
               <label class="ios-label">Promotor/a</label>
+              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#1C1C1E] font-bold border-transparent">
+            </div>
+          </div>
+        </fieldset>
+
         <!-- CARD 1: DATOS DEL CLIENTE -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
           <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black rounded-l-3xl"></div>
