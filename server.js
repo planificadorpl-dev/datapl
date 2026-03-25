@@ -55,18 +55,13 @@ app.post('/api/save-jornada', async (req, res) => {
     // 1. Prepare for Google Sheets (Column Mapping)
     // A: Fecha, B: Hora, C: Asesor, D: Tipo, E: S, F: C, G: Vol, H: Info, I: Agenda, J: Estado, K: Municipio, L: Parroquia, M: Sector, N: Condominio, O: Notas, P: Reporte WA
     const rows = jornada.activitiesDetail.map((act, i) => {
-      // Compatibility for individual activities or bulk
-      const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
-      let estadosStr = "";
-      let municipiosStr = "";
-      let parroquiasStr = "";
-      let sectoresStr = "";
-      if(act.ubicaciones && act.ubicaciones.length > 0) {
-         estadosStr = act.ubicaciones.map(u => u.estado).join(" | ");
-         municipiosStr = act.ubicaciones.map(u => u.municipio).join(" | ");
-         parroquiasStr = act.ubicaciones.map(u => u.parroquia).join(" | ");
-         sectoresStr = act.ubicaciones.map(u => u.sector).join(" | ");
-      }
+      // It is now a single object: act.ubicaciones
+      const u = act.ubicaciones || {};
+      const estadosStr = u.estado || "";
+      const municipiosStr = u.municipio || "";
+      const parroquiasStr = u.parroquia || "";
+      const sectoresStr = u.sector || "";
+      
       const vol = act.volantes ? act.volantes : "";
       const info = act.llamadasInfo ? act.llamadasInfo : "";
       const agenda = act.llamadasAgenda ? act.llamadasAgenda : "";
@@ -101,7 +96,7 @@ app.post('/api/save-jornada', async (req, res) => {
 
     // 2. Save to Supabase (actividades table)
     const supabaseRows = jornada.activitiesDetail.map(act => {
-      const u = act.ubicaciones && act.ubicaciones[0] ? act.ubicaciones[0] : {};
+      const u = act.ubicaciones || {};
       return {
         fecha: jornada.date.split('/').reverse().join('-'), // "DD/MM/YYYY" -> "YYYY-MM-DD"
         hora: act.time.includes(' ') ? act.time.split(' ')[0] : act.time, // Handle "12:00 AM" if needed, but DB expects TIME

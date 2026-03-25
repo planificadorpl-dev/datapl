@@ -814,7 +814,7 @@ function renderActivitiesPanel() {
               </button>
             </div>
             <h3 class="font-bold text-lg leading-tight mb-1 text-black">${act.activityType}</h3>
-            ${act.ubicaciones && act.ubicaciones.length > 0 ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.length > 1 ? act.ubicaciones.length + ' Sectores (' + act.ubicaciones[0].parroquia + '...)' : (act.ubicaciones[0].parroquia + ', ' + act.ubicaciones[0].sector)}</p>` : ''}
+            ${act.ubicaciones && act.ubicaciones.parroquia ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}</p>` : ''}
             ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
             ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Recibió llamadas (I:${act.llamadasInfo} | A:${act.llamadasAgenda})</p>` : ''}
             <p class="text-[#8E8E93] text-sm mt-1 font-medium bg-[#F2F2F7] inline-block px-2 py-0.5 rounded">S:${act.solicitudes} | C:${act.clientesCaptados}${act.volantes > 0 ? ' | V:'+act.volantes : ''}</p>
@@ -1225,157 +1225,242 @@ window.setupGeoCascading = function(block, hierarchy) {
   });
 };
 
+window.renderLocationBlock = function() {
+  const estados = appState.geoHierarchy ? Object.keys(appState.geoHierarchy).sort() : [];
+  
+  return `
+    <div class="location-block bg-[#F8F8F8] p-5 rounded-2xl border border-[#E5E5EA] space-y-4 pt-5 pb-5 mt-2">
+      <!-- 1. Estado y Municipio -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="ios-label">Estado</label>
+          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
+            <select class="hidden-real-select loc-estado" required>
+              <option value="" disabled selected>Seleccione...</option>
+              ${estados.map(e => `<option value="${e}">${e}</option>`).join('')}
+            </select>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Seleccione...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 left-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="ios-label">Municipio</label>
+          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
+            <select class="hidden-real-select loc-municipio" required disabled>
+              <option value="" disabled selected>Esperando...</option>
+            </select>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Parroquia y Sector -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="ios-label">Parroquia</label>
+          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
+            <select class="hidden-real-select loc-parroquia" required disabled>
+              <option value="" disabled selected>Esperando...</option>
+            </select>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 left-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="ios-label">Sector</label>
+          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
+            <select class="hidden-real-select loc-sector" required disabled>
+              <option value="" disabled selected>Esperando...</option>
+            </select>
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
+              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 function renderForm() {
   const now = new Date();
-  // Venezuela time for default value (must be HH:MM for <input type="time">)
-  const timeDefault = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'America/Caracas',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).format(now);
-
+  
   return `
-    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
-      <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
-        <div class="flex items-center justify-between w-full mb-3">
-          <button id="btnCancel" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
-          <h2 class="text-lg font-semibold text-black">Nueva Actividad</h2>
-          <div class="w-[74px]"></div> <!-- Spacer to balance flex centering -->
-        </div>
-
-        <!-- Notification chip for newly added activities (hidden by default) -->
-        <div id="addedActivitiesChip" class="hidden w-full bg-[#E8F5E9] border border-[#C8E6C9] p-3 rounded-xl flex items-center gap-3 animate-pulse transition-all">
-          <div class="w-8 h-8 rounded-full bg-[#34C759] flex items-center justify-center text-white shrink-0">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-sm font-bold text-[#2E7D32]" id="chipCountTitle">1 Actividad Añadida</span>
-            <span class="text-xs text-[#2E7D32]/80" id="chipDescTitle">Lista para guardar al volver al inicio.</span>
-          </div>
-        </div>
+    <div class="px-6 py-8 pb-10 bg-[#F8F8F8] min-h-screen">
+      <!-- HEADER -->
+      <header class="flex items-center justify-between mb-8">
+        <button id="btnCancel" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black shadow-sm border border-[#E5E5EA] active:scale-90 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 class="text-xl font-bold text-black tracking-tight">Nueva Actividad</h2>
+        <div class="w-10"></div> <!-- Spacer -->
       </header>
       
+      <!-- NOTIFICATION CHIP (Floating or fixed top) -->
+      <div id="addedActivitiesChip" class="hidden mb-6 bg-[#E8F5E9] border border-[#C8E6C9] p-4 rounded-2xl flex items-center gap-3 animate-pulse">
+        <div class="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center text-white shrink-0 shadow-lg shadow-[#34C759]/20">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-black text-[#1B5E20]" id="chipCountTitle">1 Actividad Añadida</span>
+          <span class="text-xs text-[#1B5E20]/70 font-medium" id="chipDescTitle">Lista para guardar al finalizar.</span>
+        </div>
+      </div>
+
       <form id="activityForm" class="space-y-6">
         
-        <!-- Tiempo (y Asesor Readonly Visual) -->
-        <fieldset class="space-y-4">
+        <!-- SECTION 1: INFO GENERAL -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+            Información General
+          </h3>
           <div class="space-y-4">
             <div>
-              <label class="ios-label">Hora</label>
-              <input type="text" id="fTime" value="${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
+              <label class="ios-label">Hora del Reporte</label>
+              <input type="text" id="fTime" value="${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-medium border-transparent">
             </div>
             <div>
-              <label class="ios-label">Asesor</label>
-              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-semibold cursor-default pointer-events-none">
+              <label class="ios-label">Asesor en Turno</label>
+              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#1C1C1E] font-bold border-transparent">
+            </div>
+            <div>
+              <label class="ios-label">Tipo de Actividad</label>
+              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                <select id="fType" required class="hidden-real-select">
+                  <option value="" disabled selected>Seleccionar actividad...</option>
+                  <option value="Visita a Condominio">🏢 Visita a Condominio</option>
+                  <option value="Recorrido (Solo)">🚶 Recorrido (Solo)</option>
+                  <option value="Recorrido con Instaladores">🚐 Recorrido con Instaladores</option>
+                  <option value="Recorrido con Distribución">📦 Recorrido con Distribución</option>
+                  <option value="Stand Publicitario">🎪 Stand Publicitario</option>
+                  <option value="Iglu Publicitario">🛖 Iglu Publicitario</option>
+                  <option value="Caravana">📣 Caravana</option>
+                </select>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar actividad...</span>
+                  <svg class="h-5 w-5 text-[#8E8E93] transition-transform duration-300 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-3xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+              </div>
             </div>
           </div>
-        </fieldset>
-
-        <!-- Tipo Actividad -->
-        <fieldset>
-          <label class="ios-label">Tipo de Actividad</label>
-          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select id="fType" required class="hidden-real-select">
-              <option value="" disabled selected>Seleccionar...</option>
-              <option value="Visita a Condominio">Visita a Condominio</option>
-              <option value="Recorrido (Solo)">Recorrido (Solo)</option>
-              <option value="Recorrido con Instaladores">Recorrido con Instaladores</option>
-              <option value="Recorrido con Distribución">Recorrido con Distribución</option>
-              <option value="Stand Publicitario">Stand Publicitario</option>
-              <option value="Iglu Publicitario">Iglu Publicitario</option>
-              <option value="Caravana">Caravana</option>
-            </select>
-            <button type="button" class="w-full h-full bg-white border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#F2F2F7] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 custom-dd-btn">
-              <span class="custom-dd-text text-[#8E8E93]">Seleccionar...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </fieldset>
-
-        <!-- Toggle Llamadas -->
-        <label for="fPhoneContact" class="bg-white p-4 rounded-xl border border-[#E5E5EA] flex items-center justify-between shadow-sm cursor-pointer" id="toggleCallRow">
-          <span class="text-sm font-medium text-[#3A3A3C] select-none pr-4 leading-tight">
-            ¿Recibiste llamadas o un cliente te contactó mientras te encontrabas en esta actividad?
-          </span>
-          <div class="relative shrink-0 w-12 h-7">
-            <input type="checkbox" id="fPhoneContact" class="peer sr-only">
-            <div class="block w-full h-full bg-[#E5E5EA] peer-checked:bg-[#34C759] rounded-full transition-colors duration-300"></div>
-            <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform duration-300 peer-checked:translate-x-5"></div>
-          </div>
-        </label>
-
-        <!-- Sub-marco de llamadas (Hidden) -->
-        <fieldset id="phoneMetricsContainer" class="hidden bg-[#F8F8F8] p-4 rounded-xl space-y-4 border border-[#E5E5EA]">
-          <h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2">Clientes atendidos por llamada</h3>
-          <div class="flex flex-col gap-1 w-full">
-            <label class="ios-label">Solo buscan información</label>
-            <input type="number" id="fPhoneInfo" min="0" placeholder="0" class="ios-input focus:bg-white">
-          </div>
-          <div class="flex flex-col gap-1 w-full">
-            <label class="ios-label">Confirmados para agendar</label>
-            <input type="number" id="fPhoneAgenda" min="0" placeholder="0" class="ios-input focus:bg-white">
-          </div>
-        </fieldset>
-
-        <!-- Métricas Principales Dinámicas -->
-        <fieldset class="bg-[#F2F2F7] p-4 rounded-xl space-y-4 shadow-sm border border-[#E5E5EA]" id="metricsContainer">
-          <h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2">Métricas de la Actividad</h3>
-          
-          <div id="mCondominio" class="flex flex-col gap-1 w-full hidden">
-            <label class="ios-label">Nombre del Condominio</label>
-            <input type="text" id="fCondominio" placeholder="Ej. Res. El Parque" class="ios-input focus:bg-white">
-          </div>
-
-          <div id="mVolantes" class="flex flex-col gap-1 w-full hidden">
-            <label class="ios-label">Volantes Entregados</label>
-            <input type="number" id="fVolantes" min="0" placeholder="0" class="ios-input focus:bg-white">
-          </div>
-
-          <div id="mCaptados" class="flex flex-col gap-1 w-full hidden">
-            <label class="ios-label">Clientes Captados</label>
-            <input type="number" id="fCaptados" min="0" placeholder="0" class="ios-input focus:bg-white">
-          </div>
-          
-          <div id="mSolicitudes" class="flex flex-col gap-1 w-full hidden">
-            <label class="ios-label">Solicitudes Enviadas (Confirmados)</label>
-            <input type="number" id="fSolicitudes" min="0" placeholder="0" class="ios-input focus:bg-white">
-          </div>
-        </fieldset>
-
-        <!-- Ubicación Dinámica -->
-        <fieldset id="locationsContainer" class="space-y-0">
-          <h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2 hidden" id="locTitle">Ubicación(es) Visitada(s)</h3>
-          <!-- JS renders blocks here -->
-        </fieldset>
-        
-        <div class="flex justify-center hidden" id="btnAddLocWrapper">
-          <button type="button" id="btnAddLocation" class="ios-btn-secondary !py-2.5 !text-[#007AFF] !border-transparent hover:!bg-[#E5E5EA] w-auto px-5 rounded-full text-sm">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-             </svg>
-             Añadir otro sector
-          </button>
         </div>
 
-        <!-- Notas -->
-        <fieldset>
-          <label class="ios-label">Observaciones (Opcional)</label>
-          <textarea id="fNotes" rows="3" placeholder="Detalles extra..." class="ios-input resize-y min-h-[80px]"></textarea>
-        </fieldset>
+        <!-- SECTION 2: MÉTRICAS Y CONTACTO -->
+        <div id="metricsCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#34C759]"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
+            Métricas del Reporte
+          </h3>
+          
+          <div class="space-y-4">
+            <!-- Toggle Contacto -->
+            <label for="fPhoneContact" class="bg-[#F2F2F7] p-4 rounded-2xl flex items-center justify-between cursor-pointer group transition-all hover:bg-[#E5E5EA]">
+              <div class="flex flex-col pr-4">
+                <span class="text-[13px] font-bold text-black leading-tight mb-1">Contacto Telefónico</span>
+                <span class="text-[11px] text-[#8E8E93] leading-none">¿Recibiste llamadas en esta zona?</span>
+              </div>
+              <div class="relative shrink-0 w-12 h-7">
+                <input type="checkbox" id="fPhoneContact" class="peer sr-only">
+                <div class="block w-full h-full bg-[#C7C7CC] peer-checked:bg-[#34C759] rounded-full transition-colors duration-300"></div>
+                <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+              </div>
+            </label>
 
-        <!-- Botones de Acción -->
-        <div class="pt-4 flex flex-col gap-3">
-          <button type="submit" name="action" value="add_another" class="ios-btn-secondary !text-[#007AFF] !border-[#007AFF]/20 hover:!bg-[#007AFF]/5">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+            <!-- Sub-métricas llamadas -->
+            <div id="phoneMetricsContainer" class="hidden animate-in fade-in slide-in-from-top-2 duration-300 space-y-3 bg-[#F8F8F8] p-4 rounded-2xl border border-[#E5E5EA]">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="ios-label">Solo Info.</label>
+                  <input type="number" id="fPhoneInfo" min="0" placeholder="0" class="ios-input !bg-white focus:ring-2 focus:ring-[#34C759]/20">
+                </div>
+                <div class="space-y-1">
+                  <label class="ios-label">Agendados</label>
+                  <input type="number" id="fPhoneAgenda" min="0" placeholder="0" class="ios-input !bg-white focus:ring-2 focus:ring-[#34C759]/20">
+                </div>
+              </div>
+            </div>
+
+            <!-- Otros Inputs -->
+            <div id="mCondominio" class="hidden space-y-1">
+              <label class="ios-label">Nombre del Condominio</label>
+              <input type="text" id="fCondominio" placeholder="Ej. Res. Las Rosas" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#007AFF]">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div id="mCaptados" class="hidden space-y-1">
+                <label class="ios-label">Captados</label>
+                <input type="number" id="fCaptados" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              </div>
+              <div id="mSolicitudes" class="hidden space-y-1">
+                <label class="ios-label">Solicitudes</label>
+                <input type="number" id="fSolicitudes" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              </div>
+            </div>
+
+            <div id="mVolantes" class="hidden space-y-1">
+              <label class="ios-label">Volantes Entregados</label>
+              <input type="number" id="fVolantes" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: UBICACIÓN -->
+        <div id="locationCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500]"></div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+              Ubicación
+            </h3>
+          </div>
+
+          <div id="locationsContainer" class="space-y-4">
+            <!-- Rendered by window.renderLocationBlock -->
+          </div>
+        </div>
+
+        <!-- SECTION 4: NOTAS -->
+        <div id="notesCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE]"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
+            Observaciones
+          </h3>
+          <textarea id="fNotes" rows="3" placeholder="Detalles o incidencias extra..." class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE] resize-none min-h-[90px] border-transparent"></textarea>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="pt-4 flex flex-col gap-4">
+          <button type="submit" name="action" value="save_return" class="w-full py-4.5 bg-black text-white rounded-2xl font-bold text-lg shadow-xl shadow-black/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <span>Guardar y Finalizar</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          </button>
+          
+          <button type="submit" name="action" value="add_another" class="w-full py-4 bg-white text-[#007AFF] border border-[#007AFF]/20 rounded-2xl font-bold text-[15px] active:scale-[0.98] transition-all hover:bg-blue-50/50">
             Añadir Otra Actividad
           </button>
-          <button type="submit" name="action" value="save_return" class="ios-btn-primary bg-[#007AFF] hover:bg-[#005bb5]">Guardar y Volver al Inicio</button>
         </div>
       </form>
     </div>
@@ -1389,11 +1474,13 @@ function attachFormEvents() {
   });
 
   const typeSelect = document.getElementById('fType');
-  const metricsContainer = document.getElementById('metricsContainer');
-
+  const metricsCard = document.getElementById('metricsCard');
+  const locationCard = document.getElementById('locationCard');
+  const notesCard = document.getElementById('notesCard');
   const locContainer = document.getElementById('locationsContainer');
+
   // Initialize the first block on render
-  locContainer.innerHTML = '<h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2 hidden" id="locTitle">Ubicación(es) Visitada(s)</h3>' + window.renderLocationBlock(0);
+  locContainer.innerHTML = window.renderLocationBlock();
   
   // Setup cascading for initial block
   const initialBlock = locContainer.querySelector('.location-block');
@@ -1412,9 +1499,6 @@ function attachFormEvents() {
     solicitudes: document.getElementById('fSolicitudes')
   };
   
-  const btnAddLocWrapper = document.getElementById('btnAddLocWrapper');
-  const locTitle = document.getElementById('locTitle');
-
   const fPhoneContact = document.getElementById('fPhoneContact');
   const phoneMetricsContainer = document.getElementById('phoneMetricsContainer');
   const fPhoneInfo = document.getElementById('fPhoneInfo');
@@ -1434,64 +1518,32 @@ function attachFormEvents() {
     }
   });
 
-  const toggleCallRow = document.getElementById('toggleCallRow');
-  const fNotesFieldset = document.getElementById('fNotes').closest('fieldset');
-
   function updateFormFields(val) {
     if(!val) {
-       metricsContainer.classList.add('hidden');
-       btnAddLocWrapper.classList.add('hidden');
-       locTitle.classList.add('hidden');
-       
-       toggleCallRow?.classList.add('hidden');
-       phoneMetricsContainer?.classList.add('hidden');
-       locContainer?.classList.add('hidden');
-       fNotesFieldset?.classList.add('hidden');
+       metricsCard?.classList.add('hidden');
+       locationCard?.classList.add('hidden');
+       notesCard?.classList.add('hidden');
        return;
     }
     
-    metricsContainer.classList.remove('hidden');
-    toggleCallRow?.classList.remove('hidden');
-    locContainer?.classList.remove('hidden');
-    fNotesFieldset?.classList.remove('hidden');
+    metricsCard?.classList.remove('hidden');
+    locationCard?.classList.remove('hidden');
+    notesCard?.classList.remove('hidden');
     
-    if (fPhoneContact?.checked) {
-       phoneMetricsContainer?.classList.remove('hidden');
-    } else {
-       phoneMetricsContainer?.classList.add('hidden');
-    }
-
     // Reset conditionals
     metricDoms.condominio.classList.add('hidden');
     metricInputs.condominio.required = false;
     
-    // Always visible when activity is selected
+    // Metrics visibility
     metricDoms.captados.classList.remove('hidden');
     metricDoms.solicitudes.classList.remove('hidden');
-    metricDoms.volantes.classList.remove('hidden');   // Volantes now always shown
+    metricDoms.volantes.classList.remove('hidden');
     metricInputs.captados.required = true;
     metricInputs.solicitudes.required = true;
-    metricInputs.volantes.required = false; // optional
 
-    // Specific logic
     if (val === 'Visita a Condominio') {
       metricDoms.condominio.classList.remove('hidden');
       metricInputs.condominio.required = true;
-    }
-
-    // Multi location logic
-    const multiLocAllowed = ['Recorrido con Instaladores', 'Recorrido con Distribución', 'Caravana'].includes(val);
-    if (multiLocAllowed) {
-      btnAddLocWrapper.classList.remove('hidden');
-      locTitle.classList.remove('hidden');
-    } else {
-      btnAddLocWrapper.classList.add('hidden');
-      locTitle.classList.add('hidden');
-      // Clean up extra locations
-      const extraLocs = document.querySelectorAll('.location-block');
-      extraLocs.forEach(el => {
-          if(el.getAttribute('data-index') !== '0') el.remove();
-      });
     }
   }
 
@@ -1501,56 +1553,26 @@ function attachFormEvents() {
       updateFormFields(this.value);
   });
 
-  // Cascading logic is now handled per block via setupGeoCascading
-  
-  // Remove location
-  locContainer?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-remove-loc');
-    if (btn) {
-      const block = btn.closest('.location-block');
-      if (block) block.remove();
-    }
-  });
-
-  // Add location
-  document.getElementById('btnAddLocation')?.addEventListener('click', () => {
-    const existingCount = locContainer.querySelectorAll('.location-block').length;
-    // Generate unique index based on timestamp to avoid collision
-    const nextIdx = Date.now();
-    const locHtml = window.renderLocationBlock(nextIdx);
-    locContainer.insertAdjacentHTML('beforeend', locHtml);
-    
-    // Find the newly added block
-    const newBlock = locContainer.querySelector(`.location-block[data-index="${nextIdx}"]`);
-    if(newBlock) window.setupGeoCascading(newBlock, appState.geoHierarchy);
-
-    initCustomFormDropdowns();
-  });
-
   const form = document.getElementById('activityForm');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = e.submitter;
+    const submitterValue = btnSubmit ? btnSubmit.value : 'save_return';
     
-    // Gather locations (4 levels)
-    const ubicaciones = [];
-    document.querySelectorAll('.location-block').forEach(block => {
-      ubicaciones.push({
-        estado: block.querySelector('.loc-estado').value || '',
-        municipio: block.querySelector('.loc-municipio').value || '',
-        parroquia: block.querySelector('.loc-parroquia').value || '',
-        sector: block.querySelector('.loc-sector').value || ''
-      });
-    });
+    // Gather locations
+    const block = document.querySelector('.location-block');
+    const ubicacion = {
+      estado: block.querySelector('.loc-estado').value || '',
+      municipio: block.querySelector('.loc-municipio').value || '',
+      parroquia: block.querySelector('.loc-parroquia').value || '',
+      sector: block.querySelector('.loc-sector').value || ''
+    };
 
-    // Checkbox data
     const receivedCalls = document.getElementById('fPhoneContact').checked;
     
-    // Simplified time handler: if already formatted, return as is.
     function formatTimeValue(val) {
       if (!val) return '';
-      // If it already has am/pm, just return it
       if (val.toLowerCase().includes('m.')) return val;
-      
       const [hStr, mStr] = val.split(':');
       let h = parseInt(hStr, 10);
       const m = mStr;
@@ -1559,37 +1581,30 @@ function attachFormEvents() {
       return `${h}:${m} ${period}`;
     }
 
-    // ── Duplicate sector validation (por tipo de actividad) ────────────────
-    // La misma combinación de tipo + parroquia + sector no puede repetirse en la misma jornada
+    // Duplicate validation
     const currentType = document.getElementById('fType').value;
     const usedLocations = new Set();
     appState.activities.forEach(act => {
-      (act.ubicaciones || []).forEach(loc => {
-        if (act.activityType && loc.parroquia && loc.sector && loc.sector !== 'N/A') {
-          usedLocations.add(`${act.activityType}|||${loc.parroquia}|||${loc.sector}`);
-        }
-      });
+      if (act.ubicaciones && act.activityType === currentType && act.ubicaciones.parroquia && act.ubicaciones.sector && act.ubicaciones.sector !== 'N/A') {
+        usedLocations.add(`${act.ubicaciones.parroquia}|||${act.ubicaciones.sector}`);
+      }
     });
 
-    const duplicates = ubicaciones.filter(loc =>
-      loc.parroquia && loc.sector && loc.sector !== 'N/A' &&
-      usedLocations.has(`${currentType}|||${loc.parroquia}|||${loc.sector}`)
-    );
-
-    if (duplicates.length > 0) {
-      const names = duplicates.map(d => `${d.parroquia} – ${d.sector}`).join(', ');
-      showToast(`⚠️ Ya registraste "${currentType}" en: ${names}. Edita esa actividad en vez de crear una nueva.`, 'error');
-      return; // Block submission
+    if (
+      ubicacion.parroquia && ubicacion.sector && ubicacion.sector !== 'N/A' &&
+      usedLocations.has(`${ubicacion.parroquia}|||${ubicacion.sector}`)
+    ) {
+      showToast(`⚠️ Ya registraste "${currentType}" en: ${ubicacion.parroquia} – ${ubicacion.sector}.`, 'error');
+      return;
     }
-    // ──────────────────────────────────────────────────────────────────────
 
     const activity = {
       uid: 'act_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       time: formatTimeValue(document.getElementById('fTime').value),
-      date: new Date().toLocaleDateString('es-VE'), // Consistent date for sync
+      date: new Date().toLocaleDateString('es-VE'),
       asesor: appState.currentAsesor,
-      activityType: document.getElementById('fType').value,
-      ubicaciones: ubicaciones,
+      activityType: currentType,
+      ubicaciones: ubicacion,
       clientesCaptados: metricInputs.captados.value || 0,
       solicitudes: metricInputs.solicitudes.value || 0,
       condominio: metricInputs.condominio.value || '',
@@ -1603,147 +1618,38 @@ function attachFormEvents() {
     appState.activities.push(activity);
     saveActivities();
     
-    // Push to Google Sheets in real-time
-    // syncActivity is now disabled for real-time saving as per user request
-    // await syncActivity(activity, 'ADD');
-
-    const submitterValue = e.submitter ? e.submitter.value : 'save_return';
     if(submitterValue === 'add_another') {
-        // Clear fields
-        document.getElementById('fType').value = "";
-        metricInputs.captados.value = "";
-        metricInputs.solicitudes.value = "";
-        metricInputs.condominio.value = "";
-        metricInputs.volantes.value = "";
+        const ogContent = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = `✓ Listo`;
+        btnSubmit.classList.add('!bg-green-50', '!text-green-600', '!border-green-200');
         
-        document.getElementById('fPhoneContact').checked = false;
+        // Reset fields
+        document.getElementById('activityForm').reset();
+        fPhoneContact.checked = false;
         fPhoneContact.dispatchEvent(new Event('change'));
-        document.getElementById('fNotes').value = "";
-
-        // Reset locations
-        locContainer.innerHTML = '<h3 class="text-xs font-semibold text-[#8E8E93] uppercase tracking-wider mb-2 hidden" id="locTitle">Ubicación(es) Visitada(s)</h3>' + window.renderLocationBlock(0);
-        
-        const typeSelectObj = document.getElementById('fType');
+        locContainer.innerHTML = window.renderLocationBlock();
+        window.setupGeoCascading(locContainer.querySelector('.location-block'), appState.geoHierarchy);
         updateFormFields(null);
-        typeSelectObj.dispatchEvent(new Event('refreshCustomUI'));
         initCustomFormDropdowns();
 
-        // Visual feedback / Chip Logic
-        let unsavedCountElement = document.getElementById('chipCountTitle');
-        let chipRoot = document.getElementById('addedActivitiesChip');
-        
-        let totalC = appState.activities.length;
-        unsavedCountElement.innerText = `${totalC} Actividad${totalC > 1 ? 'es' : ''} Añadida${totalC > 1 ? 's' : ''}`;
-        chipRoot.classList.remove('hidden');
-        chipRoot.classList.remove('animate-pulse');
-        void chipRoot.offsetWidth; // trigger reflow
-        chipRoot.classList.add('animate-pulse');
+        // Reveal Chip
+        const chip = document.getElementById('addedActivitiesChip');
+        if(chip) {
+           chip.classList.remove('hidden');
+           document.getElementById('chipCountTitle').innerText = `${appState.activities.length} Actividad${appState.activities.length > 1 ? 'es' : ''} Añadida${appState.activities.length > 1 ? 's' : ''}`;
+        }
 
-        const btnTag = document.querySelector('button[value="add_another"]');
-        const ogText = btnTag.innerHTML;
-        btnTag.innerHTML = `✓ Listo, Añade Otra`;
-        btnTag.classList.add('!bg-[#E8F5E9]', '!text-[#2E7D32]', '!border-[#C8E6C9]');
         setTimeout(() => {
-          btnTag.innerHTML = ogText;
-          btnTag.classList.remove('!bg-[#E8F5E9]', '!text-[#2E7D32]', '!border-[#C8E6C9]');
-        }, 2000);
-
+          btnSubmit.innerHTML = ogContent;
+          btnSubmit.classList.remove('!bg-green-50', '!text-green-600', '!border-green-200');
+        }, 1500);
     } else {
         appState.currentView = 'activities_panel';
         render();
     }
   });
 
-  initCustomFormDropdowns();
-}
-
-// ----------------- DROPDOWN SYSTEM -----------------
-function initCustomFormDropdowns() {
-    const container = document.getElementById('activityForm');
-    if(container) {
-      container.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(dd => {
-         dd.classList.add('initialized');
-         const realSelect = dd.querySelector('select');
-         const btn = dd.querySelector('.custom-dd-btn');
-         const textSpan = dd.querySelector('.custom-dd-text');
-         const icon = dd.querySelector('.custom-dd-icon');
-         const optionsContainer = dd.querySelector('.custom-dd-options');
-         let isOpen = false;
-         
-         function renderOpt() {
-           const optionsHTML = Array.from(realSelect.options).map(opt => {
-              if (opt.disabled) return '';
-              const isSelected = opt.selected || opt.value === realSelect.value;
-              return `<button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-4 py-3 text-[14px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group"><span class="${isSelected ? 'font-semibold text-[#007AFF]' : 'text-[#3A3A3C] group-hover:text-black'}">${opt.text}</span></button>`;
-           }).join('');
-           optionsContainer.innerHTML = `<div class="py-1">${optionsHTML}</div>`;
-           optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
-             optBtn.addEventListener('click', (ev) => {
-               ev.stopPropagation();
-               realSelect.value = optBtn.getAttribute('data-value');
-               realSelect.dispatchEvent(new Event('change', { bubbles: true }));
-               updateVis();
-               toggleDd();
-             });
-           });
-         }
-
-         function updateVis() {
-           const selectedOpt = realSelect.options[realSelect.selectedIndex];
-           if(!selectedOpt || selectedOpt.disabled || !realSelect.value) {
-               textSpan.textContent = realSelect.options[0]?.text || "Seleccionar...";
-               textSpan.classList.add('text-[#8E8E93]');
-               textSpan.classList.remove('font-medium', 'text-black');
-           } else {
-               textSpan.textContent = selectedOpt.text;
-               textSpan.classList.remove('text-[#8E8E93]');
-               textSpan.classList.add('font-medium', 'text-black');
-           }
-           if(realSelect.disabled) {
-              btn.classList.add('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-              btn.classList.remove('bg-white', 'hover:bg-[#F2F2F7]', 'border-[#E5E5EA]', 'ring-2', 'ring-[#007AFF]/20');
-           } else {
-              btn.classList.remove('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-              btn.classList.add('bg-white', 'border-[#E5E5EA]', 'hover:bg-[#F2F2F7]');
-           }
-         }
-
-         function toggleDd() {
-           if(realSelect.disabled) return;
-           isOpen = !isOpen;
-           if (isOpen) {
-             document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
-               if(el !== optionsContainer) {
-                   el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
-                   el.classList.remove('opacity-100', 'visible', 'scale-100');
-               }
-             });
-             renderOpt();
-             optionsContainer.classList.remove('hidden');
-             void optionsContainer.offsetWidth; // trigger reflow
-             optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
-             optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
-             icon.classList.add('rotate-180');
-             btn.classList.add('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-           } else {
-             optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
-             optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
-             icon.classList.remove('rotate-180');
-             btn.classList.remove('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-             setTimeout(() => optionsContainer.classList.add('hidden'), 200);
-           }
-         }
-         
-         const existingListener = btn.onclick;
-         if(!existingListener) {
-            btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
-            realSelect.addEventListener('refreshCustomUI', () => updateVis());
-            document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
-         }
-         
-         updateVis();
-      });
-    }
+  window.initCustomFormDropdowns('activityForm');
 }
 
 // ----------------- SOLICITUD FORM VIEW -----------------
@@ -1773,248 +1679,351 @@ function renderSolicitudForm() {
             </div>
             <div>
               <label class="ios-label">Promotor/a</label>
-              <input type="text" id="sPromotor" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-semibold cursor-default pointer-events-none">
-            </div>
-          </div>
-          <div>
-            <label class="ios-label">Fecha de Disponibilidad</label>
-            <input type="date" id="sFechaDisp" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-          </div>
-        </fieldset>
-
-        <hr class="border-[#E5E5EA]">
-
-        <!-- Datos del Cliente -->
-        <fieldset class="space-y-4">
-          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Datos del Cliente</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="ios-label">Nombres</label>
-              <input type="text" id="sNombres" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-            </div>
-            <div>
-              <label class="ios-label">Apellidos</label>
-              <input type="text" id="sApellidos" required class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-            </div>
-          </div>
+        <!-- CARD 1: DATOS DEL CLIENTE -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+            Datos del Cliente
+          </h3>
           
-          <div class="grid grid-cols-2 gap-3">
-            <div class="flex gap-2 relative">
-              <div class="w-1/3 relative custom-dropdown-container">
-                <select id="sCedulaTipo" required class="hidden-real-select">
-                  <option value="V-">V-</option>
-                  <option value="E-">E-</option>
-                  <option value="J-">J-</option>
-                </select>
-                <button type="button" class="w-full h-[48px] bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl flex justify-center items-center custom-dd-btn">
-                  <span class="custom-dd-text font-medium text-black">V-</span>
-                </button>
-                <div class="absolute z-50 w-[80px] mt-1.5 bg-white border border-[#E5E5EA] rounded-xl shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden custom-dd-options"></div>
-              </div>
-              <div class="w-2/3">
-                <label class="ios-label absolute -top-6 left-0">Cédula/RIF</label>
-                <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-              </div>
-            </div>
+          <div class="space-y-4">
             <div>
-              <label class="ios-label">Género</label>
-              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sGenero" required class="hidden-real-select">
-                  <option value="" disabled selected>Elegir...</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                </select>
-                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-white custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93]">Elegir...</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden custom-dd-options"></div>
+              <label class="ios-label">Fecha de Disponibilidad</label>
+              <input type="date" id="sFechaDisp" required class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-black">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="ios-label">Nombres</label>
+                <input type="text" id="sNombres" required placeholder="Ej: Juan" class="ios-input bg-[#F2F2F7] focus:bg-white capitalize">
+              </div>
+              <div>
+                <label class="ios-label">Apellidos</label>
+                <input type="text" id="sApellidos" required placeholder="Ej: Pérez" class="ios-input bg-[#F2F2F7] focus:bg-white capitalize">
               </div>
             </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex gap-2">
+                <div class="w-1/3 relative custom-dropdown-container">
+                  <select id="sCedulaTipo" required class="hidden-real-select">
+                    <option value="V-">V-</option>
+                    <option value="E-">E-</option>
+                    <option value="J-">J-</option>
+                  </select>
+                  <button type="button" class="w-full h-[52px] bg-[#F2F2F7] border border-transparent rounded-2xl flex justify-center items-center custom-dd-btn">
+                    <span class="custom-dd-text font-bold text-black">V-</span>
+                  </button>
+                  <div class="absolute z-50 w-[80px] mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
+                </div>
+                <div class="w-2/3">
+                  <label class="ios-label absolute -top-6 left-0">Cédula/RIF</label>
+                  <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input bg-[#F2F2F7] focus:bg-white">
+                </div>
+              </div>
+              <div>
+                <label class="ios-label">Género</label>
+                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                  <select id="sGenero" required class="hidden-real-select">
+                    <option value="" disabled selected>Elegir...</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                    <span class="custom-dd-text text-[#8E8E93] font-medium">Elegir...</span>
+                    <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="ios-label">Fecha de Nacimiento <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
+              <input type="date" id="sFechaNac" class="ios-input bg-[#F2F2F7] focus:bg-white">
+            </div>
           </div>
+        </div>
 
-          <div>
-            <label class="ios-label">Fecha de Nacimiento</label>
-            <input type="date" id="sFechaNac" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-          </div>
-        </fieldset>
-
-        <hr class="border-[#E5E5EA]">
-
-        <!-- Ubicación -->
-        <fieldset class="space-y-4">
-          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Ubicación</h3>
+        <!-- CARD 2: UBICACIÓN -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500]"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+            Ubicación de la Instalación
+          </h3>
           
-          <div>
-            <label class="ios-label">Estado</label>
-            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sEstado" required class="hidden-real-select loc-estado">
-                <option value="" disabled selected>Seleccione...</option>
-                ${Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
-              </select>
-              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                <span class="custom-dd-text text-[#8E8E93]">Seleccione...</span>
-                <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-4">
             <div>
-              <label class="ios-label">Municipio</label>
-              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sMunicipio" required class="hidden-real-select loc-municipio" disabled>
+              <label class="ios-label">Estado</label>
+              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                <select id="sEstado" required class="hidden-real-select loc-estado">
+                  <option value="" disabled selected>Seleccione...</option>
+                  ${Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
+                </select>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccione...</span>
+                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="ios-label">Municipio</label>
+                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                  <select id="sMunicipio" required class="hidden-real-select loc-municipio" disabled>
+                    <option value="" disabled selected>Esperando...</option>
+                  </select>
+                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                    <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+                </div>
+              </div>
+              
+              <div>
+                <label class="ios-label">Parroquia</label>
+                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                  <select id="sParroquia" required class="hidden-real-select loc-parroquia" disabled>
+                    <option value="" disabled selected>Esperando...</option>
+                  </select>
+                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                    <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="ios-label">Sector</label>
+              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                <select id="sSector" required class="hidden-real-select loc-sector" disabled>
                   <option value="" disabled selected>Esperando...</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                  <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
                   <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
-                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
               </div>
             </div>
-            
+
             <div>
-              <label class="ios-label">Parroquia</label>
-              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sParroquia" required class="hidden-real-select loc-parroquia" disabled>
-                  <option value="" disabled selected>Esperando...</option>
-                </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-                  <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
-              </div>
+              <label class="ios-label">Dirección (Calle / Casa / Apto)</label>
+              <textarea id="sDireccion" required rows="2" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#FF9500] resize-none" placeholder="Ej: Calle 4, Res. Las Rosas, Apto 2-B"></textarea>
             </div>
           </div>
+        </div>
 
-
-          <div>
-            <label class="ios-label">Sector</label>
-            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sSector" required class="hidden-real-select loc-sector" disabled>
-                <option value="" disabled selected>Esperando...</option>
-              </select>
-              <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-                <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Esperando...</span>
-                <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
-            </div>
-          </div>
-
-          <div>
-            <label class="ios-label">Calle / Casa / Apto</label>
-            <textarea id="sDireccion" required rows="2" class="ios-input focus:bg-white text-black bg-[#F8F8F8] resize-none" placeholder="Ej: Res. Las Rosas, Torre B, Apto 24"></textarea>
-          </div>
-        </fieldset>
-
-        <hr class="border-[#E5E5EA]">
-
-        <!-- Servicio Técnico -->
-        <fieldset class="space-y-4">
-          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Detalles del Servicio</h3>
+        <!-- CARD 3: DETALLES DEL SERVICIO -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#007AFF]"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
+            Detalles del Servicio
+          </h3>
           
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="ios-label">Tipo de Servicio</label>
-              <div class="relative w-full text-black h-[48px] custom-dropdown-container" id="ddTipoSrv">
-                <select id="sTipoServicio" required class="hidden-real-select">
-                  <option value="Domiciliario" selected>Domiciliario</option>
-                  <option value="Empresarial">Empresarial</option>
-                </select>
-                <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                  <span class="custom-dd-text font-medium text-black">Domiciliario</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="ios-label">Tipo de Servicio</label>
+                <div class="relative w-full text-black h-[52px] custom-dropdown-container" id="ddTipoSrv">
+                  <select id="sTipoServicio" required class="hidden-real-select">
+                    <option value="Domiciliario" selected>🏠 Domiciliario</option>
+                    <option value="Empresarial">🏢 Empresarial</option>
+                  </select>
+                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                    <span class="custom-dd-text font-bold text-black">🏠 Domiciliario</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
+                </div>
+              </div>
+
+              <div>
+                <label class="ios-label">Power Go</label>
+                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                  <select id="sPowerGo" required class="hidden-real-select">
+                    <option value="NO" selected>NO</option>
+                    <option value="SI">SI</option>
+                  </select>
+                  <button type="button" id="btnPowerGo" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                    <span class="custom-dd-text font-bold text-black">NO</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
+                </div>
               </div>
             </div>
 
             <div>
-              <label class="ios-label">Power Go</label>
-              <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-                <select id="sPowerGo" required class="hidden-real-select">
-                  <option value="NO" selected>NO</option>
-                  <option value="SI">SI</option>
+              <label class="ios-label">Plan a Contratar</label>
+              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                <select id="sPlan" required class="hidden-real-select">
+                  <option value="" disabled selected>Seleccione plan...</option>
                 </select>
-                <button type="button" id="btnPowerGo" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                  <span class="custom-dd-text font-medium text-black">NO</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Seleccione plan...</span>
+                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
-                <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden custom-dd-options"></div>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <label class="ios-label">Plan</label>
-            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sPlan" required class="hidden-real-select">
-                <option value="" disabled selected>Seleccione plan...</option>
-                <!-- Opciones dinámicas base tipo de servicio -->
-              </select>
-              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                <span class="custom-dd-text text-[#8E8E93] truncate max-w-[90%]">Seleccione plan...</span>
-                <svg class="h-4 w-4 text-[#8E8E93] shrink-0 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
-            </div>
-          </div>
-        </fieldset>
-
-        <hr class="border-[#E5E5EA]">
-
-        <!-- Contacto Adicional -->
-        <fieldset class="space-y-4">
-          <h3 class="text-xs font-bold text-[#8E8E93] uppercase tracking-wider mb-2">Contacto / Varios</h3>
+        <!-- CARD 4: CONTACTO Y FUENTE -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE]"></div>
+          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 004.812 4.812l.773-1.548a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+            Contacto y Varios
+          </h3>
           
-          <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="ios-label">Teléfono Principal</label>
+                <input type="tel" id="sTelefonoP" required placeholder="0414-1234567" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
+              </div>
+              <div>
+                <label class="ios-label">Teléfono Secundario</label>
+                <input type="tel" id="sTelefonoS" placeholder="Opcional" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
+              </div>
+            </div>
+
             <div>
-              <label class="ios-label">Teléfono Ppal.</label>
-              <input type="tel" id="sTelefonoP" required placeholder="0414-0000000" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+              <label class="ios-label">Correo Electrónico <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
+              <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
             </div>
+
             <div>
-              <label class="ios-label">Teléfono Sec. <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
-              <input type="tel" id="sTelefonoS" placeholder="0412-0000000" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
+              <label class="ios-label">¿Cómo nos conoció? (Fuente)</label>
+              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+                <select id="sFuente" required class="hidden-real-select">
+                  <option value="" disabled selected>Seleccionar...</option>
+                  <option value="Volante">📄 Volante</option>
+                  <option value="Instagram">📸 Instagram / Redes</option>
+                  <option value="Recorrido">🚶 Recorrido del Asesor</option>
+                  <option value="Referido">🤝 Referido / Recomendación</option>
+                  <option value="Stand">🎪 Stand Publicitario</option>
+                  <option value="Otro">❓ Otro</option>
+                </select>
+                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar...</span>
+                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+              </div>
             </div>
           </div>
-
-          <div>
-            <label class="ios-label">Correo Electrónico <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
-            <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input focus:bg-white text-black bg-[#F8F8F8]">
-          </div>
-
-          <div>
-            <label class="ios-label">Fuente</label>
-            <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-              <select id="sFuente" required class="hidden-real-select">
-                <option value="" disabled selected>Seleccionar...</option>
-                <option value="Volante">Volante</option>
-                <option value="Instagram">Instagram</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Recorrido">Recorrido</option>
-                <option value="Referido">Referido</option>
-                <option value="Otro">Otro</option>
-              </select>
-              <button type="button" class="w-full h-full bg-[#F8F8F8] border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn">
-                <span class="custom-dd-text text-[#8E8E93]">Seleccionar...</span>
-                <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              <div class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options"></div>
-            </div>
-          </div>
-
-        </fieldset>
+        </div>
 
         <div class="pt-6">
-          <button type="submit" class="ios-btn-primary shadow-lg shadow-[#007AFF]/20 w-full mb-3">Guardar y Enviar WhatsApp</button>
+          <button type="submit" class="w-full py-5 bg-[#007AFF] text-white rounded-3xl font-black text-lg shadow-xl shadow-[#007AFF]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+            <span>Guardar y Enviar WhatsApp</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          </button>
         </div>
       </form>
     </div>
   `;
+}
+
+function initCustomFormDropdowns(parentContainerId) {
+  const container = parentContainerId ? document.getElementById(parentContainerId) : document;
+  if (!container) return;
+
+  container.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(dd => {
+    dd.classList.add('initialized');
+    const realSelect = dd.querySelector('select');
+    const btn = dd.querySelector('.custom-dd-btn');
+    const textSpan = dd.querySelector('.custom-dd-text');
+    const icon = dd.querySelector('.custom-dd-icon');
+    const optionsContainer = dd.querySelector('.custom-dd-options');
+    let isOpen = false;
+
+    function renderOpt() {
+      const optionsHTML = Array.from(realSelect.options).map(opt => {
+        if (opt.disabled) return '';
+        const isSelected = opt.selected || opt.value === realSelect.value;
+        return `
+          <button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-5 py-3.5 text-[14px] hover:bg-[#F2F2F7] transition-all flex justify-between items-center group">
+            <span class="${isSelected ? 'font-black text-[#007AFF]' : 'text-[#3A3A3C] font-medium group-hover:text-black hover:translate-x-1 transition-transform'}">${opt.text}</span>
+            ${isSelected ? '<svg class="h-4 w-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>' : ''}
+          </button>`;
+      }).join('');
+      optionsContainer.innerHTML = `<div class="py-1.5">${optionsHTML}</div>`;
+      optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
+        optBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          realSelect.value = optBtn.getAttribute('data-value');
+          realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          updateVis();
+          toggleDd();
+        });
+      });
+    }
+
+    function updateVis() {
+      const selectedOpt = realSelect.options[realSelect.selectedIndex];
+      if (!selectedOpt || selectedOpt.disabled || !realSelect.value) {
+        textSpan.textContent = realSelect.options[0]?.text || "Elegir...";
+        textSpan.classList.add('text-[#8E8E93]');
+        textSpan.classList.remove('font-bold', 'text-black');
+      } else {
+        textSpan.textContent = selectedOpt.text;
+        textSpan.classList.remove('text-[#8E8E93]');
+        textSpan.classList.add('font-bold', 'text-black');
+      }
+      
+      if (realSelect.disabled) {
+        btn.classList.add('opacity-60', 'pointer-events-none', 'bg-[#F2F2F7]');
+        btn.classList.remove('bg-white', 'hover:bg-[#E5E5EA]');
+      } else {
+        btn.classList.remove('opacity-60', 'pointer-events-none', 'bg-[#F2F2F7]');
+        btn.classList.add('bg-[#F2F2F7]', 'hover:bg-[#E5E5EA]');
+      }
+    }
+
+    function toggleDd() {
+      if (realSelect.disabled) return;
+      isOpen = !isOpen;
+      if (isOpen) {
+        // Close others
+        document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
+          if (el !== optionsContainer) {
+            el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
+            el.classList.remove('opacity-100', 'visible', 'scale-100');
+          }
+        });
+        renderOpt();
+        optionsContainer.classList.remove('hidden');
+        void optionsContainer.offsetWidth;
+        optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
+        optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
+        icon?.classList.add('rotate-180');
+        btn.classList.add('ring-2', 'ring-black/5', 'bg-[#E5E5EA]');
+      } else {
+        optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
+        optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
+        icon?.classList.remove('rotate-180');
+        btn.classList.remove('ring-2', 'ring-black/5', 'bg-[#E5E5EA]');
+        setTimeout(() => optionsContainer.classList.add('hidden'), 300);
+      }
+    }
+
+    btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
+    realSelect.addEventListener('refreshCustomUI', () => updateVis());
+    document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
+    updateVis();
+  });
 }
 
 function attachSolicitudEvents() {
@@ -2029,7 +2038,7 @@ function attachSolicitudEvents() {
 
   function updatePlanes() {
     const tipo = tipoSrv.value;
-    const availablePlanes = appState.planes.filter(p => !p.activo === false); // Filter only active ones
+    const availablePlanes = appState.planes.filter(p => !p.activo === false);
     const filtered = availablePlanes.filter(p => p.tipo === tipo);
 
     planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
@@ -2043,11 +2052,9 @@ function attachSolicitudEvents() {
         planSelect.appendChild(opt);
       });
     } else {
-      // Fallback
       const fallbackPlanes = tipo === 'Domiciliario' ? 
         ['400MB', '600MB', '1GB', '400MB + TV', '600MB + TV', '1GB + TV'] : 
         ['50MB', '100MB', '200MB', 'Plan Dedicado'];
-        
       fallbackPlanes.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
@@ -2069,109 +2076,23 @@ function attachSolicitudEvents() {
 
   tipoSrv?.addEventListener('change', updatePlanes);
 
-  // Geographical Cascading (Unified)
   const geoBlock = document.getElementById('solicitudForm');
   if(geoBlock) window.setupGeoCascading(geoBlock, appState.geoHierarchy);
   
-  // Prevent Custom dropdowns from failing if not instantly updated
   setTimeout(() => {
-    // Only init inside this view to prevent double binding other forms
-    const container = document.getElementById('solicitudForm');
-    if(container) {
-      container.querySelectorAll('.custom-dropdown-container:not(.initialized)').forEach(dd => {
-         // Same initialization logic as in form
-         dd.classList.add('initialized');
-         const realSelect = dd.querySelector('select');
-         const btn = dd.querySelector('.custom-dd-btn');
-         const textSpan = dd.querySelector('.custom-dd-text');
-         const icon = dd.querySelector('.custom-dd-icon');
-         const optionsContainer = dd.querySelector('.custom-dd-options');
-         let isOpen = false;
-         
-         function renderOpt() {
-           const optionsHTML = Array.from(realSelect.options).map(opt => {
-              if (opt.disabled) return '';
-              const isSelected = opt.selected || opt.value === realSelect.value;
-              return `<button type="button" data-value="${opt.value}" class="custom-dd-option w-full text-left px-4 py-3 text-[14px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group"><span class="${isSelected ? 'font-semibold text-[#007AFF]' : 'text-[#3A3A3C] group-hover:text-black'}">${opt.text}</span></button>`;
-           }).join('');
-           optionsContainer.innerHTML = `<div class="py-1">${optionsHTML}</div>`;
-           optionsContainer.querySelectorAll('.custom-dd-option').forEach(optBtn => {
-             optBtn.addEventListener('click', (ev) => {
-               ev.stopPropagation();
-               realSelect.value = optBtn.getAttribute('data-value');
-               realSelect.dispatchEvent(new Event('change', { bubbles: true }));
-               updateVis();
-               toggleDd();
-             });
-           });
-         }
-
-         function updateVis() {
-           const selectedOpt = realSelect.options[realSelect.selectedIndex];
-           if(!selectedOpt || selectedOpt.disabled || !realSelect.value) {
-               textSpan.textContent = realSelect.options[0]?.text || "Elegir...";
-               textSpan.classList.add('text-[#8E8E93]');
-               textSpan.classList.remove('font-medium', 'text-black');
-           } else {
-               textSpan.textContent = selectedOpt.text;
-               textSpan.classList.remove('text-[#8E8E93]');
-               textSpan.classList.add('font-medium', 'text-black');
-           }
-           if(realSelect.disabled) {
-              btn.classList.add('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-              btn.classList.remove('bg-white', 'hover:bg-white', 'border-[#E5E5EA]', 'ring-2', 'ring-[#007AFF]/20');
-           } else {
-              btn.classList.remove('bg-[#F2F2F7]', 'pointer-events-none', 'opacity-60', 'border-transparent');
-              btn.classList.add('bg-[#F8F8F8]', 'border-[#E5E5EA]', 'hover:bg-white');
-           }
-         }
-
-         function toggleDd() {
-           if(realSelect.disabled) return;
-           isOpen = !isOpen;
-           if (isOpen) {
-             document.querySelectorAll('.custom-dd-options:not(.hidden)').forEach(el => {
-               if(el !== optionsContainer) {
-                   el.classList.add('hidden', 'opacity-0', 'invisible', 'scale-95');
-                   el.classList.remove('opacity-100', 'visible', 'scale-100');
-               }
-             });
-             renderOpt();
-             optionsContainer.classList.remove('hidden');
-             void optionsContainer.offsetWidth; // trigger reflow
-             optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
-             optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
-             icon.classList.add('rotate-180');
-             btn.classList.add('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-           } else {
-             optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
-             optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
-             icon.classList.remove('rotate-180');
-             btn.classList.remove('border-[#007AFF]', 'ring-2', 'ring-[#007AFF]/20');
-             setTimeout(() => optionsContainer.classList.add('hidden'), 200);
-           }
-         }
-         btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
-         realSelect.addEventListener('refreshCustomUI', () => updateVis());
-         document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
-         updateVis();
-      });
-      updatePlanes(); // Init first load
-    }
+    initCustomFormDropdowns('solicitudForm');
+    updatePlanes();
   }, 10);
 
-  // Form submit handler to validate and send to WA
   const formEl = document.getElementById('solicitudForm');
   formEl?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const btnSubmit = formEl.querySelector('button[type="submit"]');
     const ogText = btnSubmit.innerHTML;
-    btnSubmit.innerHTML = `<div class="h-5 w-5 border-2 border-white border-t-transparent flex-shrink-0 rounded-full animate-spin mx-auto"></div>`;
+    btnSubmit.innerHTML = `<div class="h-6 w-6 border-3 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
     btnSubmit.disabled = true;
 
     try {
-      // 1. Recopilar datos
       const formData = {
         fecha_disp: document.getElementById('sFechaDisp').value,
         promotor: appState.currentAsesor,
@@ -2194,7 +2115,6 @@ function attachSolicitudEvents() {
         fuente: document.getElementById('sFuente').value
       };
 
-      // 2. Guardar en Supabase
       const { data, error } = await supabase.from('solicitudes').insert([{
         fecha_disponibilidad: formData.fecha_disp,
         promotor: formData.promotor,
@@ -2219,7 +2139,6 @@ function attachSolicitudEvents() {
 
       if (error) throw error;
 
-      // 3. Generar Reporte de WhatsApp
       let formatDate = (dateString) => {
         if (!dateString) return '';
         const [y, m, d] = dateString.split('-');
@@ -2242,10 +2161,8 @@ function attachSolicitudEvents() {
       waMsg += `Power Go: ${formData.power_go ? 'SI' : 'NO'}\n`;
       waMsg += `Fuente: ${formData.fuente}`;
 
-      // Open WA
       window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, '_blank');
 
-      // 4. Reset & Return home
       showToast('Solicitud guardada correctamente', 'success');
       appState.currentView = 'home';
       render();
@@ -2296,16 +2213,8 @@ function buildWhatsappReport(activities, asesor, date) {
     msg += `\n${i + 1}. ${type} (${act.time})\n`;
 
     // Location
-    if (act.ubicaciones && act.ubicaciones.length > 0) {
-      if (act.ubicaciones.length === 1) {
-        const u = act.ubicaciones[0];
-        if (u.parroquia || u.sector)
-          msg += `${TAB}Ubicacion: ${u.parroquia}, ${u.sector}\n`;
-      } else {
-        act.ubicaciones.forEach((u, ui) => {
-          msg += `${TAB}Sector ${ui + 1}: ${u.parroquia}, ${u.sector}\n`;
-        });
-      }
+    if (act.ubicaciones && (act.ubicaciones.parroquia || act.ubicaciones.sector)) {
+      msg += `${TAB}Ubicacion: ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}\n`;
     }
 
     // Type-specific: Condominio
