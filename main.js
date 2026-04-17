@@ -515,7 +515,11 @@ function render() {
     appContainer.innerHTML = renderHome();
     attachHomeEvents();
     attachTabEvents();
-  } else if (appState.currentView === 'form' || appState.currentView === 'activities_panel') {
+  } else if (appState.currentView === 'activities_panel') {
+    appContainer.innerHTML = renderActivitiesPanel();
+    attachActivitiesPanelEvents();
+    attachTabEvents();
+  } else if (appState.currentView === 'form') {
     appContainer.innerHTML = renderActivitiesView();
     attachActivitiesEvents();
     attachTabEvents();
@@ -1517,6 +1521,9 @@ function attachActivitiesEvents() {
     render();
   });
 
+  // Only setup form elements if the form sub-view is active
+  if (appState.activitySubView !== 'form') return;
+
   const typeSelect = document.getElementById('fType');
   const metricsCard = document.getElementById('metricsCard');
   const locationCard = document.getElementById('locationCard');
@@ -1524,10 +1531,10 @@ function attachActivitiesEvents() {
   const locContainer = document.getElementById('locationsContainer');
 
   // Initialize the first block on render
-  locContainer.innerHTML = window.renderLocationBlock();
+  if (locContainer) locContainer.innerHTML = window.renderLocationBlock();
   
   // Setup cascading for initial block
-  const initialBlock = locContainer.querySelector('.location-block');
+  const initialBlock = locContainer?.querySelector('.location-block');
   if(initialBlock) window.setupGeoCascading(initialBlock, appState.geoHierarchy);
 
   setTimeout(() => {
@@ -1693,6 +1700,7 @@ function attachActivitiesEvents() {
         }, 1500);
     } else {
         appState.currentView = 'activities_panel';
+        appState.activitySubView = 'form'; // Reset sub-view for next time
         render();
     }
   });
