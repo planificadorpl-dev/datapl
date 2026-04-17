@@ -20,6 +20,7 @@ let appState = {
   solicitudesHistory: [],
   solicitudesLoading: false,
   solicitudSubView: 'form', // 'form' or 'history'
+  activitySubView: 'form',
 };
 
 // Global Initialization Flag
@@ -514,15 +515,14 @@ function render() {
     appContainer.innerHTML = renderHome();
     attachHomeEvents();
     attachTabEvents();
-  } else if (appState.currentView === 'activities_panel') {
-    appContainer.innerHTML = renderActivitiesPanel();
-    attachActivitiesPanelEvents();
-  } else if (appState.currentView === 'form') {
-    appContainer.innerHTML = renderForm();
-    attachFormEvents();
+  } else if (appState.currentView === 'form' || appState.currentView === 'activities_panel') {
+    appContainer.innerHTML = renderActivitiesView();
+    attachActivitiesEvents();
+    attachTabEvents();
   } else if (appState.currentView === 'solicitud_form') {
     appContainer.innerHTML = renderSolicitudForm();
     attachSolicitudEvents();
+    attachTabEvents();
   } else if (appState.currentView === 'history') {
     // If arriving at history tab, fetch data
     appContainer.innerHTML = renderHistory();
@@ -595,13 +595,13 @@ function renderHome() {
   const formattedDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
   return `
-    <div class="px-6 py-10 pb-[150px]">
+    <div class="px-5 py-6 pb-[120px] bg-[#F2F2F7] min-h-screen">
       <header class="mb-8 flex justify-between items-start">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight text-black mb-1">Actividades</h1>
-          <p class="text-[#8E8E93]">${formattedDate}</p>
+          <h1 class="text-3xl font-black tracking-tighter text-black mb-1">Actividades</h1>
+          <p class="text-[#8E8E93] font-medium">${formattedDate}</p>
         </div>
-        <button id="btnAdminAccess" class="p-2 text-[#8E8E93] hover:text-black transition-colors rounded-full hover:bg-black/5 active:scale-95">
+        <button id="btnAdminAccess" class="p-2.5 bg-white shadow-sm border border-[#E5E5EA]/50 text-[#8E8E93] hover:text-black transition-all rounded-2xl active:scale-95">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -610,59 +610,51 @@ function renderHome() {
       </header>
 
       <!-- Asesor Selection in Home -->
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-[#E5E5EA] mb-6">
-        <label class="ios-label !mb-2">¿Quién está reportando?</label>
-        <!-- Custom Minimalist Dropdown -->
-        <div class="relative w-full text-black h-[48px]" id="customAsesorDropdown">
-          <button id="hAsesorBtn" type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50">
-            <span id="hAsesorSelectedText" class="${appState.currentAsesor ? 'font-medium text-black' : 'text-[#8E8E93]'}">
-              ${appState.currentAsesor || 'Seleccione el Asesor...'}
-            </span>
-            <svg id="hAsesorIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8E8E93] transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          <!-- Dropdown Options -->
-          <div id="hAsesorOptions" class="absolute z-50 w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar hidden">
-            <div class="py-1">
-              ${appState.asesores.map(name => `
-                  <button type="button" data-value="${name}" class="asesor-option w-full text-left px-4 py-3 text-[15px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
-                    <span class="${appState.currentAsesor === name ? 'font-semibold text-[#007AFF]' : 'text-black group-hover:text-black'}">${name}</span>
-                    ${appState.currentAsesor === name ? `
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#007AFF]" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                      </svg>
-                    ` : ''}
-                  </button>
-                `).join('')}
+      <p class="ios-label uppercase">Sesión Actual</p>
+      <div class="ios-group !mb-6">
+        <div class="ios-item">
+          <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">¿Quién está reportando?</label>
+          <div class="relative w-full text-black h-[50px] mt-1" id="customAsesorDropdown">
+            <button id="hAsesorBtn" type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200">
+              <span id="hAsesorSelectedText" class="text-[16px] ${appState.currentAsesor ? 'font-black text-black' : 'text-[#8E8E93]'}">
+                ${appState.currentAsesor || 'Seleccione el Asesor...'}
+              </span>
+              <svg id="hAsesorIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8E8E93] transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="hAsesorOptions" class="absolute z-[110] w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar hidden">
+              <div class="py-1">
+                ${appState.asesores.map(name => `
+                    <button type="button" data-value="${name}" class="asesor-option w-full text-left px-4 py-4 text-[16px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
+                      <span class="${appState.currentAsesor === name ? 'font-black text-[#007AFF]' : 'text-black group-hover:text-black'}">${name}</span>
+                      ${appState.currentAsesor === name ? `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#007AFF]" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                      ` : ''}
+                    </button>
+                  `).join('')}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- DUAL CARDS SECTION -->
-      <div class="px-6 grid grid-cols-1 gap-4">
-        
+      <div class="px-5 grid grid-cols-1 gap-4">
         <!-- CARD 1: ACTIVIDADES -->
-        <button id="btnGoToActivity" class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] text-left transition-transform active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
-          <!-- Main Icon -->
-          <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white mb-6 z-10 relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+        <button id="btnGoToActivity" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
+          <div class="w-12 h-12 bg-black rounded-[15px] flex items-center justify-center text-white mb-6 z-10 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
               <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
             </svg>
           </div>
-          <!-- Background Faded Icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="absolute -right-4 -top-2 w-32 h-32 text-[#F2F2F7] z-0 transition-transform duration-500 group-hover:scale-110" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1z"/>
-          </svg>
-          <!-- Texts -->
           <div class="relative z-10">
-            <h2 class="text-[22px] font-bold text-black mb-1.5 tracking-tight">Actividades</h2>
-            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4">Reporte diario de visitas, recorridos y publicidad.</p>
-            <span class="text-[13px] font-bold text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              Ver Panel de Actividades 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Actividades</h2>
+            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Reporte diario de visitas, recorridos y publicidad.</p>
+            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
+              Gestionar Actividades 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </span>
@@ -670,33 +662,25 @@ function renderHome() {
         </button>
 
         <!-- CARD 2: SOLICITUDES -->
-        <button id="btnGoToSolicitud" class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] text-left transition-transform active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
-          <!-- Main Icon -->
-          <div class="w-12 h-12 bg-[#F2F2F7] rounded-2xl flex items-center justify-center text-black mb-6 z-10 relative border border-[#E5E5EA]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
+        <button id="btnGoToSolicitud" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
+          <div class="w-12 h-12 bg-[#F2F2F7] rounded-[15px] flex items-center justify-center text-black mb-6 z-10 relative border border-[#E5E5EA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
               <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
               <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
             </svg>
           </div>
-          <!-- Background Faded Icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="absolute -right-4 top-2 w-32 h-32 text-[#F2F2F7] z-0 transition-transform duration-500 group-hover:-rotate-12" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-          </svg>
-          <!-- Texts -->
           <div class="relative z-10">
-            <h2 class="text-[22px] font-bold text-black mb-1.5 tracking-tight">Solicitudes</h2>
-            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4">Registro de ventas e instalaciones de fibra.</p>
-            <span class="text-[13px] font-bold text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
+            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Solicitudes</h2>
+            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Registro de ventas e instalaciones de fibra.</p>
+            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
               Nueva Solicitud 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </span>
           </div>
         </button>
-
       </div>
-
       ${renderBottomTabs('home')}
     </div>
   `;
@@ -1121,9 +1105,9 @@ function renderHistory() {
 
   return `
     <div class="px-6 py-10 pb-28">
-      <header class="mb-4">
-        <h1 class="text-3xl font-bold tracking-tight text-black mb-1">Historial</h1>
-        <p class="text-[#8E8E93]">Tus jornadas pasadas</p>
+      <header class="mb-4 text-center">
+        <h1 class="text-3xl font-black tracking-tighter text-black mb-1">Historial</h1>
+        <p class="text-[#8E8E93] font-medium">Reportes pasados en Sheets</p>
       </header>
 
       ${historyHtml}
@@ -1136,76 +1120,6 @@ function renderHistory() {
 // ------------- GLOBALS PARA UI -------------
 window.getGeoStatesOptionsHTML = function() {
   return Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('');
-};
-
-window.renderLocationBlock = function(idx) {
-  const estOpts = window.getGeoStatesOptionsHTML();
-  return `
-    <div class="location-block bg-[#F2F2F7] p-4 rounded-xl border border-[#E5E5EA] shadow-sm flex flex-col gap-4 relative mt-3" data-index="${idx}">
-      ${idx > 0 ? `<button type="button" class="btn-remove-loc absolute -top-3 -right-3 bg-[#FF3B30] text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition-colors z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-      
-      <!-- Fila 1: Estado y Municipio -->
-      <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="ios-label">Estado</label>
-          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select class="hidden-real-select loc-estado" required>
-              <option value="" disabled selected>Seleccione...</option>
-              ${estOpts}
-            </select>
-            <button type="button" class="w-full h-full bg-white border border-[#E5E5EA] rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#F2F2F7] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/50 custom-dd-btn">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Seleccione...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </div>
-        <div class="w-1/2">
-          <label class="ios-label">Municipio</label>
-          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select class="hidden-real-select loc-municipio" required disabled>
-              <option value="" disabled selected>Esperando...</option>
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Fila 2: Parroquia y Sector -->
-      <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="ios-label">Parroquia</label>
-          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select class="hidden-real-select loc-parroquia" required disabled>
-              <option value="" disabled selected>Esperando...</option>
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </div>
-        <div class="w-1/2">
-          <label class="ios-label">Sector</label>
-          <div class="relative w-full text-black h-[48px] custom-dropdown-container">
-            <select class="hidden-real-select loc-sector" required disabled>
-              <option value="" disabled selected>Esperando...</option>
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
 };
 
 // Helper to setup cascading dropdowns for a 4-level hierarchy
@@ -1272,7 +1186,6 @@ window.setupGeoCascading = function(block, hierarchy) {
     selSector.dispatchEvent(new Event('refreshCustomUI'));
   });
 };
-
 window.renderLocationBlock = function() {
   const estados = appState.geoHierarchy ? Object.keys(appState.geoHierarchy).sort() : [];
   
@@ -1294,7 +1207,6 @@ window.renderLocationBlock = function() {
             <div class="absolute z-50 left-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
           </div>
         </div>
-
         <div class="space-y-1">
           <label class="ios-label">Municipio</label>
           <div class="relative w-full text-black h-[46px] custom-dropdown-container">
@@ -1332,7 +1244,7 @@ window.renderLocationBlock = function() {
             <select class="hidden-real-select loc-sector" required disabled>
               <option value="" disabled selected>Esperando...</option>
             </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 custom-dd-btn pointer-events-none opacity-60">
+            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
               <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
               <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
@@ -1344,19 +1256,40 @@ window.renderLocationBlock = function() {
   `;
 };
 
-function renderForm() {
+function renderActivitiesView() {
+  const isForm = appState.activitySubView === 'form';
+  const isHistory = appState.activitySubView === 'history';
+
   return `
-    <div class="min-h-screen pb-10">
-      <!-- FIXED HEADER -->
-      <header class="ios-header">
-        <div class="flex items-center justify-between max-w-md mx-auto">
-          <button id="btnCancel" class="text-[#007AFF] font-medium text-[17px] active:opacity-50 transition-opacity">Cancelar</button>
-          <h2 class="text-[17px] font-semibold text-black">Nueva Actividad</h2>
-          <div class="w-[74px]"></div>
+    <div class="min-h-screen pb-20 bg-[#F2F2F7]">
+      <!-- SEGMENTED CONTROL HEADER -->
+      <header class="ios-header !pb-0">
+        <div class="max-w-md mx-auto">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <button id="btnCancel" class="text-[#007AFF] font-medium text-[17px] active:opacity-50">Cerrar</button>
+            <h2 class="text-[17px] font-black text-black">Actividades</h2>
+            <div class="w-[50px]"></div>
+          </div>
+          
+          <div class="flex bg-[#E3E3E8] p-0.5 rounded-lg mb-3 mx-2 relative h-8 select-none">
+            <div id="actToggleIndicator" class="absolute h-[28px] top-0.5 bg-white rounded-md shadow-sm transition-all duration-300 ease-out" 
+                 style="width: calc(50% - 2px); left: ${isForm ? '2px' : 'calc(50%)'}"></div>
+            <button id="toggleActForm" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isForm ? 'text-black' : 'text-[#8E8E93]'}">Registro</button>
+            <button id="toggleActHistory" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isHistory ? 'text-black' : 'text-[#8E8E93]'}">Historial</button>
+          </div>
         </div>
       </header>
-      
-      <div class="px-5 py-6 max-w-md mx-auto">
+
+      <div class="max-w-md mx-auto">
+        ${isForm ? renderActivityFormBody() : renderActivityHistoryList()}
+      </div>
+    </div>
+  `;
+}
+
+function renderActivityFormBody() {
+  return `
+      <div class="px-5 py-6">
         <!-- NOTIFICATION CHIP -->
         <div id="addedActivitiesChip" class="hidden mb-6 bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-[#E5E5EA]/50">
           <div class="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center text-white shadow-lg shadow-[#34C759]/20">
@@ -1490,14 +1423,98 @@ function renderForm() {
           </div>
         </form>
       </div>
+  `;
+}
+
+function renderActivityHistoryList() {
+  if (appState.historyLoading) {
+    return `
+      <div class="flex flex-col items-center justify-center p-12 text-center animate-pulse">
+        <div class="h-10 w-10 border-4 border-[#C6C6C8] border-t-[#007AFF] rounded-full animate-spin mb-4"></div>
+        <p class="text-[#8E8E93] font-medium">Sincronizando con Sheets...</p>
+      </div>
+    `;
+  }
+
+  const filteredHistory = appState.currentAsesor
+    ? appState.history.filter(jor => jor.asesor === appState.currentAsesor)
+    : appState.history;
+
+  if (filteredHistory.length === 0) {
+    return `
+      <div class="flex flex-col items-center justify-center p-12 text-center mt-10">
+        <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-sm mb-6">
+          <svg class="w-10 h-10 text-[#C6C6C8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <p class="text-black font-black text-xl mb-1">Sin historial</p>
+        <p class="text-[#8E8E93] text-sm">No hay reportes recientes para mostrar.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="px-5 py-4 space-y-6 animate-in fade-in duration-500">
+      ${filteredHistory.map((jor, idx) => `
+        <div class="ios-group !mb-4">
+          <div class="ios-item bg-gray-50/30">
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-[13px] font-black text-[#007AFF]">${jor.activitiesCount} Actividades</span>
+              <span class="text-[11px] font-bold text-[#8E8E93]">${jor.date}</span>
+            </div>
+            <h3 class="text-[18px] font-black text-black leading-tight">${jor.asesor}</h3>
+          </div>
+          
+          <div class="grid grid-cols-3">
+            <div class="ios-item">
+              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Captados</label>
+              <span class="text-[15px] font-bold text-black">${jor.totals?.captados || 0}</span>
+            </div>
+            <div class="ios-item">
+              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Solicitudes</label>
+              <span class="text-[15px] font-bold text-black">${jor.totals?.solicitudes || 0}</span>
+            </div>
+            <div class="ios-item">
+              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Volantes</label>
+              <span class="text-[15px] font-bold text-black">${jor.totals?.volantes || 0}</span>
+            </div>
+          </div>
+          
+          <div class="px-4 py-3 bg-white border-t border-[#E5E5EA]/40 grid grid-cols-2 gap-2">
+            <button onclick="showHistoryDetail('${encodeURIComponent(JSON.stringify(jor))}')" 
+                    class="py-3 bg-[#F2F2F7] text-black rounded-xl text-[13px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              Ver Detalles
+            </button>
+            <button onclick="sendHistoryReportToWhatsapp('${encodeURIComponent(jor.reporteWhatsapp || '')}')" 
+                    class="py-3 bg-[#34C759] text-white rounded-xl text-[13px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              WhatsApp
+            </button>
+          </div>
+        </div>
+      `).join('')}
     </div>
   `;
 }
 
 
-function attachFormEvents() {
+function attachActivitiesEvents() {
+  // --- SUB-NAVIGATION TABS ---
+  document.getElementById('toggleActForm')?.addEventListener('click', () => {
+    if (appState.activitySubView === 'form') return;
+    appState.activitySubView = 'form';
+    render();
+  });
+  document.getElementById('toggleActHistory')?.addEventListener('click', () => {
+    if (appState.activitySubView === 'history') return;
+    appState.activitySubView = 'history';
+    appState.historyLoading = true;
+    render(); 
+    fetchHistory();
+  });
+
   document.getElementById('btnCancel')?.addEventListener('click', () => {
-    appState.currentView = 'activities_panel';
+    appState.currentView = 'home';
     render();
   });
 
@@ -2409,7 +2426,8 @@ function buildWhatsappReport(activities, asesor, date) {
 
     // Location
     if (act.ubicaciones && (act.ubicaciones.parroquia || act.ubicaciones.sector)) {
-      msg += `${TAB}Ubicacion: ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}\n`;
+      const locStr = [act.ubicaciones.estado, act.ubicaciones.municipio, act.ubicaciones.parroquia, act.ubicaciones.sector].filter(v => v && v !== 'N/A').join(', ');
+      msg += `${TAB}Ubicación: ${locStr}\n`;
     }
 
     // Type-specific: Condominio
