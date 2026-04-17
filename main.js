@@ -1297,55 +1297,49 @@ window.renderLocationBlock = function() {
 };
 
 function renderForm() {
-  const now = new Date();
-  
   return `
-    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
-      <!-- HEADER -->
-      <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
-        <div class="flex items-center justify-between w-full mb-3">
-          <button id="btnCancel" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
-          <h2 class="text-lg font-semibold text-black">Nueva Actividad</h2>
-          <div class="w-[74px]"></div> <!-- Spacer to balance flex centering -->
+    <div class="min-h-screen pb-10">
+      <!-- FIXED HEADER -->
+      <header class="ios-header">
+        <div class="flex items-center justify-between max-w-md mx-auto">
+          <button id="btnCancel" class="text-[#007AFF] font-medium text-[17px] active:opacity-50 transition-opacity">Cancelar</button>
+          <h2 class="text-[17px] font-semibold text-black">Nueva Actividad</h2>
+          <div class="w-[74px]"></div>
         </div>
       </header>
       
-      <!-- NOTIFICATION CHIP (Floating or fixed top) -->
-      <div id="addedActivitiesChip" class="hidden mb-6 bg-[#E8F5E9] border border-[#C8E6C9] p-4 rounded-2xl flex items-center gap-3 animate-pulse">
-        <div class="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center text-white shrink-0 shadow-lg shadow-[#34C759]/20">
-           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-          </svg>
+      <div class="px-5 py-6 max-w-md mx-auto">
+        <!-- NOTIFICATION CHIP -->
+        <div id="addedActivitiesChip" class="hidden mb-6 bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-[#E5E5EA]/50">
+          <div class="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center text-white shadow-lg shadow-[#34C759]/20">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-black" id="chipCountTitle">1 Actividad Añadida</span>
+            <span class="text-xs text-[#8E8E93]" id="chipDescTitle">Lista para guardar al finalizar.</span>
+          </div>
         </div>
-        <div class="flex flex-col">
-          <span class="text-sm font-black text-[#1B5E20]" id="chipCountTitle">1 Actividad Añadida</span>
-          <span class="text-xs text-[#1B5E20]/70 font-medium" id="chipDescTitle">Lista para guardar al finalizar.</span>
-        </div>
-      </div>
 
-      <form id="activityForm" class="space-y-6">
-        
-        <!-- SECTION 1: INFO GENERAL -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-            Información General
-          </h3>
-          <div class="space-y-4">
-            <div>
-              <label class="ios-label">Hora del Reporte</label>
-              <input type="text" id="fTime" value="${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })}" readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] font-medium border-transparent">
+        <form id="activityForm" class="space-y-0">
+          
+          <!-- SECTION 1: INFO GENERAL -->
+          <p class="ios-label uppercase">Información General</p>
+          <div class="ios-group">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Hora del Reporte</label>
+              <input type="text" id="fTime" value="${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })}" readonly class="ios-input !text-[#8E8E93] pointer-events-none">
             </div>
-            <div>
-              <label class="ios-label">Asesor en Turno</label>
-              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#1C1C1E] font-bold border-transparent">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Asesor en Turno</label>
+              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input font-semibold pointer-events-none text-[#1C1C1E]">
             </div>
-            <div>
-              <label class="ios-label">Tipo de Actividad</label>
-              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Tipo de Actividad</label>
+              <div class="relative w-full custom-dropdown-container">
                 <select id="fType" required class="hidden-real-select">
-                  <option value="" disabled selected>Seleccionar actividad...</option>
+                  <option value="" disabled selected>Seleccionar...</option>
                   <option value="Visita a Condominio">🏢 Visita a Condominio</option>
                   <option value="Recorrido (Solo)">🚶 Recorrido (Solo)</option>
                   <option value="Recorrido con Instaladores">🚐 Recorrido con Instaladores</option>
@@ -1354,116 +1348,104 @@ function renderForm() {
                   <option value="Iglu Publicitario">🛖 Iglu Publicitario</option>
                   <option value="Caravana">📣 Caravana</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar actividad...</span>
-                  <svg class="h-5 w-5 text-[#8E8E93] transition-transform duration-300 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                <button type="button" class="custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar...</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
-                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-3xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- SECTION 2: MÉTRICAS Y CONTACTO -->
-        <div id="metricsCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#34C759] rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
-            Métricas del Reporte
-          </h3>
-          
-          <div class="space-y-4">
-            <!-- Toggle Contacto -->
-            <label for="fPhoneContact" class="bg-[#F2F2F7] p-4 rounded-2xl flex items-center justify-between cursor-pointer group transition-all hover:bg-[#E5E5EA]">
-              <div class="flex flex-col pr-4">
-                <span class="text-[13px] font-bold text-black leading-tight mb-1">Contacto Telefónico</span>
-                <span class="text-[11px] text-[#8E8E93] leading-none">¿Recibiste llamadas en esta zona?</span>
+          <!-- SECTION 2: MÉTRICAS Y CONTACTO -->
+          <div id="metricsCard" class="hidden">
+            <p class="ios-label uppercase">Métricas del Reporte</p>
+            <div class="ios-group">
+              <div class="ios-item !py-1">
+                <label for="fPhoneContact" class="py-3 flex items-center justify-between cursor-pointer">
+                  <div class="flex flex-col">
+                    <span class="text-[15px] font-semibold text-black">Contacto Telefónico</span>
+                    <span class="text-[12px] text-[#8E8E93]">¿Recibiste llamadas?</span>
+                  </div>
+                  <div class="relative shrink-0 w-12 h-7">
+                    <input type="checkbox" id="fPhoneContact" class="peer sr-only">
+                    <div class="block w-full h-full bg-[#E5E5EA] peer-checked:bg-[#34C759] rounded-full transition-colors duration-300"></div>
+                    <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform duration-300 peer-checked:translate-x-5"></div>
+                  </div>
+                </label>
               </div>
-              <div class="relative shrink-0 w-12 h-7">
-                <input type="checkbox" id="fPhoneContact" class="peer sr-only">
-                <div class="block w-full h-full bg-[#C7C7CC] peer-checked:bg-[#34C759] rounded-full transition-colors duration-300"></div>
-                <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-              </div>
-            </label>
 
-            <!-- Sub-métricas llamadas -->
-            <div id="phoneMetricsContainer" class="hidden animate-in fade-in slide-in-from-top-2 duration-300 space-y-3 bg-[#F8F8F8] p-4 rounded-2xl border border-[#E5E5EA]">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="ios-label">Solo Info.</label>
-                  <input type="number" id="fPhoneInfo" min="0" placeholder="0" class="ios-input !bg-white focus:ring-2 focus:ring-[#34C759]/20">
-                </div>
-                <div class="space-y-1">
-                  <label class="ios-label">Agendados</label>
-                  <input type="number" id="fPhoneAgenda" min="0" placeholder="0" class="ios-input !bg-white focus:ring-2 focus:ring-[#34C759]/20">
+              <div id="phoneMetricsContainer" class="hidden animate-in fade-in slide-in-from-top-2 duration-300 bg-[#F2F2F7]/50">
+                <div class="grid grid-cols-2">
+                  <div class="ios-item border-r border-[#E5E5EA]/60">
+                    <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Solo Info.</label>
+                    <input type="number" id="fPhoneInfo" min="0" placeholder="0" class="ios-input">
+                  </div>
+                  <div class="ios-item">
+                    <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Agendados</label>
+                    <input type="number" id="fPhoneAgenda" min="0" placeholder="0" class="ios-input">
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Otros Inputs -->
-            <div id="mCondominio" class="hidden space-y-1">
-              <label class="ios-label">Nombre del Condominio</label>
-              <input type="text" id="fCondominio" placeholder="Ej. Res. Las Rosas" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#007AFF]">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div id="mCaptados" class="hidden space-y-1">
-                <label class="ios-label">Captados</label>
-                <input type="number" id="fCaptados" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              <div id="mCondominio" class="hidden ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Nombre del Condominio</label>
+                <input type="text" id="fCondominio" placeholder="Ej. Res. Las Rosas" class="ios-input">
               </div>
-              <div id="mSolicitudes" class="hidden space-y-1">
-                <label class="ios-label">Solicitudes</label>
-                <input type="number" id="fSolicitudes" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+
+              <div id="metricsRow" class="grid grid-cols-2 border-b border-[#E5E5EA]/60 last:border-b-0">
+                <div id="mCaptados" class="hidden ios-item border-r border-[#E5E5EA]/60 !border-b-0">
+                  <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Captados</label>
+                  <input type="number" id="fCaptados" min="0" placeholder="0" class="ios-input">
+                </div>
+                <div id="mSolicitudes" class="hidden ios-item !border-b-0">
+                  <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Solicitudes</label>
+                  <input type="number" id="fSolicitudes" min="0" placeholder="0" class="ios-input">
+                </div>
+              </div>
+
+              <div id="mVolantes" class="hidden ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Volantes Entregados</label>
+                <input type="number" id="fVolantes" min="0" placeholder="0" class="ios-input">
               </div>
             </div>
+          </div>
 
-            <div id="mVolantes" class="hidden space-y-1">
-              <label class="ios-label">Volantes Entregados</label>
-              <input type="number" id="fVolantes" min="0" placeholder="0" class="ios-input bg-[#F2F2F7] focus:bg-white">
+          <!-- SECTION 3: UBICACIÓN -->
+          <div id="locationCard" class="hidden">
+            <p class="ios-label uppercase">Ubicación</p>
+            <div id="locationsContainer" class="ios-group mb-8">
+              <!-- Rendered by window.renderLocationBlock as ios-item list -->
             </div>
           </div>
-        </div>
 
-        <!-- SECTION 3: UBICACIÓN -->
-        <div id="locationCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500]"></div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-              Ubicación
-            </h3>
+          <!-- SECTION 4: NOTAS -->
+          <div id="notesCard" class="hidden">
+            <p class="ios-label uppercase">Observaciones</p>
+            <div class="ios-group">
+              <div class="px-4 py-3">
+                <textarea id="fNotes" rows="3" placeholder="Detalles o incidencias..." class="w-full text-[16px] text-black bg-transparent focus:outline-none resize-none min-h-[90px]"></textarea>
+              </div>
+            </div>
           </div>
 
-          <div id="locationsContainer" class="space-y-4">
-            <!-- Rendered by window.renderLocationBlock -->
+          <!-- ACTIONS -->
+          <div class="pt-2 space-y-3">
+            <button type="submit" name="action" value="save_return" class="btn-ios-primary">
+              <span>Guardar y Finalizar</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </button>
+            
+            <button type="submit" name="action" value="add_another" class="btn-ios-secondary">
+              Añadir Otra Actividad
+            </button>
           </div>
-        </div>
-
-        <!-- SECTION 4: NOTAS -->
-        <div id="notesCard" class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative overflow-hidden hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE]"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
-            Observaciones
-          </h3>
-          <textarea id="fNotes" rows="3" placeholder="Detalles o incidencias extra..." class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE] resize-none min-h-[90px] border-transparent"></textarea>
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="pt-4 flex flex-col gap-3">
-          <button type="submit" name="action" value="save_return" class="w-full py-5 bg-[#007AFF] text-white rounded-3xl font-black text-lg shadow-xl shadow-[#007AFF]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-            <span>Guardar y Finalizar</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-          </button>
-          
-          <button type="submit" name="action" value="add_another" class="w-full py-4 bg-[#F2F2F7] text-[#007AFF] border border-[#007AFF]/10 rounded-3xl font-bold text-[15px] active:scale-[0.98] transition-all">
-            Añadir Otra Actividad
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   `;
 }
+
 
 function attachFormEvents() {
   document.getElementById('btnCancel')?.addEventListener('click', () => {
@@ -1661,256 +1643,211 @@ function renderSolicitudForm() {
   const dateStr = now.toISOString().split('T')[0];
 
   return `
-    <div class="px-6 py-8 pb-10 bg-white min-h-screen overflow-x-hidden">
-      <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
-        <div class="flex items-center justify-between w-full mb-3">
-          <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
-          <h2 class="text-lg font-semibold text-black">Nueva Solicitud</h2>
-          <div class="w-[74px]"></div> <!-- Spacer to balance flex centering -->
+    <div class="min-h-screen pb-10">
+      <!-- FIXED HEADER -->
+      <header class="ios-header">
+        <div class="flex items-center justify-between max-w-md mx-auto">
+          <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-[17px] active:opacity-50 transition-opacity">Cancelar</button>
+          <h2 class="text-[17px] font-semibold text-black">Nueva Solicitud</h2>
+          <div class="w-[74px]"></div>
         </div>
       </header>
       
-      <form id="solicitudForm" class="space-y-6">
-        
-        <!-- Fechas y Promotor -->
-        <fieldset class="space-y-4">
-          <div class="space-y-4">
-            <div>
-              <label class="ios-label">Fecha de Solicitud (Actual)</label>
-              <input type="date" id="sFechaSoli" value="${dateStr}" required readonly class="ios-input bg-[#F2F2F7] text-[#8E8E93] cursor-default pointer-events-none">
+      <div class="px-5 py-6 max-w-md mx-auto">
+        <form id="solicitudForm" class="space-y-0">
+          
+          <!-- INFO GENERAL -->
+          <p class="ios-label uppercase">Información General</p>
+          <div class="ios-group">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Fecha de Solicitud</label>
+              <input type="date" id="sFechaSoli" value="${dateStr}" required readonly class="ios-input bg-transparent !text-[#8E8E93] pointer-events-none">
             </div>
-            <div>
-              <label class="ios-label">Promotor/a</label>
-              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input bg-[#F2F2F7] text-[#1C1C1E] font-bold border-transparent">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Promotor/a</label>
+              <input type="text" value="${appState.currentAsesor}" readonly class="ios-input font-semibold text-[#1C1C1E] pointer-events-none">
             </div>
           </div>
-        </fieldset>
 
-        <!-- CARD 1: DATOS DEL CLIENTE -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-black rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
-            Datos del Cliente
-          </h3>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="ios-label">Fecha de Disponibilidad</label>
-              <input type="date" id="sFechaDisp" required class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-black">
+          <!-- DATOS DEL CLIENTE -->
+          <p class="ios-label uppercase">Datos del Cliente</p>
+          <div class="ios-group">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Fecha de Disponibilidad</label>
+              <input type="date" id="sFechaDisp" required class="ios-input">
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="ios-label">Nombres</label>
-                <input type="text" id="sNombres" required placeholder="Ej: Juan" class="ios-input bg-[#F2F2F7] focus:bg-white capitalize">
+            <div class="grid grid-cols-2">
+              <div class="ios-item border-r border-[#E5E5EA]/60">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Nombres</label>
+                <input type="text" id="sNombres" required placeholder="Ej: Juan" class="ios-input capitalize">
               </div>
-              <div>
-                <label class="ios-label">Apellidos</label>
-                <input type="text" id="sApellidos" required placeholder="Ej: Pérez" class="ios-input bg-[#F2F2F7] focus:bg-white capitalize">
+              <div class="ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Apellidos</label>
+                <input type="text" id="sApellidos" required placeholder="Ej: Pérez" class="ios-input capitalize">
               </div>
             </div>
-
-            <div class="space-y-1">
-              <label class="ios-label">Cédula/RIF</label>
-              <div class="flex gap-2">
-                <div class="w-[70px] shrink-0 relative custom-dropdown-container">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Cédula/RIF</label>
+              <div class="flex items-center gap-0">
+                <div class="w-[60px] relative custom-dropdown-container">
                   <select id="sCedulaTipo" required class="hidden-real-select">
                     <option value="V-">V-</option>
                     <option value="E-">E-</option>
                     <option value="J-">J-</option>
                   </select>
-                  <button type="button" class="w-full h-[52px] bg-[#F2F2F7] border border-transparent rounded-2xl flex justify-center items-center custom-dd-btn">
-                    <span class="custom-dd-text font-bold text-black">V-</span>
+                  <button type="button" class="custom-dd-btn">
+                    <span class="custom-dd-text font-bold text-[#007AFF]">V-</span>
                   </button>
                   <div class="absolute z-50 w-[80px] mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input w-full bg-[#F2F2F7] focus:bg-white">
-                </div>
+                <input type="text" id="sCedulaNum" required pattern="[0-9]*" inputmode="numeric" placeholder="12345678" class="ios-input flex-1">
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="ios-label">Género</label>
-                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+            <div class="grid grid-cols-2">
+              <div class="ios-item border-r border-[#E5E5EA]/60">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Género</label>
+                <div class="relative w-full custom-dropdown-container">
                   <select id="sGenero" required class="hidden-real-select">
                     <option value="" disabled selected>Elegir...</option>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                   </select>
-                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
-                    <span class="custom-dd-text text-[#8E8E93] font-medium">Elegir...</span>
-                    <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  <button type="button" class="custom-dd-btn">
+                    <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Elegir...</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden custom-dd-options overflow-hidden"></div>
                 </div>
               </div>
-              <div>
-                <label class="ios-label">Fecha de Nacimiento <span class="text-[#8E8E93] font-normal">(Opc.)</span></label>
-                <input type="date" id="sFechaNac" class="ios-input bg-[#F2F2F7] focus:bg-white">
+              <div class="ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Nacimiento <span class="text-[9px] font-normal lowercase">(opc)</span></label>
+                <input type="date" id="sFechaNac" class="ios-input">
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- CARD 2: UBICACIÓN -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF9500] rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-            Ubicación de la Instalación
-          </h3>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="ios-label">Estado</label>
-              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+          <!-- UBICACIÓN -->
+          <p class="ios-label uppercase">Ubicación de la Instalación</p>
+          <div class="ios-group">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Estado</label>
+              <div class="relative w-full custom-dropdown-container">
                 <select id="sEstado" required class="hidden-real-select loc-estado">
                   <option value="" disabled selected>Seleccione...</option>
                   ${Object.keys(appState.geoHierarchy).sort().map(e => `<option value="${e}">${e}</option>`).join('')}
                 </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                <button type="button" class="custom-dd-btn">
                   <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccione...</span>
-                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="ios-label">Municipio</label>
-                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+            <div class="grid grid-cols-2">
+              <div class="ios-item border-r border-[#E5E5EA]/60">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Municipio</label>
+                <div class="relative w-full custom-dropdown-container">
                   <select id="sMunicipio" required class="hidden-real-select loc-municipio" disabled>
                     <option value="" disabled selected>Esperando...</option>
                   </select>
-                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                  <button type="button" class="custom-dd-btn">
                     <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
-                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
                 </div>
               </div>
-              
-              <div>
-                <label class="ios-label">Parroquia</label>
-                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+              <div class="ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Parroquia</label>
+                <div class="relative w-full custom-dropdown-container">
                   <select id="sParroquia" required class="hidden-real-select loc-parroquia" disabled>
                     <option value="" disabled selected>Esperando...</option>
                   </select>
-                  <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                  <button type="button" class="custom-dd-btn">
                     <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
-                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
                 </div>
               </div>
             </div>
-
-            <div>
-              <label class="ios-label">Sector</label>
-              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Sector</label>
+              <div class="relative w-full custom-dropdown-container">
                 <select id="sSector" required class="hidden-real-select loc-sector" disabled>
                   <option value="" disabled selected>Esperando...</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 custom-dd-btn opacity-60 pointer-events-none">
+                <button type="button" class="custom-dd-btn">
                   <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
+                </button>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+              </div>
+            </div>
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Dirección Detallada</label>
+              <textarea id="sDireccion" required rows="2" class="w-full text-[16px] text-black bg-transparent focus:outline-none resize-none pt-1" placeholder="Calle, Casa, Apto..."></textarea>
+            </div>
+          </div>
+
+          <!-- DETALLES DEL SERVICIO -->
+          <p class="ios-label uppercase">Detalles del Servicio</p>
+          <div class="ios-group">
+            <div class="grid grid-cols-2">
+              <div class="ios-item border-r border-[#E5E5EA]/60">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Tipo</label>
+                <div class="flex items-center gap-1 mt-1 bg-[#F2F2F7] p-1 rounded-xl h-[36px]">
+                  <button type="button" id="btnDomic" class="flex-1 h-full text-[12px] font-bold rounded-lg transition-all duration-300">Domic.</button>
+                  <button type="button" id="btnEmp" class="flex-1 h-full text-[12px] font-bold rounded-lg transition-all duration-300 text-[#8E8E93]">Empres.</button>
+                </div>
+                <input type="hidden" id="sTipoServicio" value="Domiciliario" required>
+              </div>
+              <div class="ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Power Go</label>
+                <div class="relative w-full custom-dropdown-container">
+                  <select id="sPowerGo" required class="hidden-real-select">
+                    <option value="NO" selected>NO</option>
+                    <option value="SI">SI</option>
+                  </select>
+                  <button type="button" class="custom-dd-btn">
+                    <span class="custom-dd-text font-bold text-black">NO</span>
+                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Plan a Contratar</label>
+              <div class="relative w-full custom-dropdown-container">
+                <select id="sPlan" required class="hidden-real-select">
+                  <option value="" disabled selected>Seleccione plan...</option>
+                </select>
+                <button type="button" class="custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Seleccione plan...</span>
                   <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
               </div>
             </div>
-
-            <div>
-              <label class="ios-label">Dirección (Calle / Casa / Apto)</label>
-              <textarea id="sDireccion" required rows="2" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#FF9500] resize-none" placeholder="Ej: Calle 4, Res. Las Rosas, Apto 2-B"></textarea>
-            </div>
           </div>
-        </div>
 
-        <!-- CARD 3: DETALLES DEL SERVICIO -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#007AFF] rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
-            Detalles del Servicio
-          </h3>
-          
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="ios-label">Tipo de Servicio</label>
-                <div class="bg-[#F2F2F7] p-1 rounded-xl flex items-center w-full relative h-[48px]">
-                  <div id="tipoServicioPill" class="absolute w-[calc(50%-4px)] h-[calc(100%-8px)] left-1 bg-white rounded-lg shadow-sm transition-transform duration-300 translate-x-0"></div>
-                  
-                  <button type="button" id="btnDomic" class="flex-1 h-full text-sm font-semibold z-10 text-black transition-colors">🏠 Domic.</button>
-                  <button type="button" id="btnEmp" class="flex-1 h-full text-sm font-semibold z-10 text-[#8E8E93] transition-colors">🏢 Empres.</button>
-                </div>
-                <input type="hidden" id="sTipoServicio" value="Domiciliario" required>
+          <!-- CONTACTO Y FUENTE -->
+          <p class="ios-label uppercase">Contacto y Varios</p>
+          <div class="ios-group">
+            <div class="grid grid-cols-2">
+              <div class="ios-item border-r border-[#E5E5EA]/60">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Teléf. Principal</label>
+                <input type="tel" id="sTelefonoP" required placeholder="0414-0000000" class="ios-input">
               </div>
-
-              <div>
-                <label class="ios-label">Power Go</label>
-                <div class="relative w-full text-black h-[52px] custom-dropdown-container">
-                  <select id="sPowerGo" required class="hidden-real-select">
-                    <option value="NO" selected>NO</option>
-                    <option value="SI">SI</option>
-                  </select>
-                  <button type="button" id="btnPowerGo" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-4 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
-                    <span class="custom-dd-text font-bold text-black">NO</span>
-                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                  <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden"></div>
-                </div>
+              <div class="ios-item">
+                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Teléf. Secundario</label>
+                <input type="tel" id="sTelefonoS" placeholder="Opcional" class="ios-input">
               </div>
             </div>
-
-            <div>
-              <label class="ios-label">Plan a Contratar</label>
-              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
-                <select id="sPlan" required class="hidden-real-select">
-                  <option value="" disabled selected>Seleccione plan...</option>
-                </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Seleccione plan...</span>
-                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
-              </div>
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Correo Electrónico</label>
+              <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input">
             </div>
-          </div>
-        </div>
-
-        <!-- CARD 4: CONTACTO Y FUENTE -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-[#E5E5EA] relative">
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#AF52DE] rounded-l-3xl"></div>
-          <h3 class="text-xs font-black text-[#8E8E93] uppercase tracking-[0.1em] mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 004.812 4.812l.773-1.548a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
-            Contacto y Varios
-          </h3>
-          
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="ios-label">Teléfono Principal</label>
-                <input type="tel" id="sTelefonoP" required placeholder="0414-1234567" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
-              </div>
-              <div>
-                <label class="ios-label">Teléfono Secundario</label>
-                <input type="tel" id="sTelefonoS" placeholder="Opcional" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
-              </div>
-            </div>
-
-            <div>
-              <label class="ios-label">Correo Electrónico <span class="text-[#8E8E93] font-normal">(Opcional)</span></label>
-              <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input bg-[#F2F2F7] focus:bg-white focus:border-[#AF52DE]">
-            </div>
-
-            <div>
-              <label class="ios-label">¿Cómo nos conoció? (Fuente)</label>
-              <div class="relative w-full text-black h-[52px] custom-dropdown-container">
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">¿Cómo nos conoció?</label>
+              <div class="relative w-full custom-dropdown-container">
                 <select id="sFuente" required class="hidden-real-select">
                   <option value="" disabled selected>Seleccionar...</option>
                   <option value="Volante">📄 Volante</option>
@@ -1920,30 +1857,30 @@ function renderSolicitudForm() {
                   <option value="Stand">🎪 Stand Publicitario</option>
                   <option value="Otro">❓ Otro</option>
                 </select>
-                <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-2xl px-5 flex justify-between items-center transition-all duration-300 hover:bg-[#E5E5EA] custom-dd-btn">
+                <button type="button" class="custom-dd-btn">
                   <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar...</span>
-                  <svg class="h-5 w-5 text-[#8E8E93] custom-dd-icon transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="pt-6 space-y-3">
-          <button type="button" id="btnOpenCopyDrawer" class="w-full py-4 bg-[#F2F2F7] text-black border border-[#E5E5EA] rounded-3xl font-bold text-[15px] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-            </svg>
-            Preparar para App Externa
-          </button>
+          <div class="pt-6 space-y-3">
+            <button type="button" id="btnOpenCopyDrawer" class="btn-ios-gray">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              Preparar para App Externa
+            </button>
 
-          <button type="submit" class="w-full py-5 bg-[#007AFF] text-white rounded-3xl font-black text-lg shadow-xl shadow-[#007AFF]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-            <span>Guardar y Enviar WhatsApp</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-          </button>
-        </div>
-      </form>
+            <button type="submit" class="btn-ios-primary">
+              <span>Guardar y Enviar WhatsApp</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   `;
 }

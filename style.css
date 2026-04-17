@@ -2,122 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-[#F2F2F7] text-[#1C1C1E] font-sans antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @layer components {
-  /* Minimalist iOS style inputs */
-  .ios-input {
-    @apply w-full px-4 py-3 bg-white border border-[#E5E5EA] rounded-xl text-black 
-           focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent
-           transition-all duration-200 placeholder-[#8E8E93];
+  /* --- iOS Premium Grouped List Style --- */
+  .ios-group {
+    @apply bg-white overflow-hidden rounded-[20px] mb-8 shadow-sm border border-[#E5E5EA]/30;
   }
 
-  .ios-select {
-    @apply ios-input appearance-none bg-no-repeat bg-[right_1rem_center];
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238E8E93'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-size: 1.2em;
+  .ios-item {
+    @apply flex flex-col px-4 py-3 border-b border-[#E5E5EA]/60 last:border-b-0;
+  }
+
+  /* --- Normalized Form Controls --- */
+  .ios-input-wrapper {
+    @apply flex items-center h-[50px] w-full;
+  }
+
+  .ios-input {
+    @apply w-full h-[50px] bg-transparent text-[16px] text-black 
+           focus:outline-none placeholder-[#8E8E93] transition-all duration-200;
   }
 
   .ios-label {
-    @apply block text-sm font-medium text-[#3A3A3C] mb-1.5 ml-1;
+    @apply block text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider mb-0.5 ml-1;
   }
 
-  .ios-btn-primary {
-    @apply w-full py-4 bg-black text-white font-semibold rounded-2xl 
-           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
-           hover:bg-[#1C1C1E];
-  }
-
-  .ios-btn-secondary {
-    @apply w-full py-4 bg-white text-black font-semibold rounded-2xl border border-[#E5E5EA]
-           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
-           hover:bg-[#F2F2F7];
+  /* --- Type Date Normalization --- */
+  input[type="date"].ios-input {
+    @apply min-h-[50px] p-0 flex items-center bg-transparent appearance-none;
+    display: flex;
+    align-items: center;
   }
   
-  /* Utilities for the clean flat buttons */
-  .btn-flat-success {
-    @apply w-full py-3.5 bg-[#E8F5E9] text-[#2E7D32] font-semibold rounded-2xl
-           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
-           hover:bg-[#C8E6C9];
+  /* Safari specific date fixes */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    @apply opacity-40;
+    margin-right: -4px;
   }
 
-  .btn-flat-danger {
-    @apply w-full py-3.5 bg-[#FFEBEE] text-[#C62828] font-semibold rounded-2xl
-           active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2
-           hover:bg-[#FFCDD2] border border-transparent;
+  /* --- Buttons --- */
+  .btn-ios-primary {
+    @apply w-full h-[56px] bg-[#007AFF] text-white font-black text-[17px] rounded-[18px] 
+           shadow-lg shadow-[#007AFF]/25 active:scale-[0.97] transition-all flex justify-center items-center gap-2;
   }
 
-  /* Minimalist Custom Scrollbar */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #C6C6C8 transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #C6C6C8;
-    border-radius: 20px;
-    border: 2px solid transparent;
-    background-clip: content-box;
+  .btn-ios-secondary {
+    @apply w-full h-[52px] bg-white text-[#007AFF] font-bold text-[15px] rounded-[18px] border border-[#007AFF]/10
+           active:scale-[0.97] transition-all flex justify-center items-center gap-2;
   }
 
-  /* Hidden Select for validation */
+  .btn-ios-gray {
+    @apply w-full h-[52px] bg-[#F2F2F7] text-black font-bold text-[15px] rounded-[18px] 
+           active:scale-[0.97] transition-all flex justify-center items-center gap-2;
+  }
+
+  /* --- Header Glassmorphism --- */
+  .ios-header {
+    @apply sticky top-0 z-[100] backdrop-blur-xl bg-[#F2F2F7]/80 border-b border-[#E5E5EA] px-4 py-3;
+  }
+
+  /* --- Custom Dropdowns & Helpers --- */
+  .custom-dd-btn {
+    @apply w-full h-[50px] bg-transparent flex justify-between items-center transition-all duration-200 focus:outline-none;
+  }
+
   .hidden-real-select {
-    @apply absolute inset-0 w-full h-[48px] opacity-0 cursor-pointer pointer-events-none;
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none;
   }
 
-  /* Custom Toggle Switch (iOS) */
-  .toggle-checkbox:checked {
-    right: 0;
-    border-color: #34C759;
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
   }
-  .toggle-checkbox:checked + .toggle-label {
-    background-color: #34C759;
-  }
-  .toggle-checkbox {
-    right: 1.5rem;
-    z-index: 10;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-[#C6C6C8] rounded-full;
   }
 }
 
-/* Base styles for the app container */
-body {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Custom Animation for Login Modal */
+/* --- Animations --- */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
 }
 
-.animate-shake {
-  animation: shake 0.4s ease-in-out;
-}
+.animate-shake { animation: shake 0.4s ease-in-out; }
 
-/* Drawer Animations */
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
 
-@keyframes slideDown {
-  from { transform: translateY(0); }
-  to { transform: translateY(100%); }
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-slide-down {
-  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
+.animate-slide-up { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-down { animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
