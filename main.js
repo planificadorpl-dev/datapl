@@ -1300,16 +1300,14 @@ function renderForm() {
   const now = new Date();
   
   return `
-    <div class="px-6 py-8 pb-10 bg-[#F8F8F8] min-h-screen">
+    <div class="px-6 py-8 pb-10 bg-white min-h-screen">
       <!-- HEADER -->
-      <header class="flex items-center justify-between mb-8">
-        <button id="btnCancel" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black shadow-sm border border-[#E5E5EA] active:scale-90 transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h2 class="text-xl font-bold text-black tracking-tight">Nueva Actividad</h2>
-        <div class="w-10"></div> <!-- Spacer -->
+      <header class="flex flex-col items-center justify-center mb-6 pb-4 border-b border-[#E5E5EA]">
+        <div class="flex items-center justify-between w-full mb-3">
+          <button id="btnCancel" class="text-[#007AFF] font-medium text-lg active:opacity-70 transition-opacity">Cancelar</button>
+          <h2 class="text-lg font-semibold text-black">Nueva Actividad</h2>
+          <div class="w-[74px]"></div> <!-- Spacer to balance flex centering -->
+        </div>
       </header>
       
       <!-- NOTIFICATION CHIP (Floating or fixed top) -->
@@ -1452,13 +1450,13 @@ function renderForm() {
         </div>
 
         <!-- ACTIONS -->
-        <div class="pt-4 flex flex-col gap-4">
-          <button type="submit" name="action" value="save_return" class="w-full py-4.5 bg-black text-white rounded-2xl font-bold text-lg shadow-xl shadow-black/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+        <div class="pt-4 flex flex-col gap-3">
+          <button type="submit" name="action" value="save_return" class="w-full py-5 bg-[#007AFF] text-white rounded-3xl font-black text-lg shadow-xl shadow-[#007AFF]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
             <span>Guardar y Finalizar</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
           </button>
           
-          <button type="submit" name="action" value="add_another" class="w-full py-4 bg-white text-[#007AFF] border border-[#007AFF]/20 rounded-2xl font-bold text-[15px] active:scale-[0.98] transition-all hover:bg-blue-50/50">
+          <button type="submit" name="action" value="add_another" class="w-full py-4 bg-[#F2F2F7] text-[#007AFF] border border-[#007AFF]/10 rounded-3xl font-bold text-[15px] active:scale-[0.98] transition-all">
             Añadir Otra Actividad
           </button>
         </div>
