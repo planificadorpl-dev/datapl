@@ -585,8 +585,10 @@ async function fetchHistory() {
     appState.historyError = "No se pudo conectar al servidor para obtener el historial.";
   } finally {
     appState.historyLoading = false;
-    // Only render if user is still on history view
-    if (appState.currentView === 'history') {
+    // Re-render if user is still on any history view
+    const onGlobalHistory = appState.currentView === 'history';
+    const onActivityHistory = appState.currentView === 'activities_panel' && appState.activitySubView === 'history';
+    if (onGlobalHistory || onActivityHistory) {
       render();
     }
   }
