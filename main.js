@@ -1837,9 +1837,14 @@ function renderSolicitudForm() {
                   <option value="" disabled selected>Seleccionar...</option>
                   <option value="Volante">📄 Volante</option>
                   <option value="Instagram">📸 Instagram / Redes</option>
-                  <option value="Recorrido">🚶 Recorrido del Asesor</option>
+                  <option value="Visita a Condominio">🏢 Visita a Condominio</option>
+                  <option value="Recorrido">🚶 Recorrido (Solo)</option>
+                  <option value="Recorrido con Instaladores">🚐 Recorrido con Instaladores</option>
+                  <option value="Recorrido con Distribución">📦 Recorrido con Distribución</option>
+                  <option value="Stand Publicitario">🎪 Stand Publicitario</option>
+                  <option value="Iglu Publicitario">🛖 Iglu Publicitario</option>
+                  <option value="Caravana">📣 Caravana</option>
                   <option value="Referido">🤝 Referido / Recomendación</option>
-                  <option value="Stand">🎪 Stand Publicitario</option>
                   <option value="Otro">❓ Otro</option>
                 </select>
                 <button type="button" class="custom-dd-btn">

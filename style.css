@@ -35,7 +35,7 @@
   }
 
   .ios-label {
-    @apply block text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider mb-0.5 ml-1;
+    @apply block text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider mb-2 mt-8 ml-1;
   }
 
   /* --- Type Date Normalization --- */
