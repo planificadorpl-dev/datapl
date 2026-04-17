@@ -17,12 +17,37 @@ let appState = {
   geoData: {}, // Format: { "Parroquia": ["Sector 1", "Sector 2"] } -- Keep for compatibility if needed
   geoHierarchy: {}, // New Format: { "Estado": { "Municipio": { "Parroquia": ["Sector"] } } }
   planes: [],  // Format: [{ id, nombre, tipo, has_tv, activo }]
+  solicitudesHistory: [],
+  solicitudesLoading: false,
+  solicitudSubView: 'form', // 'form' or 'history'
 };
 
 // Global Initialization Flag
 let isAppInitialized = false;
 
 // Initialize Config from Supabase
+async function loadSolicitudesHistory() {
+  if (!appState.currentAsesor) return;
+  appState.solicitudesLoading = true;
+  appState.solicitudesHistory = [];
+  try {
+    const { data, error } = await supabase
+      .from('solicitudes')
+      .select('*')
+      .eq('promotor', appState.currentAsesor)
+      .order('fecha_solicitud', { ascending: false });
+
+    if (error) throw error;
+    appState.solicitudesHistory = data || [];
+  } catch (err) {
+    console.error("Error fetching solicitudes:", err);
+    showToast("Error al cargar historial: " + err.message, "error");
+  } finally {
+    appState.solicitudesLoading = false;
+    render();
+  }
+}
+
 async function loadGlobalConfig() {
   try {
     // 1. Fetch Asesores
@@ -1639,22 +1664,44 @@ function attachFormEvents() {
 // ----------------- SOLICITUD FORM VIEW -----------------
 
 function renderSolicitudForm() {
+  const isForm = appState.solicitudSubView === 'form';
+  const isHistory = appState.solicitudSubView === 'history';
+
+  // Wrapper with Tabs
+  return `
+    <div class="min-h-screen pb-20 bg-[#F2F2F7]">
+      <!-- SEGMENTED CONTROL HEADER -->
+      <header class="ios-header !pb-0">
+        <div class="max-w-md mx-auto">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-[17px] active:opacity-50">Cerrar</button>
+            <h2 class="text-[17px] font-black text-black">Solicitudes</h2>
+            <div class="w-[50px]"></div>
+          </div>
+          
+          <div class="flex bg-[#E3E3E8] p-0.5 rounded-lg mb-3 mx-2 relative h-8 select-none">
+            <div id="solToggleIndicator" class="absolute h-[28px] top-0.5 bg-white rounded-md shadow-sm transition-all duration-300 ease-out" 
+                 style="width: calc(50% - 2px); left: ${isForm ? '2px' : 'calc(50%)'}"></div>
+            <button id="toggleSolForm" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isForm ? 'text-black' : 'text-[#8E8E93]'}">Registro</button>
+            <button id="toggleSolHistory" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isHistory ? 'text-black' : 'text-[#8E8E93]'}">Historial</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-md mx-auto">
+        ${isForm ? renderSolicitudFormBody() : renderSolicitudHistoryList()}
+      </div>
+    </div>
+  `;
+}
+
+function renderSolicitudFormBody() {
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0];
 
   return `
-    <div class="min-h-screen pb-10">
-      <!-- FIXED HEADER -->
-      <header class="ios-header">
-        <div class="flex items-center justify-between max-w-md mx-auto">
-          <button id="btnCancelSolicitud" class="text-[#007AFF] font-medium text-[17px] active:opacity-50 transition-opacity">Cancelar</button>
-          <h2 class="text-[17px] font-semibold text-black">Nueva Solicitud</h2>
-          <div class="w-[74px]"></div>
-        </div>
-      </header>
-      
-      <div class="px-5 py-6 max-w-md mx-auto">
-        <form id="solicitudForm" class="space-y-0">
+      <div class="px-5 py-6">
+        <form id="solicitudForm" class="animate-in fade-in duration-500">
           
           <!-- INFO GENERAL -->
           <p class="ios-label uppercase">Información General</p>
@@ -1856,14 +1903,6 @@ function renderSolicitudForm() {
             </div>
           </div>
 
-          <div class="pt-6 space-y-3">
-            <button type="button" id="btnOpenCopyDrawer" class="btn-ios-gray">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-              </svg>
-              Preparar para App Externa
-            </button>
-
             <button type="submit" class="btn-ios-primary">
               <span>Guardar y Enviar WhatsApp</span>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -1871,6 +1910,73 @@ function renderSolicitudForm() {
           </div>
         </form>
       </div>
+  `;
+}
+
+function renderSolicitudHistoryList() {
+  if (appState.solicitudesLoading) {
+    return `
+      <div class="flex flex-col items-center justify-center p-12 text-center animate-pulse">
+        <div class="h-10 w-10 border-4 border-[#C6C6C8] border-t-[#007AFF] rounded-full animate-spin mb-4"></div>
+        <p class="text-[#8E8E93] font-medium">Cargando tus solicitudes...</p>
+      </div>
+    `;
+  }
+
+  if (appState.solicitudesHistory.length === 0) {
+    return `
+      <div class="flex flex-col items-center justify-center p-12 text-center mt-10">
+        <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-sm mb-6">
+          <svg class="w-10 h-10 text-[#C6C6C8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 00-2-2V5a2 2 0 002-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <p class="text-black font-black text-xl mb-1">Sin solicitudes</p>
+        <p class="text-[#8E8E93] text-sm">Aún no has registrado clientes en este dispositivo.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="px-5 py-4 space-y-6 animate-in fade-in duration-500">
+      ${appState.solicitudesHistory.map((s, idx) => `
+        <div class="ios-group !mb-4">
+          <div class="ios-item bg-gray-50/30">
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-[13px] font-black text-[#007AFF]">${s.plan}</span>
+              <span class="text-[11px] font-bold text-[#8E8E93]">${new Date(s.fecha_solicitud || s.created_at).toLocaleDateString()}</span>
+            </div>
+            <h3 class="text-[18px] font-black text-black leading-tight">${s.nombres} ${s.apellidos}</h3>
+            <p class="text-[14px] font-medium text-[#3A3A3C] mt-0.5">${s.cedula}</p>
+          </div>
+          
+          <div class="grid grid-cols-2">
+            <div class="ios-item">
+              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Estado</label>
+              <span class="text-[13px] font-bold text-black truncate">${s.estado}</span>
+            </div>
+            <div class="ios-item">
+              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Municipio</label>
+              <span class="text-[13px] font-bold text-black truncate">${s.municipio}</span>
+            </div>
+          </div>
+          
+          <div class="ios-item">
+            <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Dirección</label>
+            <span class="text-[12px] font-medium text-[#3A3A3C] line-clamp-2">${s.sector || ''}, ${s.direccion}</span>
+          </div>
+
+          <div class="px-4 py-3 bg-white border-t border-[#E5E5EA]/40">
+            <button class="btn-open-copy-history w-full py-3 bg-black text-white rounded-xl text-[14px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
+                    data-id="${s.id}" data-index="${idx}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Copiar para App Externa
+            </button>
+          </div>
+        </div>
+      `).join('')}
     </div>
   `;
 }
@@ -2049,21 +2155,29 @@ function attachSolicitudEvents() {
     planSelect.dispatchEvent(new Event('refreshCustomUI'));
   }
 
+  // --- SUB-NAVIGATION TABS ---
+  document.getElementById('toggleSolForm')?.addEventListener('click', () => {
+    if (appState.solicitudSubView === 'form') return;
+    appState.solicitudSubView = 'form';
+    render();
+  });
+  document.getElementById('toggleSolHistory')?.addEventListener('click', () => {
+    if (appState.solicitudSubView === 'history') return;
+    appState.solicitudSubView = 'history';
+    loadSolicitudesHistory(); // This calls render internally
+  });
+
   const btnDomic = document.getElementById('btnDomic');
   const btnEmp = document.getElementById('btnEmp');
-  const tsPill = document.getElementById('tipoServicioPill');
+  const tipoSrv = document.getElementById('sTipoServicio');
 
   function setTs(val) {
     if(!tipoSrv) return;
     tipoSrv.value = val;
     if (val === 'Domiciliario') {
-      tsPill?.classList.remove('translate-x-[100%]', 'ml-1');
-      tsPill?.classList.add('translate-x-0');
       btnDomic?.classList.replace('text-[#8E8E93]', 'text-black');
       btnEmp?.classList.replace('text-black', 'text-[#8E8E93]');
     } else {
-      tsPill?.classList.remove('translate-x-0');
-      tsPill?.classList.add('translate-x-[100%]', 'ml-1');
       btnEmp?.classList.replace('text-[#8E8E93]', 'text-black');
       btnDomic?.classList.replace('text-black', 'text-[#8E8E93]');
     }
@@ -2073,6 +2187,30 @@ function attachSolicitudEvents() {
   btnDomic?.addEventListener('click', () => setTs('Domiciliario'));
   btnEmp?.addEventListener('click', () => setTs('Empresarial'));
 
+  if (appState.solicitudSubView === 'history') {
+    // Delegated listener for Copy from History
+    document.querySelectorAll('.btn-open-copy-history').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.dataset.index;
+        const s = appState.solicitudesHistory[idx];
+        if (!s) return;
+
+        const data = {
+          nombres: s.nombres || 'No definido',
+          apellidos: s.apellidos || 'No definido',
+          cedula: s.cedula || 'No definido',
+          telefono_principal: s.telefono_principal || 'No definido',
+          telefono_secundario: s.telefono_secundario || '',
+          correo: s.correo || ''
+        };
+
+        document.body.insertAdjacentHTML('beforeend', renderCopyDrawer(data));
+        initCopyDrawerLogic();
+      });
+    });
+    return; // Skip form-only events
+  }
+
   const geoBlock = document.getElementById('solicitudForm');
   if(geoBlock) window.setupGeoCascading(geoBlock, appState.geoHierarchy);
   
@@ -2081,23 +2219,11 @@ function attachSolicitudEvents() {
     updatePlanes();
   }, 10);
 
-  // --- External App Copy Logic ---
-  document.getElementById('btnOpenCopyDrawer')?.addEventListener('click', () => {
-    const data = {
-      nombres: document.getElementById('sNombres').value.trim() || 'No definido',
-      apellidos: document.getElementById('sApellidos').value.trim() || 'No definido',
-      cedula: document.getElementById('sCedulaTipo').value + document.getElementById('sCedulaNum').value.trim(),
-      telefono_principal: document.getElementById('sTelefonoP').value.trim() || 'No definido',
-      telefono_secundario: document.getElementById('sTelefonoS').value.trim(),
-      correo: document.getElementById('sCorreo').value.trim()
-    };
-
-    document.body.insertAdjacentHTML('beforeend', renderCopyDrawer(data));
-    
+  // --- External App Copy Logic (Helpers) ---
+  function initCopyDrawerLogic() {
     const overlay = document.getElementById('copyDrawerOverlay');
     const drawer = document.getElementById('copyDrawer');
     
-    // Animate In
     setTimeout(() => {
       overlay.classList.replace('opacity-0', 'opacity-100');
       drawer.classList.add('animate-slide-up');
@@ -2112,37 +2238,28 @@ function attachSolicitudEvents() {
     document.getElementById('btnCloseCopyDrawer')?.addEventListener('click', closeDrawer);
     overlay.addEventListener('click', (e) => { if(e.target === overlay) closeDrawer(); });
 
-    // Copy Action Logic
     document.querySelectorAll('.btn-copy-item').forEach(btn => {
       btn.addEventListener('click', async () => {
         const value = btn.dataset.value;
         if (!value || value === 'No definido') return;
-
         try {
           await navigator.clipboard.writeText(value);
-          
-          // Feedback
           const ogHtml = btn.innerHTML;
-          btn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            <span>Copiado!</span>
-          `;
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg><span>Copiado!</span>`;
           btn.classList.replace('bg-black', 'bg-[#34C759]');
-          
           setTimeout(() => {
             btn.innerHTML = ogHtml;
             btn.classList.replace('bg-[#34C759]', 'bg-black');
           }, 2000);
-          
         } catch (err) {
           console.error("Failed to copy:", err);
           showToast("Error al acceder al portapapeles", "error");
         }
       });
     });
-  });
+  }
+
+  // (Original logic for Open Copy Drawer removed from here as it now lives in History cards)
 
   const formEl = document.getElementById('solicitudForm');
   formEl?.addEventListener('submit', async (e) => {
