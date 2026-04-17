@@ -2716,18 +2716,18 @@ function buildWhatsappReport(activities, asesor, date) {
   });
 
   let msg = '';
-  msg += `REPORTE DIARIO\n`;
-  msg += `Fecha:  ${date}\n`;
-  msg += `Asesor: ${asesor}\n\n`;
+  msg += `*REPORTE DIARIO*\n`;
+  msg += `📅 Fecha: ${date}\n`;
+  msg += `👤 Asesor: ${asesor}\n\n`;
 
-  msg += `RESUMEN\n`;
-  msg += `Solicitudes confirmadas: ${totalSoli}\n`;
-  msg += `Clientes captados:       ${totalCap}\n`;
+  msg += `*RESUMEN*\n`;
+  msg += `✅ Solicitudes confirmadas: ${totalSoli}\n`;
+  msg += `📊 Clientes captados: ${totalCap}\n`;
   if (totalVol > 0)
-    msg += `Volantes entregados:     ${totalVol}\n`;
+    msg += `📄 Volantes entregados: ${totalVol}\n`;
   if (totalInfo > 0 || totalAgenda > 0) {
-    msg += `Llamadas (info):   ${totalInfo}\n`;
-    msg += `Llamadas (agenda): ${totalAgenda}\n`;
+    msg += `📞 Llamadas (info): ${totalInfo}\n`;
+    msg += `📞 Llamadas (agenda): ${totalAgenda}\n`;
   }
 
   msg += `\nACTIVIDADES (${activities.length})\n`;
@@ -2748,15 +2748,15 @@ function buildWhatsappReport(activities, asesor, date) {
     }
 
     // Metrics
-    msg += `${TAB}Clientes captados:    ${act.clientesCaptados || 0}\n`;
+    msg += `${TAB}Clientes captados: ${act.clientesCaptados || 0}\n`;
     msg += `${TAB}Solicitudes enviadas: ${act.solicitudes || 0}\n`;
-    msg += `${TAB}Volantes entregados:  ${act.volantes || 0}\n`;
+    msg += `${TAB}Volantes entregados: ${act.volantes || 0}\n`;
 
     // Calls
     if (act.receivedCalls) {
       msg += `${TAB}Llamadas recibidas:\n`;
-      msg += `${TAB}   Buscaban info:  ${act.llamadasInfo || 0}\n`;
-      msg += `${TAB}   Para agendar:   ${act.llamadasAgenda || 0}\n`;
+      msg += `${TAB}· Info: ${act.llamadasInfo || 0}\n`;
+      msg += `${TAB}· Agenda: ${act.llamadasAgenda || 0}\n`;
     }
 
     // Notes
