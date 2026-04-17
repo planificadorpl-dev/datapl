@@ -2169,7 +2169,6 @@ function attachSolicitudEvents() {
 
   const btnDomic = document.getElementById('btnDomic');
   const btnEmp = document.getElementById('btnEmp');
-  const tipoSrv = document.getElementById('sTipoServicio');
 
   function setTs(val) {
     if(!tipoSrv) return;
