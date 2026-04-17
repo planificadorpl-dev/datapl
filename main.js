@@ -26,6 +26,29 @@ let appState = {
 let isAppInitialized = false;
 
 // Initialize Config from Supabase
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const [y, m, d] = dateString.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function generateSolicitudWAMsg(formData) {
+  let todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
+  waMsg += `Fecha de solicitud: ${todayStr}\n`;
+  waMsg += `Fecha de Disponibilidad: ${formatDate(formData.fecha_disp || formData.fecha_disponibilidad)}\n\n`;
+  waMsg += `Nombres y Apellido: ${formData.nombres} ${formData.apellidos}\n`;
+  waMsg += `Cédula/RIF: ${formData.cedula}\n`;
+  waMsg += `Teléfono principal: ${formData.telefono_principal}\n`;
+  waMsg += `Teléfono secundario: ${formData.telefono_secundario || formData.telefono_principal}\n`;
+  waMsg += `Estado: ${formData.estado}, Municipio: ${formData.municipio}, Parroquia: ${formData.parroquia}, Sector: ${formData.sector}, Calle / Casa / Apto: ${formData.direccion}\n`;
+  waMsg += `Tipo de Servicio: ${formData.plan} ${formData.tipo_servicio}\n`;
+  waMsg += `Promotor/a: ${formData.promotor}\n`;
+  waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
+  waMsg += `Fuente: ${formData.fuente}`;
+  return waMsg;
+}
+
 async function loadSolicitudesHistory() {
   if (!appState.currentAsesor) return;
   appState.solicitudesLoading = true;
@@ -1974,6 +1997,11 @@ function renderSolicitudHistoryList() {
               </svg>
               Copiar para App Externa
             </button>
+            <button class="btn-send-wa-history w-full py-3 bg-[#34C759] text-white rounded-xl text-[14px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2" 
+                    data-id="${s.id}" data-index="${idx}">
+              <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-2.32 0-4.208 1.888-4.208 4.208 0 .744.192 1.448.528 2.064l-.56 2.056 2.104-.552c.6.32 1.288.512 2.024.512 2.32 0 4.208-1.888 4.208-4.208 0-2.32-1.888-4.208-4.208-4.208zm2.424 6.008c-.104.288-.6.552-.824.584-.224.032-.44.048-1.24-.272-.968-.384-1.592-1.368-1.64-1.432-.048-.064-.4-.536-.4-.992 0-.464.24-.688.328-.792.088-.104.192-.128.256-.128.064 0 .128.008.184.008.056 0 .128-.024.2-.2.088-.208.304-.736.328-.792.032-.056.048-.12.016-.184-.032-.064-.144-.152-.216-.24-.072-.088-.16-.176-.232-.24-.072-.072-.152-.152-.064-.304.088-.152.392-.648.84-1.04.448-.392.824-.512 1.056-.512.232 0 .432.112.552.264.12.152.176.32.256.496.08.176.104.344.056.448-.048.104-.216.168-.344.232-.128.064-.208.088-.112.248.096.16.424.696.912 1.128.424.376.784.496 1.056.336.272-.16.44-.392.512-.512.072-.12.152-.16.272-.112.12.048.768.36.904.424.136.064.224.096.256.152.032.056.032.328-.072.616z"/></svg>
+              Enviar por WhatsApp
+            </button>
           </div>
         </div>
       `).join('')}
@@ -2207,6 +2235,19 @@ function attachSolicitudEvents() {
         initCopyDrawerLogic();
       });
     });
+
+    document.querySelectorAll('.btn-send-wa-history').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.dataset.index;
+        const s = appState.solicitudesHistory[idx];
+        if (!s) return;
+        
+        const waMsg = generateSolicitudWAMsg(s);
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMsg)}`;
+        window.open(waUrl, '_blank');
+      });
+    });
+
     return; // Skip form-only events
   }
 
@@ -2313,27 +2354,7 @@ function attachSolicitudEvents() {
 
       if (error) throw error;
 
-      let formatDate = (dateString) => {
-        if (!dateString) return '';
-        const [y, m, d] = dateString.split('-');
-        return `${d}/${m}/${y}`;
-      };
-
-      let todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      
-      let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
-      waMsg += `Fecha de solicitud: ${todayStr}\n`;
-      waMsg += `Fecha de Disponibilidad: ${formatDate(formData.fecha_disp)}\n\n`;
-      waMsg += `Nombres y Apellido: ${formData.nombres} ${formData.apellidos}\n`;
-      waMsg += `Cédula/RIF: ${formData.cedula}\n`;
-      waMsg += `Teléfono principal: ${formData.telefono_principal}\n`;
-      waMsg += `Teléfono secundario: ${formData.telefono_secundario || formData.telefono_principal}\n`;
-      waMsg += `Estado: ${formData.estado}, Municipio: ${formData.municipio}, Parroquia: ${formData.parroquia}, Sector: ${formData.sector}, Calle / Casa / Apto: ${formData.direccion}\n`;
-      waMsg += `Tipo de Servicio: ${formData.plan} ${formData.tipo_servicio}\n`;
-      waMsg += `Promotor/a: ${formData.promotor}\n`;
-      waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
-      waMsg += `Fuente: ${formData.fuente}`;
-
+      const waMsg = generateSolicitudWAMsg(formData);
       const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMsg)}`;
       window.open(waUrl, '_blank');
 
