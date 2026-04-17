@@ -20,7 +20,7 @@ let appState = {
   solicitudesHistory: [],
   solicitudesLoading: false,
   solicitudSubView: 'form', // 'form' or 'history'
-  activitySubView: 'form',
+  activitySubView: 'panel',
 };
 
 // Global Initialization Flag
@@ -516,12 +516,12 @@ function render() {
     attachHomeEvents();
     attachTabEvents();
   } else if (appState.currentView === 'activities_panel') {
-    appContainer.innerHTML = renderActivitiesPanel();
-    attachActivitiesPanelEvents();
-    attachTabEvents();
-  } else if (appState.currentView === 'form') {
     appContainer.innerHTML = renderActivitiesView();
     attachActivitiesEvents();
+    attachTabEvents();
+  } else if (appState.currentView === 'form') {
+    appContainer.innerHTML = renderActivityFormView();
+    attachActivityFormEvents();
     attachTabEvents();
   } else if (appState.currentView === 'solicitud_form') {
     appContainer.innerHTML = renderSolicitudForm();
@@ -1257,7 +1257,7 @@ window.renderLocationBlock = function() {
 };
 
 function renderActivitiesView() {
-  const isForm = appState.activitySubView === 'form';
+  const isPanel = appState.activitySubView === 'panel';
   const isHistory = appState.activitySubView === 'history';
 
   return `
@@ -1273,15 +1273,120 @@ function renderActivitiesView() {
           
           <div class="flex bg-[#E3E3E8] p-0.5 rounded-lg mb-3 mx-2 relative h-8 select-none">
             <div id="actToggleIndicator" class="absolute h-[28px] top-0.5 bg-white rounded-md shadow-sm transition-all duration-300 ease-out" 
-                 style="width: calc(50% - 2px); left: ${isForm ? '2px' : 'calc(50%)'}"></div>
-            <button id="toggleActForm" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isForm ? 'text-black' : 'text-[#8E8E93]'}">Registro</button>
+                 style="width: calc(50% - 2px); left: ${isPanel ? '2px' : 'calc(50%)'}"></div>
+            <button id="toggleActPanel" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isPanel ? 'text-black' : 'text-[#8E8E93]'}">Hoy</button>
             <button id="toggleActHistory" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isHistory ? 'text-black' : 'text-[#8E8E93]'}">Historial</button>
           </div>
         </div>
       </header>
 
       <div class="max-w-md mx-auto">
-        ${isForm ? renderActivityFormBody() : renderActivityHistoryList()}
+        ${isPanel ? renderTodayActivitiesContent() : renderActivityHistoryList()}
+      </div>
+    </div>
+  `;
+}
+
+function renderTodayActivitiesContent() {
+  let activitiesHtml = '';
+  if (appState.activities.length === 0) {
+    activitiesHtml = `
+      <div class="flex flex-col items-center justify-center p-8 text-center mt-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[#C6C6C8] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-[#8E8E93] text-lg font-medium">No hay actividades hoy</p>
+        <p class="text-[#8E8E93] text-sm mt-1">Añade una actividad para comenzar tu reporte.</p>
+      </div>
+    `;
+  } else {
+    activitiesHtml = `
+      <div class="space-y-3 mt-4">
+        <p class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Registradas hoy (${appState.activities.length})</p>
+        ${appState.activities.map((act, index) => `
+          <div class="bg-white rounded-2xl p-4 shadow-sm relative border border-[#E5E5EA]">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-1 bg-[#F2F2F7] text-[#8E8E93] rounded-md">${act.time}</span>
+              <button class="delete-btn text-[#FF3B30] p-1" data-index="${index}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+            <h3 class="font-bold text-[17px] leading-tight mb-1 text-black">${act.activityType}</h3>
+            ${act.ubicaciones && act.ubicaciones.parroquia ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}</p>` : ''}
+            ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
+            ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Llamadas: ${act.llamadasInfo} info · ${act.llamadasAgenda} agenda</p>` : ''}
+            <p class="text-[#8E8E93] text-[12px] mt-1.5 font-semibold">S:${act.solicitudes} · C:${act.clientesCaptados}${act.volantes > 0 ? ' · V:'+act.volantes : ''}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  const actionButtons = appState.activities.length > 0 ? `
+    <div class="mt-6 flex flex-col gap-3">
+      <button id="btnSendWhatsapp" class="btn-flat-success">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+        </svg>
+        Enviar Reporte por WhatsApp
+      </button>
+      <button id="btnFinalizeJornada" class="btn-flat-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Finalizar Jornada y Guardar
+      </button>
+    </div>
+    <dialog id="confirmModal" class="bg-white rounded-3xl p-6 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm outline-none border border-[#E5E5EA] w-[90%] max-w-[340px]">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-12 h-12 bg-[#FFEBEE] text-[#C62828] rounded-full flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </div>
+        <h3 class="text-lg font-bold text-black mb-2 leading-tight">¿Finalizar Jornada?</h3>
+        <p class="text-[#3A3A3C] text-sm mb-6">Esto agrupará las actividades de hoy y las preparará para guardarse en Sheets.</p>
+        <div class="flex w-full gap-3">
+          <button id="btnModalCancel" class="w-1/2 py-3 bg-[#F2F2F7] text-[#3A3A3C] font-semibold rounded-xl active:scale-[0.98] transition-all">Cancelar</button>
+          <button id="btnModalConfirm" class="w-1/2 py-3 bg-[#007AFF] text-white font-semibold rounded-xl active:scale-[0.98] transition-all">Aceptar</button>
+        </div>
+      </div>
+    </dialog>
+  ` : '';
+
+  return `
+    <div class="px-5 py-4">
+      <button id="btnGoToForm" class="w-full flex items-center justify-center gap-2 py-3.5 bg-[#007AFF] rounded-xl text-[15px] font-semibold text-white active:scale-[0.98] transition-all mb-4 shadow-sm shadow-[#007AFF]/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Añadir Actividad
+      </button>
+      ${activitiesHtml}
+      ${actionButtons}
+    </div>
+  `;
+}
+
+function renderActivityFormView() {
+  return `
+    <div class="min-h-screen pb-20 bg-[#F2F2F7]">
+      <header class="ios-header">
+        <div class="max-w-md mx-auto">
+          <div class="flex items-center justify-between px-1">
+            <button id="btnBackToPanel" class="text-[#007AFF] font-medium text-[17px] active:opacity-50 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Volver
+            </button>
+            <h2 class="text-[17px] font-black text-black">Nueva Actividad</h2>
+            <div class="w-[60px]"></div>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-md mx-auto">
+        ${renderActivityFormBody()}
       </div>
     </div>
   `;
@@ -1500,16 +1605,16 @@ function renderActivityHistoryList() {
 
 function attachActivitiesEvents() {
   // --- SUB-NAVIGATION TABS ---
-  document.getElementById('toggleActForm')?.addEventListener('click', () => {
-    if (appState.activitySubView === 'form') return;
-    appState.activitySubView = 'form';
+  document.getElementById('toggleActPanel')?.addEventListener('click', () => {
+    if (appState.activitySubView === 'panel') return;
+    appState.activitySubView = 'panel';
     render();
   });
   document.getElementById('toggleActHistory')?.addEventListener('click', () => {
     if (appState.activitySubView === 'history') return;
     appState.activitySubView = 'history';
     appState.historyLoading = true;
-    render(); 
+    render();
     fetchHistory();
   });
 
@@ -1518,7 +1623,41 @@ function attachActivitiesEvents() {
     render();
   });
 
-  // Only setup form elements if the form sub-view is active
+  // --- PANEL (HOY) EVENTS ---
+  if (appState.activitySubView === 'panel') {
+    document.getElementById('btnGoToForm')?.addEventListener('click', () => {
+      appState.currentView = 'form';
+      render();
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const idx = e.currentTarget.getAttribute('data-index');
+        if (await showConfirm('¿Seguro que deseas eliminar esta actividad?')) {
+          appState.activities.splice(idx, 1);
+          saveActivities();
+          render();
+        }
+      });
+    });
+
+    document.getElementById('btnSendWhatsapp')?.addEventListener('click', () => generateWhatsappReport());
+
+    document.getElementById('btnFinalizeJornada')?.addEventListener('click', () => {
+      const modal = document.getElementById('confirmModal');
+      if (modal) modal.showModal();
+    });
+    document.getElementById('btnModalCancel')?.addEventListener('click', () => {
+      document.getElementById('confirmModal')?.close();
+    });
+    document.getElementById('btnModalConfirm')?.addEventListener('click', () => {
+      document.getElementById('confirmModal')?.close();
+      finalizeJornada();
+    });
+    return; // No form setup needed for panel
+  }
+
+  // Only setup form elements if on form sub-view (legacy path, now unused)
   if (appState.activitySubView !== 'form') return;
 
   const typeSelect = document.getElementById('fType');
@@ -1699,6 +1838,173 @@ function attachActivitiesEvents() {
         appState.currentView = 'activities_panel';
         appState.activitySubView = 'form'; // Reset sub-view for next time
         render();
+    }
+  });
+
+  window.initCustomFormDropdowns('activityForm');
+}
+
+function attachActivityFormEvents() {
+  document.getElementById('btnBackToPanel')?.addEventListener('click', () => {
+    appState.currentView = 'activities_panel';
+    appState.activitySubView = 'panel';
+    render();
+  });
+
+  const typeSelect = document.getElementById('fType');
+  const metricsCard = document.getElementById('metricsCard');
+  const locationCard = document.getElementById('locationCard');
+  const notesCard = document.getElementById('notesCard');
+  const locContainer = document.getElementById('locationsContainer');
+
+  if (locContainer) locContainer.innerHTML = window.renderLocationBlock();
+  const initialBlock = locContainer?.querySelector('.location-block');
+  if (initialBlock) window.setupGeoCascading(initialBlock, appState.geoHierarchy);
+
+  setTimeout(() => { initCustomFormDropdowns('activityForm'); }, 10);
+
+  const metricDoms = {
+    condominio: document.getElementById('mCondominio'),
+    volantes:   document.getElementById('mVolantes'),
+    captados:   document.getElementById('mCaptados'),
+    solicitudes: document.getElementById('mSolicitudes')
+  };
+  const metricInputs = {
+    condominio:  document.getElementById('fCondominio'),
+    volantes:    document.getElementById('fVolantes'),
+    captados:    document.getElementById('fCaptados'),
+    solicitudes: document.getElementById('fSolicitudes')
+  };
+
+  const fPhoneContact      = document.getElementById('fPhoneContact');
+  const phoneMetricsContainer = document.getElementById('phoneMetricsContainer');
+  const fPhoneInfo         = document.getElementById('fPhoneInfo');
+  const fPhoneAgenda       = document.getElementById('fPhoneAgenda');
+
+  fPhoneContact?.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      phoneMetricsContainer.classList.remove('hidden');
+      fPhoneInfo.required = true;
+      fPhoneAgenda.required = true;
+    } else {
+      phoneMetricsContainer.classList.add('hidden');
+      fPhoneInfo.required = false;
+      fPhoneAgenda.required = false;
+      fPhoneInfo.value = '';
+      fPhoneAgenda.value = '';
+    }
+  });
+
+  function updateFormFields(val) {
+    if (!val) {
+      metricsCard?.classList.add('hidden');
+      locationCard?.classList.add('hidden');
+      notesCard?.classList.add('hidden');
+      return;
+    }
+    metricsCard?.classList.remove('hidden');
+    locationCard?.classList.remove('hidden');
+    notesCard?.classList.remove('hidden');
+    metricDoms.condominio.classList.add('hidden');
+    metricInputs.condominio.required = false;
+    metricDoms.captados.classList.remove('hidden');
+    metricDoms.solicitudes.classList.remove('hidden');
+    metricDoms.volantes.classList.remove('hidden');
+    metricInputs.captados.required = true;
+    metricInputs.solicitudes.required = true;
+    if (val === 'Visita a Condominio') {
+      metricDoms.condominio.classList.remove('hidden');
+      metricInputs.condominio.required = true;
+    }
+  }
+
+  updateFormFields(typeSelect?.value);
+  typeSelect?.addEventListener('change', function() { updateFormFields(this.value); });
+
+  const form = document.getElementById('activityForm');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSubmit = e.submitter;
+    const submitterValue = btnSubmit ? btnSubmit.value : 'save_return';
+
+    const block = document.getElementById('locationsContainer');
+    const ubicacion = {
+      estado:    block.querySelector('.loc-estado').value    || '',
+      municipio: block.querySelector('.loc-municipio').value || '',
+      parroquia: block.querySelector('.loc-parroquia').value || '',
+      sector:    block.querySelector('.loc-sector').value    || ''
+    };
+
+    const receivedCalls = document.getElementById('fPhoneContact').checked;
+
+    function formatTimeValue(val) {
+      if (!val) return '';
+      if (val.toLowerCase().includes('m.')) return val;
+      const [hStr, mStr] = val.split(':');
+      let h = parseInt(hStr, 10);
+      const m = mStr;
+      const period = h >= 12 ? 'p. m.' : 'a. m.';
+      h = h % 12 || 12;
+      return `${h}:${m} ${period}`;
+    }
+
+    const currentType = document.getElementById('fType').value;
+    const usedLocations = new Set();
+    appState.activities.forEach(act => {
+      if (act.ubicaciones && act.activityType === currentType && act.ubicaciones.parroquia && act.ubicaciones.sector && act.ubicaciones.sector !== 'N/A') {
+        usedLocations.add(`${act.ubicaciones.parroquia}|||${act.ubicaciones.sector}`);
+      }
+    });
+    if (ubicacion.parroquia && ubicacion.sector && ubicacion.sector !== 'N/A' &&
+        usedLocations.has(`${ubicacion.parroquia}|||${ubicacion.sector}`)) {
+      showToast(`⚠️ Ya registraste "${currentType}" en: ${ubicacion.parroquia} – ${ubicacion.sector}.`, 'error');
+      return;
+    }
+
+    const activity = {
+      uid:             'act_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      time:            formatTimeValue(document.getElementById('fTime').value),
+      date:            new Date().toLocaleDateString('es-VE'),
+      asesor:          appState.currentAsesor,
+      activityType:    currentType,
+      ubicaciones:     ubicacion,
+      clientesCaptados: metricInputs.captados.value  || 0,
+      solicitudes:     metricInputs.solicitudes.value || 0,
+      condominio:      metricInputs.condominio.value  || '',
+      volantes:        metricInputs.volantes.value    || 0,
+      receivedCalls:   receivedCalls,
+      llamadasInfo:    receivedCalls ? (fPhoneInfo.value  || 0) : 0,
+      llamadasAgenda:  receivedCalls ? (fPhoneAgenda.value || 0) : 0,
+      notes:           document.getElementById('fNotes').value.trim()
+    };
+
+    appState.activities.push(activity);
+    saveActivities();
+
+    if (submitterValue === 'add_another') {
+      const ogContent = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = `✓ Listo`;
+      btnSubmit.classList.add('!bg-green-50', '!text-green-600', '!border-green-200');
+      document.getElementById('activityForm').reset();
+      fPhoneContact.checked = false;
+      fPhoneContact.dispatchEvent(new Event('change'));
+      locContainer.innerHTML = window.renderLocationBlock();
+      window.setupGeoCascading(locContainer.querySelector('.location-block'), appState.geoHierarchy);
+      updateFormFields(null);
+      initCustomFormDropdowns();
+      const chip = document.getElementById('addedActivitiesChip');
+      if (chip) {
+        chip.classList.remove('hidden');
+        document.getElementById('chipCountTitle').innerText = `${appState.activities.length} Actividad${appState.activities.length > 1 ? 'es' : ''} Añadida${appState.activities.length > 1 ? 's' : ''}`;
+      }
+      setTimeout(() => {
+        btnSubmit.innerHTML = ogContent;
+        btnSubmit.classList.remove('!bg-green-50', '!text-green-600', '!border-green-200');
+      }, 1500);
+    } else {
+      appState.currentView = 'activities_panel';
+      appState.activitySubView = 'panel';
+      render();
     }
   });
 
