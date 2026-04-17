@@ -1394,9 +1394,8 @@ function renderActivityFormBody() {
 
           <!-- SECTION 3: UBICACIÓN -->
           <div id="locationCard" class="hidden">
-            <p class="ios-label uppercase">Ubicación</p>
-            <div id="locationsContainer" class="ios-group mb-8">
-              <!-- Rendered by window.renderLocationBlock as ios-item list -->
+            <div id="locationsContainer" class="mb-8">
+              <!-- Rendered by window.renderLocationBlock as ios-group -->
             </div>
           </div>
 
@@ -1609,7 +1608,7 @@ function attachActivitiesEvents() {
     const submitterValue = btnSubmit ? btnSubmit.value : 'save_return';
     
     // Gather locations
-    const block = document.querySelector('.location-block');
+    const block = document.getElementById('locationsContainer');
     const ubicacion = {
       estado: block.querySelector('.loc-estado').value || '',
       municipio: block.querySelector('.loc-municipio').value || '',
