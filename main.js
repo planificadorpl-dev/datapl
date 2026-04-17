@@ -1192,68 +1192,64 @@ window.setupGeoCascading = function(block, hierarchy) {
 };
 window.renderLocationBlock = function() {
   const estados = appState.geoHierarchy ? Object.keys(appState.geoHierarchy).sort() : [];
-  
+
   return `
-    <div class="location-block bg-[#F8F8F8] p-5 rounded-2xl border border-[#E5E5EA] space-y-4 pt-5 pb-5 mt-2">
-      <!-- 1. Estado y Municipio -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
-          <label class="ios-label">Estado</label>
-          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
-            <select class="hidden-real-select loc-estado" required>
-              <option value="" disabled selected>Seleccione...</option>
-              ${estados.map(e => `<option value="${e}">${e}</option>`).join('')}
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Seleccione...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 left-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
+    <div class="location-block ios-group">
+      <!-- Estado: full width -->
+      <div class="ios-item">
+        <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Estado</label>
+        <div class="relative w-full custom-dropdown-container">
+          <select class="hidden-real-select loc-estado" required>
+            <option value="" disabled selected>Seleccione...</option>
+            ${estados.map(e => `<option value="${e}">${e}</option>`).join('')}
+          </select>
+          <button type="button" class="custom-dd-btn">
+            <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccione...</span>
+            <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden custom-dd-options overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar"></div>
         </div>
-        <div class="space-y-1">
-          <label class="ios-label">Municipio</label>
-          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
+      </div>
+
+      <!-- Municipio + Parroquia: 2 columnas -->
+      <div class="grid grid-cols-2">
+        <div class="ios-item border-r border-[#E5E5EA]/60">
+          <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Municipio</label>
+          <div class="relative w-full custom-dropdown-container">
             <select class="hidden-real-select loc-municipio" required disabled>
               <option value="" disabled selected>Esperando...</option>
             </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            <button type="button" class="custom-dd-btn">
+              <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
             </button>
-            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
+            <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+          </div>
+        </div>
+        <div class="ios-item">
+          <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Parroquia</label>
+          <div class="relative w-full custom-dropdown-container">
+            <select class="hidden-real-select loc-parroquia" required disabled>
+              <option value="" disabled selected>Esperando...</option>
+            </select>
+            <button type="button" class="custom-dd-btn">
+              <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
+            </button>
+            <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
           </div>
         </div>
       </div>
 
-      <!-- 2. Parroquia y Sector -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
-          <label class="ios-label">Parroquia</label>
-          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
-            <select class="hidden-real-select loc-parroquia" required disabled>
-              <option value="" disabled selected>Esperando...</option>
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 left-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
-        </div>
-
-        <div class="space-y-1">
-          <label class="ios-label">Sector</label>
-          <div class="relative w-full text-black h-[46px] custom-dropdown-container">
-            <select class="hidden-real-select loc-sector" required disabled>
-              <option value="" disabled selected>Esperando...</option>
-            </select>
-            <button type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-[#E5E5EA] focus:ring-2 focus:ring-black/5 custom-dd-btn pointer-events-none opacity-60">
-              <span class="custom-dd-text text-[#8E8E93] truncate max-w-[120px]">Esperando...</span>
-              <svg class="h-4 w-4 text-[#8E8E93] transition-transform duration-200 custom-dd-icon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            <div class="absolute z-50 right-0 w-[200px] mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options hidden"></div>
-          </div>
+      <!-- Sector: full width -->
+      <div class="ios-item">
+        <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Sector</label>
+        <div class="relative w-full custom-dropdown-container">
+          <select class="hidden-real-select loc-sector" required disabled>
+            <option value="" disabled selected>Esperando...</option>
+          </select>
+          <button type="button" class="custom-dd-btn">
+            <span class="custom-dd-text text-[#8E8E93] truncate">Esperando...</span>
+          </button>
+          <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
         </div>
       </div>
     </div>
@@ -1398,6 +1394,7 @@ function renderActivityFormBody() {
 
           <!-- SECTION 3: UBICACIÓN -->
           <div id="locationCard" class="hidden">
+            <p class="ios-label uppercase">Ubicación de Actividad</p>
             <div id="locationsContainer" class="mb-8">
               <!-- Rendered by window.renderLocationBlock as ios-group -->
             </div>
