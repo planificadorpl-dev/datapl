@@ -1978,11 +1978,11 @@ function initCustomFormDropdowns(parentContainerId) {
       }
       
       if (realSelect.disabled) {
-        btn.classList.add('opacity-60', 'pointer-events-none', 'bg-[#F2F2F7]');
-        btn.classList.remove('bg-white', 'hover:bg-[#E5E5EA]');
+        btn.classList.add('opacity-40', 'pointer-events-none');
+        btn.classList.remove('bg-white', 'hover:bg-gray-50');
       } else {
-        btn.classList.remove('opacity-60', 'pointer-events-none', 'bg-[#F2F2F7]');
-        btn.classList.add('bg-[#F2F2F7]', 'hover:bg-[#E5E5EA]');
+        btn.classList.remove('opacity-40', 'pointer-events-none');
+        btn.classList.add('bg-transparent', 'hover:bg-gray-50/50');
       }
     }
 
@@ -2003,12 +2003,12 @@ function initCustomFormDropdowns(parentContainerId) {
         optionsContainer.classList.remove('opacity-0', 'invisible', 'scale-95');
         optionsContainer.classList.add('opacity-100', 'visible', 'scale-100');
         icon?.classList.add('rotate-180');
-        btn.classList.add('ring-2', 'ring-black/5', 'bg-[#E5E5EA]');
+        btn.classList.add('bg-gray-100/50');
       } else {
         optionsContainer.classList.remove('opacity-100', 'visible', 'scale-100');
         optionsContainer.classList.add('opacity-0', 'invisible', 'scale-95');
         icon?.classList.remove('rotate-180');
-        btn.classList.remove('ring-2', 'ring-black/5', 'bg-[#E5E5EA]');
+        btn.classList.remove('bg-gray-100/50');
         setTimeout(() => optionsContainer.classList.add('hidden'), 300);
       }
     }

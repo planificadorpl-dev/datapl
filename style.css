@@ -12,7 +12,7 @@
 @layer components {
   /* --- iOS Premium Grouped List Style --- */
   .ios-group {
-    @apply bg-white overflow-hidden rounded-[20px] mb-8 shadow-sm border border-[#E5E5EA]/30;
+    @apply bg-white rounded-[20px] mb-8 shadow-sm border border-[#E5E5EA]/30;
   }
 
   .ios-item {
