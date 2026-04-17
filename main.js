@@ -2717,17 +2717,17 @@ function buildWhatsappReport(activities, asesor, date) {
 
   let msg = '';
   msg += `*REPORTE DIARIO*\n`;
-  msg += `📅 Fecha: ${date}\n`;
-  msg += `👤 Asesor: ${asesor}\n\n`;
+  msg += `Fecha: ${date}\n`;
+  msg += `Asesor: ${asesor}\n\n`;
 
   msg += `*RESUMEN*\n`;
-  msg += `✅ Solicitudes confirmadas: ${totalSoli}\n`;
-  msg += `📊 Clientes captados: ${totalCap}\n`;
+  msg += `Solicitudes confirmadas: ${totalSoli}\n`;
+  msg += `Clientes captados: ${totalCap}\n`;
   if (totalVol > 0)
-    msg += `📄 Volantes entregados: ${totalVol}\n`;
+    msg += `Volantes entregados: ${totalVol}\n`;
   if (totalInfo > 0 || totalAgenda > 0) {
-    msg += `📞 Llamadas (info): ${totalInfo}\n`;
-    msg += `📞 Llamadas (agenda): ${totalAgenda}\n`;
+    msg += `Llamadas (info): ${totalInfo}\n`;
+    msg += `Llamadas (agenda): ${totalAgenda}\n`;
   }
 
   msg += `\nACTIVIDADES (${activities.length})\n`;
