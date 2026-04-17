@@ -2334,7 +2334,8 @@ function attachSolicitudEvents() {
       waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
       waMsg += `Fuente: ${formData.fuente}`;
 
-      window.location.href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMsg)}`;
+      window.open(waUrl, '_blank');
 
       showToast('Solicitud guardada correctamente', 'success');
       appState.currentView = 'home';
