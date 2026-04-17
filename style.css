@@ -15,8 +15,13 @@
     @apply bg-white rounded-[20px] mb-8 shadow-sm border border-[#E5E5EA]/30;
   }
 
+  /* Automatic Dividers for children (items OR grids) */
+  .ios-group > *:not(:last-child) {
+    @apply border-b border-[#E5E5EA]/60;
+  }
+
   .ios-item {
-    @apply flex flex-col px-4 py-3 border-b border-[#E5E5EA]/60 last:border-b-0;
+    @apply flex flex-col px-4 py-3;
   }
 
   /* --- Normalized Form Controls --- */

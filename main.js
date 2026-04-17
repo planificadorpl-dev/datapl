@@ -1790,8 +1790,7 @@ function renderSolicitudForm() {
           <!-- DETALLES DEL SERVICIO -->
           <p class="ios-label uppercase">Detalles del Servicio</p>
           <div class="ios-group">
-            <div class="grid grid-cols-2">
-              <div class="ios-item border-r border-[#E5E5EA]/60">
+              <div class="ios-item">
                 <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Tipo</label>
                 <div class="flex items-center gap-1 mt-1 bg-[#F2F2F7] p-1 rounded-xl h-[36px]">
                   <button type="button" id="btnDomic" class="flex-1 h-full text-[12px] font-bold rounded-lg transition-all duration-300">Domic.</button>
@@ -1799,20 +1798,6 @@ function renderSolicitudForm() {
                 </div>
                 <input type="hidden" id="sTipoServicio" value="Domiciliario" required>
               </div>
-              <div class="ios-item">
-                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Power Go</label>
-                <div class="relative w-full custom-dropdown-container">
-                  <select id="sPowerGo" required class="hidden-real-select">
-                    <option value="NO" selected>NO</option>
-                    <option value="SI">SI</option>
-                  </select>
-                  <button type="button" class="custom-dd-btn">
-                    <span class="custom-dd-text font-bold text-black">NO</span>
-                    <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
             <div class="ios-item">
               <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Plan a Contratar</label>
               <div class="relative w-full custom-dropdown-container">
@@ -2028,7 +2013,6 @@ function attachSolicitudEvents() {
 
   const tipoSrv = document.getElementById('sTipoServicio');
   const planSelect = document.getElementById('sPlan');
-  const powerGoSelect = document.getElementById('sPowerGo');
 
   function updatePlanes() {
     const tipo = tipoSrv.value;
@@ -2057,15 +2041,7 @@ function attachSolicitudEvents() {
       });
     }
 
-    if (tipo === 'Empresarial') {
-      powerGoSelect.value = 'NO';
-      powerGoSelect.disabled = true;
-    } else {
-      powerGoSelect.disabled = false;
-    }
-
     planSelect.dispatchEvent(new Event('refreshCustomUI'));
-    powerGoSelect.dispatchEvent(new Event('refreshCustomUI'));
   }
 
   const btnDomic = document.getElementById('btnDomic');
@@ -2189,7 +2165,6 @@ function attachSolicitudEvents() {
         telefono_principal: document.getElementById('sTelefonoP').value.trim(),
         telefono_secundario: document.getElementById('sTelefonoS').value.trim(),
         correo: document.getElementById('sCorreo').value.trim(),
-        power_go: document.getElementById('sPowerGo').value === 'SI',
         fecha_nacimiento: document.getElementById('sFechaNac').value || null,
         fuente: document.getElementById('sFuente').value
       };
@@ -2211,7 +2186,6 @@ function attachSolicitudEvents() {
         telefono_principal: formData.telefono_principal,
         telefono_secundario: formData.telefono_secundario || null,
         correo: formData.correo || null,
-        power_go: formData.power_go,
         fecha_nacimiento: formData.fecha_nacimiento,
         fuente: formData.fuente
       }]);
@@ -2237,7 +2211,6 @@ function attachSolicitudEvents() {
       waMsg += `Tipo de Servicio: ${formData.plan} ${formData.tipo_servicio}\n`;
       waMsg += `Promotor/a: ${formData.promotor}\n`;
       waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
-      waMsg += `Power Go: ${formData.power_go ? 'SI' : 'NO'}\n`;
       waMsg += `Fuente: ${formData.fuente}`;
 
       window.location.href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
