@@ -1932,7 +1932,14 @@ function renderSolicitudForm() {
           </div>
         </div>
 
-        <div class="pt-6">
+        <div class="pt-6 space-y-3">
+          <button type="button" id="btnOpenCopyDrawer" class="w-full py-4 bg-[#F2F2F7] text-black border border-[#E5E5EA] rounded-3xl font-bold text-[15px] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            Preparar para App Externa
+          </button>
+
           <button type="submit" class="w-full py-5 bg-[#007AFF] text-white rounded-3xl font-black text-lg shadow-xl shadow-[#007AFF]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
             <span>Guardar y Enviar WhatsApp</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -1942,6 +1949,51 @@ function renderSolicitudForm() {
     </div>
   `;
 }
+
+function renderCopyDrawer(data) {
+  const items = [
+    { label: 'Nombres', value: data.nombres },
+    { label: 'Apellidos', value: data.apellidos },
+    { label: 'Cédula', value: data.cedula },
+    { label: 'Teléfono Principal', value: data.telefono_principal },
+    { label: 'Teléfono Secundario', value: data.telefono_secundario || 'N/A' },
+    { label: 'Correo Electrónico', value: data.correo || 'N/A' }
+  ];
+
+  return `
+    <div id="copyDrawerOverlay" class="fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+      <div id="copyDrawer" class="fixed bottom-0 left-0 right-0 bg-[#F2F2F7] rounded-t-[32px] shadow-2xl z-[160] max-w-md mx-auto translate-y-full flex flex-col max-h-[90vh]">
+        <div class="w-12 h-1.5 bg-[#C6C6C8] rounded-full mx-auto mt-3 mb-2"></div>
+        
+        <div class="px-6 py-4 flex justify-between items-center border-b border-[#E5E5EA]">
+          <h3 class="text-xl font-bold text-black">Copiado Rápido</h3>
+          <button id="btnCloseCopyDrawer" class="w-8 h-8 flex items-center justify-center bg-[#E5E5EA] rounded-full text-[#8E8E93]">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-3 overflow-y-auto custom-scrollbar pb-10">
+          <p class="text-sm text-[#8E8E93] mb-2 leading-snug">Los datos aparecerán en el historial de tu teclado móvil (Gboard / iOS).</p>
+          
+          ${items.map(item => `
+            <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-[#E5E5EA]">
+              <div class="min-w-0 flex-1 pr-4">
+                <p class="text-[10px] uppercase font-black text-[#8E8E93] tracking-wider mb-0.5">${item.label}</p>
+                <p class="text-[16px] font-bold text-black truncate">${item.value}</p>
+              </div>
+              <button class="btn-copy-item shrink-0 px-4 py-2.5 bg-black text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-2" data-value="${item.value}">
+                <span>Copiar</span>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 
 function initCustomFormDropdowns(parentContainerId) {
   const container = parentContainerId ? document.getElementById(parentContainerId) : document;
@@ -2112,6 +2164,69 @@ function attachSolicitudEvents() {
     initCustomFormDropdowns('solicitudForm');
     updatePlanes();
   }, 10);
+
+  // --- External App Copy Logic ---
+  document.getElementById('btnOpenCopyDrawer')?.addEventListener('click', () => {
+    const data = {
+      nombres: document.getElementById('sNombres').value.trim() || 'No definido',
+      apellidos: document.getElementById('sApellidos').value.trim() || 'No definido',
+      cedula: document.getElementById('sCedulaTipo').value + document.getElementById('sCedulaNum').value.trim(),
+      telefono_principal: document.getElementById('sTelefonoP').value.trim() || 'No definido',
+      telefono_secundario: document.getElementById('sTelefonoS').value.trim(),
+      correo: document.getElementById('sCorreo').value.trim()
+    };
+
+    document.body.insertAdjacentHTML('beforeend', renderCopyDrawer(data));
+    
+    const overlay = document.getElementById('copyDrawerOverlay');
+    const drawer = document.getElementById('copyDrawer');
+    
+    // Animate In
+    setTimeout(() => {
+      overlay.classList.replace('opacity-0', 'opacity-100');
+      drawer.classList.add('animate-slide-up');
+    }, 10);
+
+    const closeDrawer = () => {
+      drawer.classList.replace('animate-slide-up', 'animate-slide-down');
+      overlay.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => overlay.remove(), 300);
+    };
+
+    document.getElementById('btnCloseCopyDrawer')?.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', (e) => { if(e.target === overlay) closeDrawer(); });
+
+    // Copy Action Logic
+    document.querySelectorAll('.btn-copy-item').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const value = btn.dataset.value;
+        if (!value || value === 'No definido') return;
+
+        try {
+          await navigator.clipboard.writeText(value);
+          
+          // Feedback
+          const ogHtml = btn.innerHTML;
+          btn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span>Copiado!</span>
+          `;
+          btn.classList.replace('bg-black', 'bg-[#34C759]');
+          
+          setTimeout(() => {
+            btn.innerHTML = ogHtml;
+            btn.classList.replace('bg-[#34C759]', 'bg-black');
+          }, 2000);
+          
+        } catch (err) {
+          console.error("Failed to copy:", err);
+          showToast("Error al acceder al portapapeles", "error");
+        }
+      });
+    });
+  });
 
   const formEl = document.getElementById('solicitudForm');
   formEl?.addEventListener('submit', async (e) => {
