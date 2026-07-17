@@ -84,15 +84,15 @@ async function loadGlobalConfig() {
     if (errA || errG || errP) {
        console.error("Error loading config from Supabase:", errA || errG || errP);
        // Fallback on error
-       appState.asesores = [...DEFAULT_ASESORES];
+       appState.asesores = DEFAULT_ASESORES.map(name => ({ nombre: name, activo: true }));
        appState.geoHierarchy = geoHierarchy; // Use the one imported at the top
        appState.planes = [];
     } else {
        // Map Asesores
        if(qAsesores && qAsesores.length > 0) {
-          appState.asesores = qAsesores.map(row => row.nombre);
+          appState.asesores = qAsesores.map(row => ({ id: row.id, nombre: row.nombre, activo: row.activo !== false }));
        } else {
-          appState.asesores = [...DEFAULT_ASESORES];
+          appState.asesores = DEFAULT_ASESORES.map(name => ({ nombre: name, activo: true }));
        }
        
        // Map GeoHierarchy
@@ -134,7 +134,7 @@ async function loadGlobalConfig() {
     }
   } catch(e) {
      console.error("Critical error connecting to Supabase:", e);
-     appState.asesores = [...DEFAULT_ASESORES];
+     appState.asesores = DEFAULT_ASESORES.map(name => ({ nombre: name, activo: true }));
      appState.geoData = JSON.parse(JSON.stringify(defaultGeoData));
      appState.planes = [];
   } finally {
@@ -330,27 +330,48 @@ function attachAdminEvents() {
   // ASESORES
   document.getElementById('btnAddAsesor')?.addEventListener('click', async (e) => {
     const name = document.getElementById('inputNewAsesor').value.trim();
-    if (name && !appState.asesores.includes(name)) {
+    if (name && !appState.asesores.some(a => a.nombre === name)) {
       const btn = e.currentTarget;
       setLoading(btn, true);
-      const { error } = await supabase.from('asesores_config').insert([{ nombre: name }]);
+      const { error } = await supabase.from('asesores_config').insert([{ nombre: name, activo: true }]);
       setLoading(btn, false);
       
       if(error) {
         console.error("Supabase Error:", error);
         showToast('Error al guardar en Supabase: ' + error.message);
       } else {
-        appState.asesores.push(name);
-        appState.asesores.sort();
+        appState.asesores.push({ nombre: name, activo: true });
+        appState.asesores.sort((a, b) => a.nombre.localeCompare(b.nombre));
         render(); // Renders the admin panel with new data
       }
     }
   });
 
+  document.querySelectorAll('.btn-toggle-asesor').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const idx = e.currentTarget.getAttribute('data-index');
+      const asesorObj = appState.asesores[idx];
+      const newStatus = asesorObj.activo === false ? true : false;
+      
+      setLoading(btn, true);
+      const { error } = await supabase.from('asesores_config')
+        .update({ activo: newStatus })
+        .eq('nombre', asesorObj.nombre);
+        
+      setLoading(btn, false);
+      if (error) {
+         showToast('Error al actualizar estatus: ' + error.message);
+         return;
+      }
+      asesorObj.activo = newStatus;
+      render();
+    });
+  });
+
   document.querySelectorAll('.btn-delete-asesor').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const idx = e.currentTarget.getAttribute('data-index');
-      const name = appState.asesores[idx];
+      const name = appState.asesores[idx].nombre;
       if(await showConfirm('¿Seguro que deseas eliminar este asesor?')) {
         setLoading(btn, true);
         const { error } = await supabase.from('asesores_config').delete().eq('nombre', name);
@@ -362,7 +383,7 @@ function attachAdminEvents() {
         }
 
         appState.asesores.splice(idx, 1);
-        if(!appState.asesores.includes(appState.currentAsesor)) {
+        if(!appState.asesores.some(a => a.nombre === appState.currentAsesor)) {
            appState.currentAsesor = '';
            localStorage.setItem('current_asesor', '');
         }
@@ -631,10 +652,10 @@ function renderHome() {
             </button>
             <div id="hAsesorOptions" class="absolute z-[110] w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar hidden">
               <div class="py-1">
-                ${appState.asesores.map(name => `
-                    <button type="button" data-value="${name}" class="asesor-option w-full text-left px-4 py-4 text-[16px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
-                      <span class="${appState.currentAsesor === name ? 'font-black text-[#007AFF]' : 'text-black group-hover:text-black'}">${name}</span>
-                      ${appState.currentAsesor === name ? `
+                ${appState.asesores.filter(a => a.activo !== false).map(a => `
+                    <button type="button" data-value="${a.nombre}" class="asesor-option w-full text-left px-4 py-4 text-[16px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
+                      <span class="${appState.currentAsesor === a.nombre ? 'font-black text-[#007AFF]' : 'text-black group-hover:text-black'}">${a.nombre}</span>
+                      ${appState.currentAsesor === a.nombre ? `
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#007AFF]" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
