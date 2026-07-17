@@ -99,15 +99,20 @@ async function loadGlobalConfig() {
        if(qGeo && qGeo.length > 0) {
           const newHierarchy = {};
           qGeo.forEach(row => {
-             const e = row.estado || "N/A";
-             const m = row.municipio || "N/A";
-             const p = row.parroquia || "N/A";
-             const s = row.sector || "N/A";
-             
+             const e = row.estado;
+             if (!e) return;
              if(!newHierarchy[e]) newHierarchy[e] = {};
+
+             const m = row.municipio;
+             if (!m || m === "_PENDING_") return;
              if(!newHierarchy[e][m]) newHierarchy[e][m] = {};
+
+             const p = row.parroquia;
+             if (!p || p === "_PENDING_") return;
              if(!newHierarchy[e][m][p]) newHierarchy[e][m][p] = [];
-             
+
+             const s = row.sector;
+             if (!s || s === "_PENDING_") return;
              if(!newHierarchy[e][m][p].includes(s)) {
                 newHierarchy[e][m][p].push(s);
              }
@@ -223,6 +228,56 @@ function showConfirm(message) {
     };
     modal.querySelector('[data-action="cancel"]').addEventListener('click', () => close(false));
     modal.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+  });
+}
+
+function showPrompt(title, placeholder) {
+  return new Promise(resolve => {
+    const id = 'promptModal-' + Date.now();
+    const html = `
+      <div id="${id}" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-[85%] max-w-sm rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+          <div class="p-6 pb-4">
+            <p class="text-center text-black font-bold mb-4">${title}</p>
+            <input type="text" id="${id}-input" class="w-full bg-[#F2F2F7] rounded-xl px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 transition-all" placeholder="${placeholder}" autocomplete="off">
+          </div>
+          <div class="flex border-t border-[#E5E5EA]">
+            <button data-action="cancel" class="flex-1 py-3.5 text-[#8E8E93] font-medium hover:bg-gray-50 transition-colors border-r border-[#E5E5EA]">Cancelar</button>
+            <button data-action="ok" class="flex-1 py-3.5 text-[#007AFF] font-bold hover:bg-gray-50 transition-colors">Guardar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+    const modal = document.getElementById(id);
+    const box = modal.querySelector('.bg-white');
+    const input = document.getElementById(`${id}-input`);
+    
+    setTimeout(() => { 
+      modal.classList.remove('opacity-0'); 
+      box.classList.remove('scale-95'); 
+      input.focus();
+    }, 10);
+
+    const close = (value) => {
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => modal.remove(), 300);
+      resolve(value);
+    };
+    
+    modal.querySelector('[data-action="cancel"]').addEventListener('click', () => close(null));
+    modal.querySelector('[data-action="ok"]').addEventListener('click', () => {
+      const val = input.value.trim();
+      close(val === '' ? null : val);
+    });
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') {
+         const val = input.value.trim();
+         close(val === '' ? null : val);
+      }
+      if(e.key === 'Escape') close(null);
+    });
   });
 }
 
@@ -426,29 +481,51 @@ function attachAdminEvents() {
     }
   });
 
-  document.getElementById('btnCreateGeoLocation')?.addEventListener('click', async (e) => {
-    const estado = estSelect.value === '' ? estText.value.trim() : estSelect.value;
-    const municipio = munSelect.value === '' ? munText.value.trim() : munSelect.value;
-    const parroquia = parText.value.trim();
-    const sector = secText.value.trim();
-
-    if (estado && municipio && parroquia && sector) {
+  document.getElementById('btnAddEstado')?.addEventListener('click', async (e) => {
+    const estado = await showPrompt("Nuevo Estado", "Ej: Lara");
+    if (estado) {
       const btn = e.currentTarget;
       setLoading(btn, true);
       const { error } = await supabase.from('geodata_config').insert([{ 
-        estado, municipio, parroquia, sector 
+        estado, municipio: '_PENDING_', parroquia: '_PENDING_', sector: '_PENDING_' 
       }]);
       setLoading(btn, false);
-
-      if (error) {
-        showToast('Error al crear ubicación: ' + error.message);
-      } else {
-        showToast('Ubicación creada con éxito', 'success');
-        loadGlobalConfig();
-      }
-    } else {
-      showToast('Por favor completa todos los campos (Estado, Municipio, Parroquia y Sector)');
+      if (error) showToast('Error al crear estado: ' + error.message);
+      else { showToast('Estado creado con éxito', 'success'); loadGlobalConfig(); }
     }
+  });
+
+  document.querySelectorAll('.btn-add-municipio').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const estado = e.currentTarget.getAttribute('data-estado');
+      const municipio = await showPrompt(`Nuevo Municipio para ${estado}`, "Nombre del Municipio");
+      if (municipio) {
+        setLoading(btn, true);
+        const { error } = await supabase.from('geodata_config').insert([{ 
+          estado, municipio, parroquia: '_PENDING_', sector: '_PENDING_' 
+        }]);
+        setLoading(btn, false);
+        if (error) showToast('Error al crear municipio: ' + error.message);
+        else { showToast('Municipio creado con éxito', 'success'); loadGlobalConfig(); }
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-add-parroquia').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const estado = e.currentTarget.getAttribute('data-estado');
+      const municipio = e.currentTarget.getAttribute('data-municipio');
+      const parroquia = await showPrompt(`Nueva Parroquia en ${municipio}`, "Nombre de la Parroquia");
+      if (parroquia) {
+        setLoading(btn, true);
+        const { error } = await supabase.from('geodata_config').insert([{ 
+          estado, municipio, parroquia, sector: '_PENDING_' 
+        }]);
+        setLoading(btn, false);
+        if (error) showToast('Error al crear parroquia: ' + error.message);
+        else { showToast('Parroquia creada con éxito', 'success'); loadGlobalConfig(); }
+      }
+    });
   });
 
   document.querySelectorAll('.btn-delete-parroquia').forEach(btn => {

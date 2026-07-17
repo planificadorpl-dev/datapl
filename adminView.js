@@ -123,7 +123,8 @@ export function renderAdminPanel(appState) {
                <div class="flex items-center gap-2">
                  <div class="w-1.5 h-3.5 bg-[#FF9500] rounded-full transition-all group-open:h-5"></div>
                  <span class="font-black text-black text-[12px] uppercase tracking-tight">${mun}</span>
-                 <span class="text-[9px] text-[#8E8E93] font-bold ml-1">${Object.keys(parroquias).length} PARROQUIAS</span>
+                 <button class="btn-add-parroquia bg-[#FF9500]/10 text-[#FF9500] px-2 py-0.5 rounded-md text-[9px] font-bold hover:bg-[#FF9500] hover:text-white transition-all ml-2" data-estado="${est}" data-municipio="${mun}">+ Parroquia</button>
+                 <span class="text-[9px] text-[#8E8E93] font-bold ml-2">${Object.keys(parroquias).length} PARROQUIAS</span>
                </div>
                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8E8E93] transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -142,6 +143,7 @@ export function renderAdminPanel(appState) {
            <h3 class="text-2xl font-black text-black tracking-tighter flex items-center gap-3">
              <span class="text-[#007AFF] text-3xl">#</span> ${est}
            </h3>
+           <button class="btn-add-municipio bg-[#007AFF]/10 text-[#007AFF] px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-[#007AFF] hover:text-white transition-all ml-4" data-estado="${est}">+ Añadir Municipio</button>
            <div class="h-[1px] flex-1 bg-gradient-to-r from-[#007AFF]/20 to-transparent ml-4"></div>
         </div>
         <div>
@@ -262,6 +264,7 @@ export function renderAdminPanel(appState) {
             <h2 class="text-[10px] font-black text-[#8E8E93] uppercase tracking-[0.3em] mb-1">Estructura Geo</h2>
             <h3 class="text-2xl font-black text-black tracking-tighter uppercase">Cobertura</h3>
           </div>
+          <button id="btnAddEstado" class="bg-[#007AFF] text-white px-5 py-2.5 rounded-2xl font-black text-xs hover:bg-[#0066D6] active:scale-95 transition-all shadow-md shadow-[#007AFF]/20">+ NUEVO ESTADO</button>
         </div>
 
         <!-- SEARCH BAR -->
@@ -275,53 +278,7 @@ export function renderAdminPanel(appState) {
            </div>
         </div>
         
-        <!-- AGREGAR ESTADO/MUNICIPIO -->
-        <div class="bg-white p-6 rounded-[2.5rem] border border-[#E5E5EA] mb-12 shadow-sm">
-           <div class="flex items-center gap-4 mb-8">
-              <div class="w-14 h-14 bg-[#F2F2F7] rounded-[1.5rem] shadow-sm flex items-center justify-center text-[#FF9500] border border-[#E5E5EA]">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </div>
-              <div>
-                <p class="text-xl font-black text-black tracking-tighter uppercase leading-none mb-1">Nueva Área</p>
-                <p class="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest">Añade estados y municipios</p>
-              </div>
-           </div>
-           
-           <div class="space-y-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-[#8E8E93] uppercase tracking-widest ml-1">Región / Estado</label>
-                    <div class="relative">
-                      <select id="newGeoEstadoSelect" class="ios-input !bg-[#F2F2F7] !border-transparent !font-bold text-sm">
-                         <option value="">+ CREAR NUEVO ESTADO...</option>
-                         ${Object.keys(geo).sort().map(e => `<option value="${e}" ${e === appState.lastSelectedEstado ? 'selected' : ''}>${e}</option>`).join('')}
-                      </select>
-                      <input type="text" id="newGeoEstadoText" class="ios-input absolute inset-0 !bg-[#F2F2F7] !font-bold text-sm ${appState.lastSelectedEstado ? 'hidden' : ''}" placeholder="Escribe el Estado">
-                    </div>
-                 </div>
-                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-[#8E8E93] uppercase tracking-widest ml-1">Municipio / Localidad</label>
-                    <div class="relative">
-                       <select id="newGeoMunicipioSelect" class="ios-input !bg-[#F2F2F7] !border-transparent !font-bold text-sm">
-                          <option value="">+ CREAR NUEVO MUNICIPIO...</option>
-                       </select>
-                       <input type="text" id="newGeoMunicipioText" class="ios-input absolute inset-0 !bg-[#F2F2F7] !font-bold text-sm" placeholder="Escribe el Municipio">
-                    </div>
-                 </div>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-[#8E8E93] uppercase tracking-widest ml-1">Parroquia</label>
-                    <input type="text" id="newGeoParroquiaText" class="ios-input !bg-[#F2F2F7] !border-transparent !font-bold text-sm" placeholder="Nombre de la Parroquia">
-                 </div>
-                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-[#8E8E93] uppercase tracking-widest ml-1">Sector Base</label>
-                    <input type="text" id="newGeoSectorText" class="ios-input !bg-[#F2F2F7] !border-transparent !font-bold text-sm" placeholder="Ej: Urbanización Centro">
-                 </div>
-              </div>
-              <button id="btnCreateGeoLocation" class="w-full bg-[#007AFF] text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:bg-[#0066D6] active:scale-95 transition-all shadow-lg shadow-[#007AFF]/20 uppercase">Guardar Ubicación</button>
-           </div>
-        </div>
+
 
         <!-- LISTADO DE ZONAS -->
         <div id="parishesContainer" class="space-y-4">
