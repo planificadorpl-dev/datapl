@@ -94,7 +94,7 @@ export function renderAdminPanel(appState) {
         Object.keys(parroquias).sort().forEach(par => {
             const sectors = parroquias[par] || [];
             parHtml += `
-              <div class="parroquia-item bg-white/40 p-2 rounded-xl border border-[#E5E5EA]">
+              <div class="parroquia-item bg-white/40 p-2.5 rounded-xl border border-[#E5E5EA] flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-center mb-1.5 px-0.5">
                   <span class="text-[9px] font-black text-[#8E8E93] uppercase tracking-tighter">📍 ${par}</span>
                   <button class="btn-delete-parroquia text-[#FF3B30] p-1 hover:bg-red-50 rounded-md transition-colors" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">
@@ -109,9 +109,9 @@ export function renderAdminPanel(appState) {
                     </div>
                   `).join('')}
                 </div>
-                <div class="flex gap-1.5">
-                  <input type="text" class="input-new-sector ios-input !py-1 !px-2 !text-[10px] !rounded-lg flex-1 focus:bg-white" placeholder="Sumar sector...">
-                  <button class="btn-add-sector bg-black text-white px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-[#1C1C1E] active:scale-95 transition-all" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">Añadir</button>
+                <div class="flex items-center gap-1.5 mt-auto pt-2 border-t border-[#E5E5EA]/60">
+                  <input type="text" class="input-new-sector flex-1 bg-white border border-[#E5E5EA] focus:border-[#007AFF]/50 rounded-lg px-2 py-1.5 text-[10px] text-black outline-none transition-all shadow-sm" placeholder="Añadir sector...">
+                  <button class="btn-add-sector flex-shrink-0 bg-[#007AFF]/10 text-[#007AFF] px-2.5 py-1.5 rounded-lg text-[10px] font-bold hover:bg-[#007AFF] hover:text-white transition-all shadow-sm" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">+ Añadir</button>
                 </div>
               </div>
             `;
@@ -130,7 +130,7 @@ export function renderAdminPanel(appState) {
                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                </svg>
             </summary>
-            <div class="p-3 pt-4 grid grid-cols-1 md:grid-cols-2 gap-3 border-x border-b border-[#E5E5EA] rounded-b-2xl -mt-4 bg-[#F8F8F8]/30">
+            <div class="p-3 pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start border-x border-b border-[#E5E5EA] rounded-b-2xl -mt-4 bg-[#F8F8F8]/30">
                 ${parHtml || '<p class="text-xs text-gray-400 italic">No hay parroquias.</p>'}
             </div>
           </details>
