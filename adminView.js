@@ -8,9 +8,9 @@ export function renderAdminPanel(appState) {
         </div>
         <span class="font-medium ${a.activo === false ? 'text-gray-400 line-through' : 'text-black'} text-sm">${a.nombre}</span>
       </div>
-      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button class="btn-toggle-asesor p-2 hover:bg-orange-50 rounded-lg ${a.activo === false ? 'text-gray-400' : 'text-[#FF9500]'}" data-index="${i}" title="Toggle Activo">
-           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button class="btn-toggle-asesor relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#34C759] focus:ring-offset-2 ${a.activo === false ? 'bg-[#E5E5EA]' : 'bg-[#34C759]'}" data-index="${i}" title="Toggle Activo">
+          <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${a.activo === false ? 'translate-x-0' : 'translate-x-5'}"></span>
         </button>
         <button class="btn-delete-asesor text-red-500 p-2 hover:bg-red-50 rounded-lg transition-all" data-index="${i}">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -30,12 +30,12 @@ export function renderAdminPanel(appState) {
           <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
           <span class="text-[10px] text-[#8E8E93] font-medium tracking-tight">${p.has_tv ? '⚡ DUAL (TV + INTERNET)' : '🌐 SOLO INTERNET'}</span>
         </div>
-        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button class="btn-toggle-plan-tv p-1.5 hover:bg-blue-50 rounded-md text-[#007AFF]" data-id="${p.id}" title="Cambiar TV">
+        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button class="btn-toggle-plan-tv p-1.5 hover:bg-blue-50 rounded-md ${p.has_tv ? 'text-[#007AFF]' : 'text-gray-300'}" data-id="${p.id}" title="Alternar TV">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
           </button>
-          <button class="btn-toggle-plan-active p-1.5 hover:bg-orange-50 rounded-md ${p.activo === false ? 'text-gray-400' : 'text-[#FF9500]'}" data-id="${p.id}" title="Toggle Activo">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          <button class="btn-toggle-plan-active relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${p.activo === false ? 'bg-[#E5E5EA]' : 'bg-[#34C759]'}" data-id="${p.id}" title="Toggle Activo">
+            <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${p.activo === false ? 'translate-x-0' : 'translate-x-4'}"></span>
           </button>
           <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-[#FF3B30]" data-id="${p.id}">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -52,9 +52,9 @@ export function renderAdminPanel(appState) {
           <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
           <span class="text-[10px] text-[#8E8E93] font-medium tracking-tight">🏢 EMPRESARIAL - DEDICADO</span>
         </div>
-        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button class="btn-toggle-plan-active p-1.5 hover:bg-orange-50 rounded-md ${p.activo === false ? 'text-gray-400' : 'text-[#FF9500]'}" data-id="${p.id}">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button class="btn-toggle-plan-active relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${p.activo === false ? 'bg-[#E5E5EA]' : 'bg-[#34C759]'}" data-id="${p.id}" title="Toggle Activo">
+            <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${p.activo === false ? 'translate-x-0' : 'translate-x-4'}"></span>
           </button>
           <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-[#FF3B30]" data-id="${p.id}">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -186,7 +186,7 @@ export function renderAdminPanel(appState) {
           </div>
         </div>
         <div class="bg-white/50 rounded-3xl p-1 border border-[#E5E5EA] mb-6">
-           <div class="p-2">
+           <div class="p-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-3">
              ${asesoresList.length > 0 ? asesoresList : '<p class="text-sm text-gray-400 italic p-4 text-center">No hay asesores registrados.</p>'}
            </div>
         </div>
@@ -210,7 +210,7 @@ export function renderAdminPanel(appState) {
             <h3 class="text-[11px] font-black text-[#007AFF] uppercase tracking-[0.15em] mb-5 flex items-center gap-2">
                <span class="w-1.5 h-1.5 bg-[#007AFF] rounded-full"></span> RESIDENCIALES
             </h3>
-            <div class="space-y-1.5">
+            <div class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                ${planesDomList || '<p class="text-xs text-gray-400 italic p-2">Sin planes residenciales.</p>'}
             </div>
           </div>
@@ -218,7 +218,7 @@ export function renderAdminPanel(appState) {
             <h3 class="text-[11px] font-black text-[#5856D6] uppercase tracking-[0.15em] mb-5 flex items-center gap-2">
                <span class="w-1.5 h-1.5 bg-[#5856D6] rounded-full"></span> CORPORATIVOS
             </h3>
-            <div class="space-y-1.5">
+            <div class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                ${planesEmpList || '<p class="text-xs text-gray-400 italic p-2">Sin planes corporativos.</p>'}
             </div>
           </div>
