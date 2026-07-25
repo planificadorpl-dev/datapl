@@ -2824,8 +2824,6 @@ function attachSolicitudEvents() {
     return; // Skip form-only events
   }
 
-  const geoBlock = document.getElementById('solicitudForm');
-  if(geoBlock) window.setupGeoCascading(geoBlock, appState.geoHierarchy);
   
   setTimeout(() => {
     initCustomFormDropdowns('solicitudForm');
