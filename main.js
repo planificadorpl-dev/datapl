@@ -995,7 +995,7 @@ function renderActivitiesPanel() {
             ${act.ubicaciones && act.ubicaciones.parroquia ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}</p>` : ''}
             ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
             ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Recibió llamadas (I:${act.llamadasInfo} | A:${act.llamadasAgenda})</p>` : ''}
-            <p class="text-[#8E8E93] text-sm mt-1 font-medium bg-[#F2F2F7] inline-block px-2 py-0.5 rounded">S:${act.solicitudes} | C:${act.clientesCaptados}${act.volantes > 0 ? ' | V:'+act.volantes : ''}</p>
+            <p class="text-[#8E8E93] text-sm mt-1 font-medium bg-[#F2F2F7] inline-block px-2 py-0.5 rounded">C:${act.clientesCaptados}${act.volantes > 0 ? ' | V:'+act.volantes : ''}</p>
           </div>
         `).join('')}
       </div>
@@ -1226,7 +1226,6 @@ function renderHistory() {
             </div>
             <p class="text-sm text-[#3A3A3C] font-medium mb-3">👤 ${jor.asesor}</p>
             <div class="text-[13px] font-medium text-[#8E8E93] pt-3 border-t border-[#E5E5EA] flex justify-between gap-1 overflow-x-auto pb-1 custom-scrollbar">
-              <div class="flex flex-col items-center min-w-[40px]"><span class="text-[11px] text-[#C6C6C8]">Soli.</span><span class="text-black">${jor.totals?.solicitudes || 0}</span></div>
               <div class="flex flex-col items-center min-w-[40px]"><span class="text-[11px] text-[#C6C6C8]">Capt.</span><span class="text-black">${jor.totals?.captados || 0}</span></div>
               <div class="flex flex-col items-center min-w-[40px]"><span class="text-[11px] text-[#C6C6C8]">Info.</span><span class="text-black">${jor.totals?.llamadasInfo || 0}</span></div>
               <div class="flex flex-col items-center min-w-[40px]"><span class="text-[11px] text-[#C6C6C8]">Agen.</span><span class="text-black">${jor.totals?.llamadasAgenda || 0}</span></div>
@@ -1504,10 +1503,6 @@ function renderTodayActivitiesContent() {
               <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-900 bg-white">
                 ${act.volantes} volantes
               </span>` : ''}
-              <span class="inline-flex items-center border px-2 py-0.5 text-xs font-semibold rounded-md ${act.solicitudes > 0 ? 'bg-blue-600 text-white border-transparent' : 'border-zinc-200 text-zinc-500'}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                ${act.solicitudes || 0} solicitudes
-              </span>
             </div>
           </div>
           `;
@@ -1663,14 +1658,10 @@ function renderActivityFormBody() {
                 <input type="text" id="fCondominio" placeholder="Ej. Res. Las Rosas" class="ios-input">
               </div>
 
-              <div id="metricsRow" class="grid grid-cols-2 border-b border-[#E5E5EA]/60 last:border-b-0">
-                <div id="mCaptados" class="hidden ios-item border-r border-[#E5E5EA]/60 !border-b-0">
+              <div id="metricsRow" class="grid grid-cols-1 border-b border-[#E5E5EA]/60 last:border-b-0">
+                <div id="mCaptados" class="hidden ios-item !border-b-0">
                   <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Captados</label>
                   <input type="number" id="fCaptados" min="0" placeholder="0" class="ios-input">
-                </div>
-                <div id="mSolicitudes" class="hidden ios-item !border-b-0">
-                  <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Solicitudes</label>
-                  <input type="number" id="fSolicitudes" min="0" placeholder="0" class="ios-input">
                 </div>
               </div>
 
@@ -1748,7 +1739,6 @@ function renderActivityHistoryList() {
               <div class="flex flex-wrap items-center gap-2 mt-2">
                 <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-700 bg-zinc-100">${jor.activitiesCount} actividades</span>
                 <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-500">${jor.totals?.captados || 0} captados</span>
-                ${jor.totals?.solicitudes > 0 ? `<span class="inline-flex items-center border border-transparent px-2 py-0.5 text-xs font-semibold rounded-md text-white bg-blue-600">${jor.totals?.solicitudes} solicitudes</span>` : ''}
                 ${jor.totals?.volantes > 0 ? `<span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-500">${jor.totals?.volantes} volantes</span>` : ''}
                 <span class="text-xs text-violet-500 font-medium ml-1">${jor.asesor}</span>
               </div>
@@ -1845,14 +1835,12 @@ function attachActivitiesEvents() {
   const metricDoms = {
     condominio: document.getElementById('mCondominio'),
     volantes: document.getElementById('mVolantes'),
-    captados: document.getElementById('mCaptados'),
-    solicitudes: document.getElementById('mSolicitudes')
+    captados: document.getElementById('mCaptados')
   };
   const metricInputs = {
     condominio: document.getElementById('fCondominio'),
     volantes: document.getElementById('fVolantes'),
-    captados: document.getElementById('fCaptados'),
-    solicitudes: document.getElementById('fSolicitudes')
+    captados: document.getElementById('fCaptados')
   };
   
   const fPhoneContact = document.getElementById('fPhoneContact');
@@ -1892,10 +1880,8 @@ function attachActivitiesEvents() {
     
     // Metrics visibility
     metricDoms.captados.classList.remove('hidden');
-    metricDoms.solicitudes.classList.remove('hidden');
     metricDoms.volantes.classList.remove('hidden');
     metricInputs.captados.required = true;
-    metricInputs.solicitudes.required = true;
 
     if (val === 'Visita a Condominio') {
       metricDoms.condominio.classList.remove('hidden');
@@ -1962,7 +1948,7 @@ function attachActivitiesEvents() {
       activityType: currentType,
       ubicaciones: ubicacion,
       clientesCaptados: metricInputs.captados.value || 0,
-      solicitudes: metricInputs.solicitudes.value || 0,
+      solicitudes: 0,
       condominio: metricInputs.condominio.value || '',
       volantes: metricInputs.volantes.value || 0,
       receivedCalls: receivedCalls,
