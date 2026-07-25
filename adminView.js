@@ -100,7 +100,7 @@ export function renderAdminPanel(appState) {
        </div>
      `;
   } else {
-     gridHtml = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">`;
+     gridHtml = `<div class="grid grid-cols-2 gap-3">`;
      currentItems.forEach(item => {
         gridHtml += `
           <div class="group relative flex items-center justify-between p-4 bg-white border border-[#E5E5EA] shadow-sm rounded-2xl hover:border-[#007AFF]/50 transition-all cursor-pointer overflow-hidden btn-geo-card" data-item="${item}">
@@ -238,9 +238,9 @@ export function renderAdminPanel(appState) {
         
         ${breadcrumbsHtml}
         
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="flex flex-col gap-6">
            <!-- Sidebar -->
-           <div class="lg:col-span-1 space-y-6">
+           <div class="space-y-6">
               <div class="bg-white rounded-3xl p-5 border border-[#E5E5EA] shadow-sm">
                  <h4 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93] mb-4">Añadir en ${addLocationText}</h4>
                  <div class="space-y-2 mb-4">
@@ -252,19 +252,19 @@ export function renderAdminPanel(appState) {
                  </button>
               </div>
               
-              <div class="p-5 bg-black rounded-3xl shadow-xl hidden lg:block">
+              <div class="p-5 bg-black rounded-3xl shadow-xl">
                  <div class="flex items-center gap-3 text-white/60 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                     <span class="text-[11px] font-bold uppercase tracking-widest">Instrucciones</span>
                  </div>
                  <p class="text-[13px] text-white/80 leading-relaxed">
-                    Navega haciendo click en las tarjetas. Puedes añadir sub-niveles dentro de cada categoría seleccionada. La eliminación es permanente.
+                    Navega haciendo click en las tarjetas. Puedes añadir sub-niveles dentro de cada categoría. La eliminación es permanente.
                  </p>
               </div>
            </div>
            
            <!-- Grid -->
-           <div class="lg:col-span-3">
+           <div class="flex-1">
               <div class="flex items-center justify-between mb-4 px-1">
                  <h3 class="font-bold text-black flex items-center gap-2 text-lg">
                     ${levelName} <span class="text-[#8E8E93] font-normal text-sm">(${currentItems.length})</span>
