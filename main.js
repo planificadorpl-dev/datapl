@@ -22,6 +22,11 @@ let appState = {
   solicitudesLoading: false,
   solicitudSubView: 'form', // 'form' or 'history'
   activitySubView: 'panel',
+  geoAdmin: {
+    level: 0,
+    selection: { estado: '', municipio: '', parroquia: '' },
+    newItem: ''
+  }
 };
 
 // Global Initialization Flag
@@ -453,147 +458,113 @@ function attachAdminEvents() {
     });
   });
 
-  // ZONAS - GESTIÓN MEJORADA
-  const geo = appState.geoHierarchy || {};
-  const estSelect = document.getElementById('newGeoEstadoSelect');
-  const estText = document.getElementById('newGeoEstadoText');
-  const munSelect = document.getElementById('newGeoMunicipioSelect');
-  const munText = document.getElementById('newGeoMunicipioText');
-  const parText = document.getElementById('newGeoParroquiaText');
-  const secText = document.getElementById('newGeoSectorText');
-
-  // Logic for New Estado/Municipio selects
-  estSelect?.addEventListener('change', () => {
-    const val = estSelect.value;
-    if (val === '') {
-      estText.classList.remove('hidden');
-      munSelect.innerHTML = '<option value="">+ Nuevo Municipio...</option>';
-      munText.classList.remove('hidden');
-    } else {
-      estText.classList.add('hidden');
-      const municipios = Object.keys(geo[val] || {}).sort();
-      munSelect.innerHTML = '<option value="">+ Nuevo Municipio...</option>' + 
-        municipios.map(m => `<option value="${m}">${m}</option>`).join('');
-      munSelect.value = '';
-      munText.classList.remove('hidden');
-    }
-  });
-
-  munSelect?.addEventListener('change', () => {
-    if (munSelect.value === '') {
-      munText.classList.remove('hidden');
-    } else {
-      munText.classList.add('hidden');
-    }
-  });
-
-  document.getElementById('btnAddEstado')?.addEventListener('click', async (e) => {
-    const estado = await showPrompt("Nuevo Estado", "Ej: Lara");
-    if (estado) {
-      const btn = e.currentTarget;
-      setLoading(btn, true);
-      const { error } = await supabase.from('geodata_config').insert([{ 
-        estado, municipio: '_PENDING_', parroquia: '_PENDING_', sector: '_PENDING_' 
-      }]);
-      setLoading(btn, false);
-      if (error) showToast('Error al crear estado: ' + error.message);
-      else { showToast('Estado creado con éxito', 'success'); loadGlobalConfig(); }
-    }
-  });
-
-  document.querySelectorAll('.btn-add-municipio').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const estado = e.currentTarget.getAttribute('data-estado');
-      const municipio = await showPrompt(`Nuevo Municipio para ${estado}`, "Nombre del Municipio");
-      if (municipio) {
-        setLoading(btn, true);
-        const { error } = await supabase.from('geodata_config').insert([{ 
-          estado, municipio, parroquia: '_PENDING_', sector: '_PENDING_' 
-        }]);
-        setLoading(btn, false);
-        if (error) showToast('Error al crear municipio: ' + error.message);
-        else { showToast('Municipio creado con éxito', 'success'); loadGlobalConfig(); }
-      }
+  // ZONAS - GESTIÓN DE LOCALIDADES (GRID VIEW)
+  
+  // 1. Breadcrumbs
+  document.querySelectorAll('.btn-geo-nav').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const level = parseInt(e.currentTarget.getAttribute('data-level'));
+      appState.geoAdmin.level = level;
+      if (level === 0) appState.geoAdmin.selection = { estado: '', municipio: '', parroquia: '' };
+      else if (level === 1) appState.geoAdmin.selection = { ...appState.geoAdmin.selection, municipio: '', parroquia: '' };
+      else if (level === 2) appState.geoAdmin.selection = { ...appState.geoAdmin.selection, parroquia: '' };
+      appState.geoAdmin.newItem = '';
+      render();
     });
   });
 
-  document.querySelectorAll('.btn-add-parroquia').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const estado = e.currentTarget.getAttribute('data-estado');
-      const municipio = e.currentTarget.getAttribute('data-municipio');
-      const parroquia = await showPrompt(`Nueva Parroquia en ${municipio}`, "Nombre de la Parroquia");
-      if (parroquia) {
-        setLoading(btn, true);
-        const { error } = await supabase.from('geodata_config').insert([{ 
-          estado, municipio, parroquia, sector: '_PENDING_' 
-        }]);
-        setLoading(btn, false);
-        if (error) showToast('Error al crear parroquia: ' + error.message);
-        else { showToast('Parroquia creada con éxito', 'success'); loadGlobalConfig(); }
+  // 2. Card Click (Navigate Level)
+  document.querySelectorAll('.btn-geo-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-geo-delete')) return; // Ignore if delete button was clicked
+      const item = e.currentTarget.getAttribute('data-item');
+      if (appState.geoAdmin.level === 0) {
+        appState.geoAdmin.selection.estado = item;
+        appState.geoAdmin.level = 1;
+      } else if (appState.geoAdmin.level === 1) {
+        appState.geoAdmin.selection.municipio = item;
+        appState.geoAdmin.level = 2;
+      } else if (appState.geoAdmin.level === 2) {
+        appState.geoAdmin.selection.parroquia = item;
+        appState.geoAdmin.level = 3;
       }
+      appState.geoAdmin.newItem = '';
+      render();
     });
   });
 
-  document.querySelectorAll('.btn-delete-parroquia').forEach(btn => {
+  // 3. Delete Click
+  document.querySelectorAll('.btn-geo-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const est = e.currentTarget.getAttribute('data-estado');
-      const mun = e.currentTarget.getAttribute('data-municipio');
-      const par = e.currentTarget.getAttribute('data-parroquia');
+      e.stopPropagation(); // Don't trigger card click
+      const item = e.currentTarget.getAttribute('data-item');
       
-      if(await showConfirm(`¿Seguro que deseas eliminar la parroquia "${par}" (${est} > ${mun}) y todos sus sectores?`)) {
-        btn.innerHTML = '...';
-        const { error } = await supabase.from('geodata_config').delete().match({ estado: est, municipio: mun, parroquia: par });
+      if(await showConfirm(`¿Estás seguro de eliminar "${item}"? Se eliminarán todas las entradas asociadas a este nivel.`, 'Eliminar')) {
+        setLoading(btn, true);
+        
+        let query = supabase.from('geodata_config').delete();
+        if (appState.geoAdmin.level === 0) query = query.eq('estado', item);
+        else if (appState.geoAdmin.level === 1) query = query.eq('estado', appState.geoAdmin.selection.estado).eq('municipio', item);
+        else if (appState.geoAdmin.level === 2) query = query.eq('estado', appState.geoAdmin.selection.estado).eq('municipio', appState.geoAdmin.selection.municipio).eq('parroquia', item);
+        else query = query.eq('estado', appState.geoAdmin.selection.estado).eq('municipio', appState.geoAdmin.selection.municipio).eq('parroquia', appState.geoAdmin.selection.parroquia).eq('sector', item);
+
+        const { error } = await query;
         if(error) {
-           btn.innerHTML = '✕';
-           showToast('Error al eliminar parroquia: ' + error.message);
+           setLoading(btn, false);
+           showToast('Error al eliminar: ' + error.message, 'error');
            return;
         }
-        loadGlobalConfig();
+        
+        showToast('Eliminado con éxito', 'success');
+        loadGlobalConfig(); // Re-fetches geodata and triggers render()
       }
     });
   });
 
-  document.querySelectorAll('.btn-add-sector').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const est = e.currentTarget.getAttribute('data-estado');
-      const mun = e.currentTarget.getAttribute('data-municipio');
-      const par = e.currentTarget.getAttribute('data-parroquia');
-      const container = e.currentTarget.closest('.parroquia-item');
-      const s = container.querySelector('.input-new-sector').value.trim();
-      
-      if (s) {
-        setLoading(btn, true);
-        const { error } = await supabase.from('geodata_config').insert([{ estado: est, municipio: mun, parroquia: par, sector: s }]);
-        setLoading(btn, false);
-
-        if(error) {
-           showToast('Error añadiendo sector: ' + error.message);
-        } else {
-           loadGlobalConfig();
-        }
-      }
-    });
+  // 4. Add Click
+  const inputNew = document.getElementById('geoNewItem');
+  inputNew?.addEventListener('input', (e) => {
+    appState.geoAdmin.newItem = e.target.value;
   });
+  
+  document.getElementById('btnGeoAdd')?.addEventListener('click', async (e) => {
+    const newItem = (appState.geoAdmin.newItem || '').trim();
+    if (!newItem) {
+       showToast('Ingresa un nombre primero', 'info');
+       return;
+    }
+    
+    const btn = e.currentTarget;
+    setLoading(btn, true);
+    
+    let payload = { estado: '_PENDING_', municipio: '_PENDING_', parroquia: '_PENDING_', sector: '_PENDING_' };
+    
+    if (appState.geoAdmin.level === 0) {
+      payload.estado = newItem;
+    } else if (appState.geoAdmin.level === 1) {
+      payload.estado = appState.geoAdmin.selection.estado;
+      payload.municipio = newItem;
+    } else if (appState.geoAdmin.level === 2) {
+      payload.estado = appState.geoAdmin.selection.estado;
+      payload.municipio = appState.geoAdmin.selection.municipio;
+      payload.parroquia = newItem;
+    } else {
+      payload.estado = appState.geoAdmin.selection.estado;
+      payload.municipio = appState.geoAdmin.selection.municipio;
+      payload.parroquia = appState.geoAdmin.selection.parroquia;
+      payload.sector = newItem;
+    }
 
-  document.querySelectorAll('.btn-delete-sector').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const btnDom = e.currentTarget;
-      const est = btnDom.getAttribute('data-estado');
-      const mun = btnDom.getAttribute('data-municipio');
-      const par = btnDom.getAttribute('data-parroquia');
-      const s = btnDom.getAttribute('data-sector');
-
-      if(await showConfirm('¿Eliminar sector?')) {
-        btnDom.innerHTML = '...'; 
-        const { error } = await supabase.from('geodata_config').delete().match({ estado: est, municipio: mun, parroquia: par, sector: s });
-        if(error) {
-           btnDom.innerHTML = '&times;';
-           showToast('Error al eliminar sector: ' + error.message);
-           return;
-        }
-        loadGlobalConfig();
-      }
-    });
+    const { error } = await supabase.from('geodata_config').insert([payload]);
+    
+    setLoading(btn, false);
+    if(error) {
+       showToast('Error al añadir: ' + error.message, 'error');
+    } else {
+       appState.geoAdmin.newItem = '';
+       showToast('Guardado con éxito', 'success');
+       loadGlobalConfig();
+    }
   });
 }
 

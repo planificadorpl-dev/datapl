@@ -64,96 +64,66 @@ export function renderAdminPanel(appState) {
     `).join('');
 
 
-  // 3. ZONAS (HIERARCHICAL VIEW - OPTIMIZED)
-  const zonesList = [];
+  // 3. ZONAS (GRID VIEW - OPPL2026 STYLE)
+  const geoAdmin = appState.geoAdmin || { level: 0, selection: { estado: '', municipio: '', parroquia: '' }, newItem: '' };
   const geo = appState.geoHierarchy || {};
-  const query = (appState.geoSearchQuery || '').toLowerCase();
   
-  Object.keys(geo).sort().forEach(est => {
-    const municipios = geo[est];
-    let munHtml = '';
-    
-    // Filter by search query if applicable
-    const filteredMuns = Object.keys(municipios).filter(m => {
-        if (!query) return true;
-        if (est.toLowerCase().includes(query)) return true;
-        if (m.toLowerCase().includes(query)) return true;
-        // Check if any parroquia or sector matches
-        return Object.keys(municipios[m]).some(p => {
-            if (p.toLowerCase().includes(query)) return true;
-            return (municipios[m][p] || []).some(s => s.toLowerCase().includes(query));
-        });
-    });
+  let currentItems = [];
+  if (geoAdmin.level === 0) currentItems = Object.keys(geo).sort();
+  else if (geoAdmin.level === 1) currentItems = Object.keys(geo[geoAdmin.selection.estado] || {}).sort();
+  else if (geoAdmin.level === 2) currentItems = Object.keys(geo[geoAdmin.selection.estado]?.[geoAdmin.selection.municipio] || {}).sort();
+  else if (geoAdmin.level === 3) currentItems = (geo[geoAdmin.selection.estado]?.[geoAdmin.selection.municipio]?.[geoAdmin.selection.parroquia] || []).sort();
 
-    if (filteredMuns.length === 0 && query) return;
+  const getLevelName = (l) => ["Estados", "Municipios", "Parroquias", "Sectores"][l];
+  const levelName = getLevelName(geoAdmin.level);
+  
+  let addLocationText = "Ventas";
+  if (geoAdmin.level > 0) addLocationText = geoAdmin.selection.parroquia || geoAdmin.selection.municipio || geoAdmin.selection.estado;
 
-    filteredMuns.sort().forEach(mun => {
-        const parroquias = municipios[mun];
-        let parHtml = '';
-        
-        Object.keys(parroquias).sort().forEach(par => {
-            const sectors = parroquias[par] || [];
-            parHtml += `
-              <div class="parroquia-item bg-white/40 p-2.5 rounded-xl border border-[#E5E5EA] flex flex-col h-full shadow-sm hover:shadow-md transition-shadow min-w-0">
-                <div class="flex justify-between items-center mb-1.5 px-0.5">
-                  <span class="text-[9px] font-black text-[#8E8E93] uppercase tracking-tighter">📍 ${par}</span>
-                  <button class="btn-delete-parroquia text-[#FF3B30] p-1 hover:bg-red-50 rounded-md transition-colors" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
-                </div>
-                <div class="flex flex-wrap gap-1 mb-2">
-                  ${sectors.map(s => `
-                    <div class="group flex items-center gap-0.5 bg-white border border-[#E5E5EA] px-1.5 py-0.5 rounded-md text-[10px] shadow-sm">
-                      <span class="text-[#3A3A3C]">${s}</span>
-                      <button class="btn-delete-sector text-[#8E8E93] hover:text-[#FF3B30]" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}" data-sector="${s}">&times;</button>
-                    </div>
-                  `).join('')}
-                </div>
-                <div class="flex items-center gap-1.5 mt-auto pt-2 border-t border-[#E5E5EA]/60">
-                  <input type="text" class="input-new-sector flex-1 min-w-0 bg-white border border-[#E5E5EA] focus:border-[#007AFF]/50 rounded-lg px-2 py-1.5 text-[10px] text-black outline-none transition-all shadow-sm" placeholder="Añadir sector...">
-                  <button class="btn-add-sector flex-shrink-0 bg-[#007AFF]/10 text-[#007AFF] px-2.5 py-1.5 rounded-lg text-[10px] font-bold hover:bg-[#007AFF] hover:text-white transition-all shadow-sm" data-estado="${est}" data-municipio="${mun}" data-parroquia="${par}">+ Añadir</button>
-                </div>
-              </div>
-            `;
-        });
-        
-        munHtml += `
-          <details class="municipio-details group mb-3 last:mb-0" ${query ? 'open' : ''}>
-            <summary class="flex items-center justify-between bg-[#F8F8F8] p-3 rounded-2xl border border-[#E5E5EA] cursor-pointer list-none hover:bg-white transition-all shadow-sm">
-               <div class="flex items-center gap-2">
-                 <div class="w-1.5 h-3.5 bg-[#FF9500] rounded-full transition-all group-open:h-5"></div>
-                 <span class="font-black text-black text-[12px] uppercase tracking-tight">${mun}</span>
-                 <button class="btn-add-parroquia bg-[#FF9500]/10 text-[#FF9500] px-2 py-0.5 rounded-md text-[9px] font-bold hover:bg-[#FF9500] hover:text-white transition-all ml-2" data-estado="${est}" data-municipio="${mun}">+ Parroquia</button>
-                 <span class="text-[9px] text-[#8E8E93] font-bold ml-2">${Object.keys(parroquias).length} PARROQUIAS</span>
-               </div>
-               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8E8E93] transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-               </svg>
-            </summary>
-            <div class="p-3 pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start border-x border-b border-[#E5E5EA] rounded-b-2xl -mt-4 bg-[#F8F8F8]/30">
-                ${parHtml || '<p class="text-xs text-gray-400 italic">No hay parroquias.</p>'}
-            </div>
-          </details>
+  // Breadcrumbs
+  let breadcrumbsHtml = `
+    <div class="flex items-center gap-2 text-sm text-[#8E8E93] overflow-x-auto pb-2 mb-6">
+       <button class="btn-geo-nav shrink-0 hover:text-black transition-colors ${geoAdmin.level === 0 ? 'text-black font-bold' : ''}" data-level="0">Ventas</button>
+  `;
+  if (geoAdmin.level >= 1) breadcrumbsHtml += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><button class="btn-geo-nav shrink-0 hover:text-black transition-colors ${geoAdmin.level === 1 ? 'text-black font-bold' : ''}" data-level="1">${geoAdmin.selection.estado}</button>`;
+  if (geoAdmin.level >= 2) breadcrumbsHtml += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><button class="btn-geo-nav shrink-0 hover:text-black transition-colors ${geoAdmin.level === 2 ? 'text-black font-bold' : ''}" data-level="2">${geoAdmin.selection.municipio}</button>`;
+  if (geoAdmin.level >= 3) breadcrumbsHtml += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><button class="btn-geo-nav shrink-0 hover:text-black transition-colors ${geoAdmin.level === 3 ? 'text-black font-bold' : ''}" data-level="3">${geoAdmin.selection.parroquia}</button>`;
+  breadcrumbsHtml += `</div>`;
+
+  // Grid Items
+  let gridHtml = '';
+  if (currentItems.length === 0) {
+     gridHtml = `
+       <div class="h-64 flex flex-col items-center justify-center bg-white/50 rounded-3xl border-2 border-dashed border-[#E5E5EA] p-8 text-center">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#C6C6C8] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+           <p class="text-sm text-[#8E8E93]">No hay ${levelName.toLowerCase()} registrados aquí.</p>
+       </div>
+     `;
+  } else {
+     gridHtml = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">`;
+     currentItems.forEach(item => {
+        gridHtml += `
+          <div class="group relative flex items-center justify-between p-4 bg-white border border-[#E5E5EA] shadow-sm rounded-2xl hover:border-[#007AFF]/50 transition-all cursor-pointer overflow-hidden btn-geo-card" data-item="${item}">
+             <div class="flex items-center gap-3">
+                 <div class="w-10 h-10 rounded-xl bg-[#F2F2F7] flex items-center justify-center text-[#8E8E93] group-hover:text-[#007AFF] group-hover:bg-[#007AFF]/10 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                 </div>
+                 <div class="flex flex-col">
+                     <span class="font-bold text-black text-[15px] truncate max-w-[150px]">${item}</span>
+                 </div>
+             </div>
+             <div class="flex items-center gap-2">
+                 <button class="btn-geo-delete opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all z-10" data-item="${item}" title="Eliminar">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                 </button>
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#C6C6C8] group-hover:text-[#007AFF] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+             </div>
+          </div>
         `;
-    });
+     });
+     gridHtml += `</div>`;
+  }
 
-    zonesList.push(`
-      <div class="estado-section mb-12 border-l-2 border-[#007AFF]/10 pl-4 py-2">
-        <div class="flex items-center justify-between mb-6 px-1">
-           <h3 class="text-2xl font-black text-black tracking-tighter flex items-center gap-3">
-             <span class="text-[#007AFF] text-3xl">#</span> ${est}
-           </h3>
-           <button class="btn-add-municipio bg-[#007AFF]/10 text-[#007AFF] px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-[#007AFF] hover:text-white transition-all ml-4" data-estado="${est}">+ Añadir Municipio</button>
-           <div class="h-[1px] flex-1 bg-gradient-to-r from-[#007AFF]/20 to-transparent ml-4"></div>
-        </div>
-        <div>
-           ${munHtml || '<p class="text-sm text-gray-400 italic ml-4">No hay municipios registrados.</p>'}
-        </div>
-      </div>
-    `);
-  });
-
-  const parishesHtml = zonesList.join('');
 
   return `
     <div class="px-6 py-10 pb-20 bg-[#F2F2F7] min-h-screen">
@@ -257,32 +227,51 @@ export function renderAdminPanel(appState) {
         </div>
       </section>
 
-      <!-- SECCIÓN ZONAS (OPTIMIZADA) -->
+      <!-- SECCIÓN ZONAS (GRID VIEW) -->
       <section id="sec-zonas" class="scroll-mt-32">
-        <div class="flex justify-between items-end mb-8 px-1">
+        <div class="flex justify-between items-end mb-4 px-1">
           <div>
             <h2 class="text-[10px] font-black text-[#8E8E93] uppercase tracking-[0.3em] mb-1">Estructura Geo</h2>
-            <h3 class="text-2xl font-black text-black tracking-tighter uppercase">Cobertura</h3>
+            <h3 class="text-2xl font-black text-black tracking-tighter uppercase">Gestión de Localidades</h3>
           </div>
-          <button id="btnAddEstado" class="bg-[#007AFF] text-white px-5 py-2.5 rounded-2xl font-black text-xs hover:bg-[#0066D6] active:scale-95 transition-all shadow-md shadow-[#007AFF]/20">+ NUEVO ESTADO</button>
-        </div>
-
-        <!-- SEARCH BAR -->
-        <div class="bg-white p-2 rounded-3xl border border-[#E5E5EA] shadow-sm mb-6 flex gap-2">
-           <div class="flex-1 relative">
-             <input type="text" id="adminGeoSearch" class="w-full bg-[#F2F2F7] py-3.5 pl-12 pr-4 rounded-2xl text-sm font-bold text-black focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 transition-all" 
-                    placeholder="Buscar Estado, Municipio, Parroquia o Sector..." value="${appState.geoSearchQuery || ''}">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#8E8E93]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-             </svg>
-           </div>
         </div>
         
-
-
-        <!-- LISTADO DE ZONAS -->
-        <div id="parishesContainer" class="space-y-4">
-           ${parishesHtml || '<p class="text-sm text-[#8E8E93] font-bold text-center py-20 bg-white rounded-3xl border border-[#E5E5EA]">NO SE ENCONTRARON ZONAS PARA MOSTRAR</p>'}
+        ${breadcrumbsHtml}
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+           <!-- Sidebar -->
+           <div class="lg:col-span-1 space-y-6">
+              <div class="bg-white rounded-3xl p-5 border border-[#E5E5EA] shadow-sm">
+                 <h4 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93] mb-4">Añadir en ${addLocationText}</h4>
+                 <div class="space-y-2 mb-4">
+                    <label class="text-[10px] uppercase text-[#C6C6C8] font-bold">Nuevo ${levelName.slice(0, -1)}</label>
+                    <input type="text" id="geoNewItem" class="w-full bg-[#F2F2F7] border border-transparent focus:border-[#007AFF]/50 rounded-xl px-4 py-3 text-sm text-black outline-none transition-all" placeholder="Nombre..." value="${geoAdmin.newItem || ''}">
+                 </div>
+                 <button id="btnGeoAdd" class="w-full bg-[#007AFF] text-white px-4 py-3 rounded-xl font-black text-xs hover:bg-[#0066D6] active:scale-95 transition-all shadow-md shadow-[#007AFF]/20 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg> Guardar
+                 </button>
+              </div>
+              
+              <div class="p-5 bg-black rounded-3xl shadow-xl hidden lg:block">
+                 <div class="flex items-center gap-3 text-white/60 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    <span class="text-[11px] font-bold uppercase tracking-widest">Instrucciones</span>
+                 </div>
+                 <p class="text-[13px] text-white/80 leading-relaxed">
+                    Navega haciendo click en las tarjetas. Puedes añadir sub-niveles dentro de cada categoría seleccionada. La eliminación es permanente.
+                 </p>
+              </div>
+           </div>
+           
+           <!-- Grid -->
+           <div class="lg:col-span-3">
+              <div class="flex items-center justify-between mb-4 px-1">
+                 <h3 class="font-bold text-black flex items-center gap-2 text-lg">
+                    ${levelName} <span class="text-[#8E8E93] font-normal text-sm">(${currentItems.length})</span>
+                 </h3>
+              </div>
+              ${gridHtml}
+           </div>
         </div>
       </section>
     </div>
