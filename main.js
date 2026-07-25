@@ -1499,6 +1499,10 @@ function renderTodayActivitiesContent() {
               <span class="inline-flex items-center border px-2 py-0.5 text-xs font-semibold rounded-md ${act.clientesCaptados > 0 ? 'border-zinc-200 text-zinc-900 bg-white' : 'border-zinc-200 text-zinc-500'}">
                 ${act.clientesCaptados || 0} captados
               </span>
+              ${(act.solicitudes || 0) > 0 ? `
+              <span class="inline-flex items-center border border-green-200 px-2 py-0.5 text-xs font-semibold rounded-md text-green-700 bg-green-50">
+                ${act.solicitudes} ventas
+              </span>` : ''}
               ${(act.volantes || 0) > 0 ? `
               <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-900 bg-white">
                 ${act.volantes} volantes
