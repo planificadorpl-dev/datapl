@@ -1503,6 +1503,11 @@ function renderTodayActivitiesContent() {
               <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-900 bg-white">
                 ${act.volantes} volantes
               </span>` : ''}
+              
+              <button class="ml-auto flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-md transition-colors btn-add-sol-activity" data-uid="${act.uid}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Solicitud
+              </button>
             </div>
           </div>
           `;
@@ -1783,6 +1788,14 @@ function attachActivitiesEvents() {
     document.getElementById('btnGoToForm')?.addEventListener('click', () => {
       appState.currentView = 'form';
       render();
+    });
+
+    document.querySelectorAll('.btn-add-sol-activity').forEach(btn => {
+      btn.addEventListener('click', () => {
+        appState.pendingActivityUid = btn.dataset.uid;
+        appState.currentView = 'solicitud_form';
+        render();
+      });
     });
 
     document.querySelectorAll('.delete-btn').forEach(btn => {
@@ -2196,6 +2209,12 @@ function renderSolicitudFormBody() {
   const isSupervisor = false; // logic placeholder
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
   
+  let pendingActText = 'Sin vincular...';
+  if (appState.pendingActivityUid) {
+     const a = appState.activities.find(x => x.uid === appState.pendingActivityUid);
+     if (a) pendingActText = `${a.activityType} (${a.time})`;
+  }
+
   return `
     <div class="min-h-screen bg-zinc-50 pb-20">
       <div class="bg-white border-b border-zinc-200">
@@ -2811,6 +2830,7 @@ function attachSolicitudEvents() {
   setTimeout(() => {
     initCustomFormDropdowns('solicitudForm');
     updatePlanes();
+    appState.pendingActivityUid = null;
   }, 10);
 
   // --- External App Copy Logic (Helpers) ---
