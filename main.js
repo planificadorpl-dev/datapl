@@ -48,6 +48,11 @@ function generateSolicitudWAMsg(formData) {
   waMsg += `Promotor/a: ${formData.promotor}\n`;
   waMsg += `Correo Electrónico: ${formData.correo || ''}\n`;
   waMsg += `Fuente: ${formData.fuente}`;
+  
+  if (formData.actividad_name) {
+    waMsg += `\nActividad vinculada: ${formData.actividad_name}`;
+  }
+  
   return waMsg;
 }
 
@@ -2382,6 +2387,25 @@ function renderSolicitudFormBody() {
                 <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
               </div>
             </div>
+            
+            <!-- Actividad Vinculada -->
+            <div class="ios-item">
+              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider flex items-center justify-between w-full">
+                <span>Vincular a Actividad <span class="text-[9px] font-normal lowercase">(opc)</span></span>
+              </label>
+              <div class="relative w-full custom-dropdown-container mt-1">
+                <select id="sActividadUid" class="hidden-real-select">
+                  <option value="" selected>Sin vincular...</option>
+                  ${appState.activities.map(act => `<option value="${act.uid}">${act.activityType} (${act.time})</option>`).join('')}
+                </select>
+                <button type="button" class="custom-dd-btn">
+                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Sin vincular...</span>
+                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+              </div>
+            </div>
+            
           </div>
 
             <button type="submit" class="btn-ios-primary">
@@ -2786,8 +2810,18 @@ function attachSolicitudEvents() {
         telefono_secundario: document.getElementById('sTelefonoS').value.trim(),
         correo: document.getElementById('sCorreo').value.trim(),
         fecha_nacimiento: document.getElementById('sFechaNac').value || null,
-        fuente: document.getElementById('sFuente').value
+        fuente: document.getElementById('sFuente').value,
+        actividad_uid: document.getElementById('sActividadUid') ? document.getElementById('sActividadUid').value : null
       };
+
+      let actividadName = '';
+      if (formData.actividad_uid) {
+         const linkedAct = appState.activities.find(a => a.uid === formData.actividad_uid);
+         if (linkedAct) {
+            actividadName = linkedAct.activityType;
+            formData.actividad_name = actividadName;
+         }
+      }
 
       const { data, error } = await supabase.from('solicitudes').insert([{
         fecha_disponibilidad: formData.fecha_disp,
@@ -2807,16 +2841,26 @@ function attachSolicitudEvents() {
         telefono_secundario: formData.telefono_secundario || null,
         correo: formData.correo || null,
         fecha_nacimiento: formData.fecha_nacimiento,
-        fuente: formData.fuente
+        fuente: formData.fuente,
+        actividad_uid: formData.actividad_uid
       }]);
 
       if (error) throw error;
+
+      // Auto-increment the linked activity locally
+      if (formData.actividad_uid) {
+         const linkedAct = appState.activities.find(a => a.uid === formData.actividad_uid);
+         if (linkedAct) {
+            linkedAct.solicitudes = (parseInt(linkedAct.solicitudes) || 0) + 1;
+            saveActivities();
+         }
+      }
 
       const waMsg = generateSolicitudWAMsg(formData);
       const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waMsg)}`;
       window.open(waUrl, '_blank');
 
-      showToast('Solicitud guardada correctamente', 'success');
+      showToast('Solicitud guardada y vinculada correctamente', 'success');
       appState.currentView = 'home';
       render();
 
