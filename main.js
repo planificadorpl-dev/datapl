@@ -1972,7 +1972,7 @@ function attachActivitiesEvents() {
         locContainer.innerHTML = window.renderLocationBlock();
         window.setupGeoCascading(locContainer.querySelector('.location-block'), appState.geoHierarchy);
         updateFormFields(null);
-        initCustomFormDropdowns();
+        initCustomFormDropdowns('activityForm');
 
         // Reveal Chip
         const chip = document.getElementById('addedActivitiesChip');
@@ -1992,7 +1992,7 @@ function attachActivitiesEvents() {
     }
   });
 
-  window.initCustomFormDropdowns('activityForm');
+  initCustomFormDropdowns('activityForm');
 }
 
 function attachActivityFormEvents() {
@@ -2017,14 +2017,12 @@ function attachActivityFormEvents() {
   const metricDoms = {
     condominio: document.getElementById('mCondominio'),
     volantes:   document.getElementById('mVolantes'),
-    captados:   document.getElementById('mCaptados'),
-    solicitudes: document.getElementById('mSolicitudes')
+    captados:   document.getElementById('mCaptados')
   };
   const metricInputs = {
     condominio:  document.getElementById('fCondominio'),
     volantes:    document.getElementById('fVolantes'),
-    captados:    document.getElementById('fCaptados'),
-    solicitudes: document.getElementById('fSolicitudes')
+    captados:    document.getElementById('fCaptados')
   };
 
   const fPhoneContact      = document.getElementById('fPhoneContact');
@@ -2059,10 +2057,8 @@ function attachActivityFormEvents() {
     metricDoms.condominio.classList.add('hidden');
     metricInputs.condominio.required = false;
     metricDoms.captados.classList.remove('hidden');
-    metricDoms.solicitudes.classList.remove('hidden');
     metricDoms.volantes.classList.remove('hidden');
     metricInputs.captados.required = true;
-    metricInputs.solicitudes.required = true;
     if (val === 'Visita a Condominio') {
       metricDoms.condominio.classList.remove('hidden');
       metricInputs.condominio.required = true;
@@ -2120,7 +2116,7 @@ function attachActivityFormEvents() {
       activityType:    currentType,
       ubicaciones:     ubicacion,
       clientesCaptados: metricInputs.captados.value  || 0,
-      solicitudes:     metricInputs.solicitudes.value || 0,
+      solicitudes:     0,
       condominio:      metricInputs.condominio.value  || '',
       volantes:        metricInputs.volantes.value    || 0,
       receivedCalls:   receivedCalls,
@@ -2159,7 +2155,7 @@ function attachActivityFormEvents() {
     }
   });
 
-  window.initCustomFormDropdowns('activityForm');
+  initCustomFormDropdowns('activityForm');
 }
 
 // ----------------- SOLICITUD FORM VIEW -----------------
