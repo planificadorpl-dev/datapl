@@ -2,6 +2,7 @@ import { geoData as defaultGeoData } from './geo_data.js';
 import { geoHierarchy } from './geo_hierarchy.js';
 import { renderAdminPanel } from './adminView.js';
 import { supabase } from './supabaseClient.js';
+import { renderVentasPanel } from './ventasView.js';
 
 // Application State
 const DEFAULT_ASESORES = ['Yaisen Herrera', 'Lorena Esqueda', 'Cindy Infante', 'Roxana Yepez', 'Carlos Ruiz', 'Patricia Mendoza', 'Maria Quintero', 'Haymar Barros', 'Yailin Rojas'];
@@ -632,6 +633,8 @@ function render() {
   } else if (appState.currentView === 'admin') {
     appContainer.innerHTML = renderAdminPanel(appState);
     attachAdminEvents();
+  } else if (appState.currentView === 'ventas') {
+    renderVentasPanel(appContainer, appState, render);
   }
 }
 
@@ -784,6 +787,25 @@ function renderHome() {
             </span>
           </div>
         </button>
+
+        <!-- CARD 3: VENTAS Y MERCADO -->
+        <button id="btnGoToVentas" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
+          <div class="w-12 h-12 bg-indigo-50 rounded-[15px] flex items-center justify-center text-indigo-600 mb-6 z-10 relative border border-indigo-100">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="relative z-10">
+            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Módulo de Ventas</h2>
+            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Estudio de mercado y ofertas.</p>
+            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
+              Acceder al Módulo 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+          </div>
+        </button>
       </div>
       ${renderBottomTabs('home')}
     </div>
@@ -917,6 +939,15 @@ function attachHomeEvents() {
        return;
     }
     appState.currentView = 'solicitud_form';
+    render();
+  });
+
+  document.getElementById('btnGoToVentas')?.addEventListener('click', () => {
+    if(!appState.currentAsesor) {
+       showToast('Por favor, seleccione un asesor antes de acceder a Ventas.', 'info');
+       return;
+    }
+    appState.currentView = 'ventas';
     render();
   });
 }
