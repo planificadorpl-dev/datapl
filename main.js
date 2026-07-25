@@ -2959,6 +2959,11 @@ function attachSolicitudEvents() {
          const linkedAct = appState.activities.find(a => a.uid === formData.actividad_uid);
          if (linkedAct) {
             linkedAct.solicitudes = (parseInt(linkedAct.solicitudes) || 0) + 1;
+            linkedAct.linkedClients = linkedAct.linkedClients || [];
+            linkedAct.linkedClients.push({
+               name: formData.nombres + ' ' + formData.apellidos,
+               ci: formData.cedula
+            });
             saveActivities();
          }
       }
@@ -3030,6 +3035,11 @@ function buildWhatsappReport(activities, asesor, date) {
     // Metrics
     msg += `${TAB}Clientes captados: ${act.clientesCaptados || 0}\n`;
     msg += `${TAB}Solicitudes enviadas: ${act.solicitudes || 0}\n`;
+    if (act.linkedClients && act.linkedClients.length > 0) {
+      act.linkedClients.forEach(c => {
+        msg += `${TAB}  - ${c.name} (C.I: ${c.ci})\n`;
+      });
+    }
     msg += `${TAB}Volantes entregados: ${act.volantes || 0}\n`;
 
     // Calls
