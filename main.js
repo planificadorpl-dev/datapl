@@ -706,45 +706,47 @@ async function fetchHistory() {
 // ----------------- HOME VIEW -----------------
 
 function renderHome() {
-  const dateStr = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-  const formattedDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-
+  const isSupervisor = false; // Add supervisor logic if needed
+  
   return `
-    <div class="px-5 py-6 pb-[120px] bg-[#F2F2F7] min-h-screen">
-      <header class="mb-8 flex justify-between items-start">
-        <div>
-          <h1 class="text-3xl font-black tracking-tighter text-black mb-1">Actividades</h1>
-          <p class="text-[#8E8E93] font-medium">${formattedDate}</p>
+    <div class="min-h-screen bg-zinc-50 pb-20">
+      <!-- PremiumPageLayout Equivalent Header -->
+      <div class="bg-white border-b border-zinc-200">
+        <div class="max-w-6xl mx-auto px-6 py-10 flex justify-between items-start">
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight text-zinc-900">Ventas</h1>
+            <p class="text-zinc-500 mt-2 text-sm max-w-lg">Gestión de actividades comerciales y solicitudes de servicio.</p>
+          </div>
+          <!-- Admin Gear -->
+          <button id="btnAdminAccess" class="p-3 bg-white shadow-sm border border-zinc-200 text-zinc-400 hover:text-zinc-900 transition-all rounded-xl active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
         </div>
-        <button id="btnAdminAccess" class="p-2.5 bg-white shadow-sm border border-[#E5E5EA]/50 text-[#8E8E93] hover:text-black transition-all rounded-2xl active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-      </header>
+      </div>
 
-      <!-- Asesor Selection in Home -->
-      <p class="ios-label uppercase">Sesión Actual</p>
-      <div class="ios-group !mb-6">
-        <div class="ios-item">
-          <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">¿Quién está reportando?</label>
-          <div class="relative w-full text-black h-[50px] mt-1" id="customAsesorDropdown">
-            <button id="hAsesorBtn" type="button" class="w-full h-full bg-[#F2F2F7] border border-transparent rounded-xl px-4 flex justify-between items-center transition-all duration-200">
-              <span id="hAsesorSelectedText" class="text-[16px] ${appState.currentAsesor ? 'font-black text-black' : 'text-[#8E8E93]'}">
+      <div class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Selector de Asesor -->
+        <div class="mb-8 p-4 bg-white border border-zinc-200 rounded-2xl shadow-sm">
+          <label class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Sesión Actual: ¿Quién está reportando?</label>
+          <div class="relative w-full text-zinc-900 h-12 mt-1" id="customAsesorDropdown">
+            <button id="hAsesorBtn" type="button" class="w-full h-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 flex justify-between items-center transition-all duration-200 hover:bg-zinc-100">
+              <span id="hAsesorSelectedText" class="text-sm ${appState.currentAsesor ? 'font-bold text-zinc-900' : 'text-zinc-500'}">
                 ${appState.currentAsesor || 'Seleccione el Asesor...'}
               </span>
-              <svg id="hAsesorIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#8E8E93] transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg id="hAsesorIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div id="hAsesorOptions" class="absolute z-[110] w-full mt-1.5 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar hidden">
+            <div id="hAsesorOptions" class="absolute z-[110] w-full mt-2 bg-white border border-zinc-200 rounded-xl shadow-xl opacity-0 invisible scale-95 origin-top transition-all duration-200 overflow-hidden max-h-[300px] overflow-y-auto hidden">
               <div class="py-1">
                 ${appState.asesores.filter(a => a.activo !== false).map(a => `
-                    <button type="button" data-value="${a.nombre}" class="asesor-option w-full text-left px-4 py-4 text-[16px] hover:bg-[#F2F2F7] transition-colors flex justify-between items-center group">
-                      <span class="${appState.currentAsesor === a.nombre ? 'font-black text-[#007AFF]' : 'text-black group-hover:text-black'}">${a.nombre}</span>
+                    <button type="button" data-value="${a.nombre}" class="asesor-option w-full text-left px-4 py-3 text-sm hover:bg-zinc-50 transition-colors flex justify-between items-center group border-b border-zinc-100 last:border-0">
+                      <span class="${appState.currentAsesor === a.nombre ? 'font-bold text-blue-600' : 'text-zinc-700 group-hover:text-zinc-900'}">${a.nombre}</span>
                       ${appState.currentAsesor === a.nombre ? `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#007AFF]" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                       ` : ''}
@@ -754,68 +756,69 @@ function renderHome() {
             </div>
           </div>
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- CARD 1: ACTIVIDADES -->
+          <button id="btnGoToActivity" class="group block text-left h-full bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}">
+            <div class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.06] transition-opacity transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 text-blue-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+            </div>
+            <div class="flex flex-col h-full justify-between relative z-10">
+              <div class="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+              </div>
+              <div>
+                <h2 class="font-bold text-xl text-zinc-900 mb-2">Actividades</h2>
+                <p class="text-sm text-zinc-500 mb-6">Reporte diario de visitas, recorridos y captación de clientes.</p>
+              </div>
+              <div class="flex items-center gap-2 text-sm font-semibold text-zinc-500 group-hover:text-zinc-900 transition-colors">
+                <span>Entrar</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </div>
+            </div>
+          </button>
+
+          <!-- CARD 2: SOLICITUDES -->
+          <button id="btnGoToSolicitud" class="group block text-left h-full bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}">
+            <div class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.06] transition-opacity transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 text-violet-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+            </div>
+            <div class="flex flex-col h-full justify-between relative z-10">
+              <div class="w-14 h-14 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+              </div>
+              <div>
+                <h2 class="font-bold text-xl text-zinc-900 mb-2">Solicitudes</h2>
+                <p class="text-sm text-zinc-500 mb-6">Registro de prospectos y ventas de servicios de fibra.</p>
+              </div>
+              <div class="flex items-center gap-2 text-sm font-semibold text-zinc-500 group-hover:text-zinc-900 transition-colors">
+                <span>Entrar</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </div>
+            </div>
+          </button>
+
+          <!-- CARD 3: ESTUDIO DE MERCADO -->
+          <button id="btnGoToVentas" class="group block text-left h-full bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}">
+            <div class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.06] transition-opacity transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0 text-emerald-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.25 16.23"/><path d="M12 12v-5.5"/><circle cx="12" cy="12" r="1.5"/></svg>
+            </div>
+            <div class="flex flex-col h-full justify-between relative z-10">
+              <div class="w-14 h-14 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.25 16.23"/><path d="M12 12v-5.5"/><circle cx="12" cy="12" r="1.5"/></svg>
+              </div>
+              <div>
+                <h2 class="font-bold text-xl text-zinc-900 mb-2">Estudio de Mercado</h2>
+                <p class="text-sm text-zinc-500 mb-6">Consulta y reporte de ofertas y planes de la competencia en campo.</p>
+              </div>
+              <div class="flex items-center gap-2 text-sm font-semibold text-zinc-500 group-hover:text-zinc-900 transition-colors">
+                <span>Entrar</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
-
-      <div class="px-5 grid grid-cols-1 gap-4">
-        <!-- CARD 1: ACTIVIDADES -->
-        <button id="btnGoToActivity" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
-          <div class="w-12 h-12 bg-black rounded-[15px] flex items-center justify-center text-white mb-6 z-10 relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
-            </svg>
-          </div>
-          <div class="relative z-10">
-            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Actividades</h2>
-            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Reporte diario de visitas, recorridos y publicidad.</p>
-            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              Gestionar Actividades 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-          </div>
-        </button>
-
-        <!-- CARD 2: SOLICITUDES -->
-        <button id="btnGoToSolicitud" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
-          <div class="w-12 h-12 bg-[#F2F2F7] rounded-[15px] flex items-center justify-center text-black mb-6 z-10 relative border border-[#E5E5EA]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
-              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-            </svg>
-          </div>
-          <div class="relative z-10">
-            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Solicitudes</h2>
-            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Registro de ventas e instalaciones de fibra.</p>
-            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              Nueva Solicitud 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-          </div>
-        </button>
-
-        <!-- CARD 3: VENTAS Y MERCADO -->
-        <button id="btnGoToVentas" class="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-[#E5E5EA] text-left transition-all active:scale-[0.98] ${!appState.currentAsesor ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} group hover:shadow-md">
-          <div class="w-12 h-12 bg-indigo-50 rounded-[15px] flex items-center justify-center text-indigo-600 mb-6 z-10 relative border border-indigo-100">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-          </div>
-          <div class="relative z-10">
-            <h2 class="text-[22px] font-black text-black mb-1.5 tracking-tighter">Módulo de Ventas</h2>
-            <p class="text-[13px] text-[#8E8E93] leading-snug mb-8 pr-4 font-medium">Estudio de mercado y ofertas.</p>
-            <span class="text-[13px] font-black text-black flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              Acceder al Módulo 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-          </div>
-        </button>
-      </div>
-      ${renderBottomTabs('home')}
     </div>
   `;
 }
@@ -1398,28 +1401,39 @@ window.renderLocationBlock = function() {
 function renderActivitiesView() {
   const isPanel = appState.activitySubView === 'panel';
   const isHistory = appState.activitySubView === 'history';
+  const currentAsesor = appState.currentAsesor;
 
   return `
-    <div class="min-h-screen pb-20 bg-[#F2F2F7]">
-      <!-- SEGMENTED CONTROL HEADER -->
-      <header class="ios-header !pb-0">
-        <div class="max-w-md mx-auto">
-          <div class="flex items-center justify-between mb-3 px-1">
-            <button id="btnCancel" class="text-[#007AFF] font-medium text-[17px] active:opacity-50">Cerrar</button>
-            <h2 class="text-[17px] font-black text-black">Actividades</h2>
-            <div class="w-[50px]"></div>
-          </div>
-          
-          <div class="flex bg-[#E3E3E8] p-0.5 rounded-lg mb-3 mx-2 relative h-8 select-none">
-            <div id="actToggleIndicator" class="absolute h-[28px] top-0.5 bg-white rounded-md shadow-sm transition-all duration-300 ease-out" 
-                 style="width: calc(50% - 2px); left: ${isPanel ? '2px' : 'calc(50%)'}"></div>
-            <button id="toggleActPanel" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isPanel ? 'text-black' : 'text-[#8E8E93]'}">Hoy</button>
-            <button id="toggleActHistory" class="flex-1 z-10 text-[13px] font-bold transition-all duration-300 ${isHistory ? 'text-black' : 'text-[#8E8E93]'}">Historial</button>
+    <div class="min-h-screen bg-zinc-50 pb-20">
+      <div class="bg-white border-b border-zinc-200">
+        <div class="max-w-4xl mx-auto px-4 py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <button id="btnCancel" class="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-medium text-sm bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Volver al Menú
+              </button>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Actividades</h1>
+            <p class="text-zinc-500 text-sm mt-1">Asesor: ${currentAsesor || 'No seleccionado'}</p>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div class="max-w-md mx-auto">
+      <div class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Tabs -->
+        <div class="flex w-full mb-6 bg-zinc-100/80 p-1 rounded-xl">
+          <button id="toggleActPanel" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${isPanel ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+            Hoy
+            ${isPanel && appState.activities.length > 0 ? `<span class="bg-zinc-200 text-zinc-900 px-1.5 py-0.5 rounded text-[10px] ml-1">${appState.activities.length}</span>` : ''}
+          </button>
+          <button id="toggleActHistory" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${isHistory ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+            Historial
+          </button>
+        </div>
+
         ${isPanel ? renderTodayActivitiesContent() : renderActivityHistoryList()}
       </div>
     </div>
@@ -1428,82 +1442,113 @@ function renderActivitiesView() {
 
 function renderTodayActivitiesContent() {
   let activitiesHtml = '';
+  
   if (appState.activities.length === 0) {
     activitiesHtml = `
-      <div class="flex flex-col items-center justify-center p-8 text-center mt-10">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[#C6C6C8] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <p class="text-[#8E8E93] text-lg font-medium">No hay actividades hoy</p>
-        <p class="text-[#8E8E93] text-sm mt-1">Añade una actividad para comenzar tu reporte.</p>
+      <div class="bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200 p-12 text-center my-6">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-zinc-300 mb-3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+        <h3 class="text-zinc-900 font-medium mb-1">No hay actividades abiertas</h3>
+        <p class="text-sm text-zinc-500">Añade una actividad para comenzar tu reporte diario.</p>
       </div>
     `;
   } else {
     activitiesHtml = `
-      <div class="space-y-3 mt-4">
-        <p class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider mb-3">Registradas hoy (${appState.activities.length})</p>
-        ${appState.activities.map((act, index) => `
-          <div class="bg-white rounded-2xl p-4 shadow-sm relative border border-[#E5E5EA]">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-xs font-semibold px-2 py-1 bg-[#F2F2F7] text-[#8E8E93] rounded-md">${act.time}</span>
-              <button class="delete-btn text-[#FF3B30] p-1" data-index="${index}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+      <div class="flex items-center justify-between px-1 mb-4 mt-6">
+        <h3 class="font-bold text-zinc-900 text-lg">Hoy (${appState.activities.length})</h3>
+      </div>
+      <div class="space-y-4 mb-6">
+        ${appState.activities.map((act, index) => {
+          let locParts = [];
+          if(act.ubicaciones) {
+             if(act.ubicaciones.parroquia) locParts.push(act.ubicaciones.parroquia);
+             if(act.ubicaciones.sector) locParts.push(act.ubicaciones.sector);
+          }
+          const locStr = locParts.join(' > ');
+          
+          return `
+          <div class="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-5 pt-4 pb-2">
+              <div>
+                <h4 class="font-bold text-zinc-900 text-base leading-tight">${act.activityType}</h4>
+                <p class="text-xs text-zinc-400 mt-0.5">${act.time} · Hoy</p>
+              </div>
+              <button class="delete-btn text-red-400 hover:text-red-600 p-1 transition-colors" data-index="${index}" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
               </button>
             </div>
-            <h3 class="font-bold text-[17px] leading-tight mb-1 text-black">${act.activityType}</h3>
-            ${act.ubicaciones && act.ubicaciones.parroquia ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">📍 ${act.ubicaciones.parroquia}, ${act.ubicaciones.sector}</p>` : ''}
-            ${act.condominio ? `<p class="text-[#3A3A3C] text-[13px] leading-tight mb-1">🏢 ${act.condominio}</p>` : ''}
-            ${act.receivedCalls ? `<p class="text-[#34C759] text-[13px] font-medium leading-tight mb-1">📞 Llamadas: ${act.llamadasInfo} info · ${act.llamadasAgenda} agenda</p>` : ''}
-            <p class="text-[#8E8E93] text-[12px] mt-1.5 font-semibold">S:${act.solicitudes} · C:${act.clientesCaptados}${act.volantes > 0 ? ' · V:'+act.volantes : ''}</p>
+            <div class="px-5 pb-3 space-y-1.5">
+              ${locStr ? `
+                <div class="flex items-start gap-2 text-sm text-zinc-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-emerald-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>${locStr}</span>
+                </div>
+              ` : ''}
+              ${act.condominio ? `
+                <div class="flex items-center gap-2 text-sm text-zinc-600">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-blue-500"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                   <span>${act.condominio}</span>
+                </div>
+              ` : ''}
+              ${act.notes ? `
+                <div class="flex items-start gap-2 text-sm text-zinc-500 italic">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-zinc-400"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M18.4 2.6a2.17 2.17 0 0 1 3 3L16 11l-4 1 1-4Z"/></svg>
+                   <span>${act.notes}</span>
+                </div>
+              ` : ''}
+            </div>
+            <div class="bg-zinc-50 px-5 py-3 flex items-center gap-3 flex-wrap border-t border-zinc-100">
+              <span class="inline-flex items-center border px-2 py-0.5 text-xs font-semibold rounded-md ${act.clientesCaptados > 0 ? 'border-zinc-200 text-zinc-900 bg-white' : 'border-zinc-200 text-zinc-500'}">
+                ${act.clientesCaptados || 0} captados
+              </span>
+              ${(act.volantes || 0) > 0 ? `
+              <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-900 bg-white">
+                ${act.volantes} volantes
+              </span>` : ''}
+              <span class="inline-flex items-center border px-2 py-0.5 text-xs font-semibold rounded-md ${act.solicitudes > 0 ? 'bg-blue-600 text-white border-transparent' : 'border-zinc-200 text-zinc-500'}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                ${act.solicitudes || 0} solicitudes
+              </span>
+            </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
   }
 
-  const actionButtons = appState.activities.length > 0 ? `
-    <div class="mt-6 flex flex-col gap-3">
-      <button id="btnSendWhatsapp" class="btn-flat-success">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-        </svg>
-        Enviar Reporte por WhatsApp
+  return `
+    <div>
+      <button id="btnGoToForm" class="w-full flex items-center justify-center gap-2 py-3.5 bg-zinc-900 hover:bg-zinc-800 rounded-xl text-base font-semibold text-white transition-all mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Añadir Actividad
       </button>
-      <button id="btnFinalizeJornada" class="btn-flat-danger">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Finalizar Jornada y Guardar
-      </button>
-    </div>
-    <dialog id="confirmModal" class="bg-white rounded-3xl p-6 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm outline-none border border-[#E5E5EA] w-[90%] max-w-[340px]">
-      <div class="flex flex-col items-center text-center">
-        <div class="w-12 h-12 bg-[#FFEBEE] text-[#C62828] rounded-full flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+      
+      ${activitiesHtml}
+      
+      ${appState.activities.length > 0 ? `
+        <div class="flex flex-col gap-3 pb-6 mt-4">
+          <button id="btnFinalizeJornada" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 h-14 rounded-xl text-base font-bold text-white transition-colors shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            Cierre de Jornada
+          </button>
+          <p class="text-xs text-center text-zinc-400">
+            Archiva las actividades del día, genera el reporte completo y lo envía por WhatsApp.
+          </p>
         </div>
-        <h3 class="text-lg font-bold text-black mb-2 leading-tight">¿Finalizar Jornada?</h3>
-        <p class="text-[#3A3A3C] text-sm mb-6">Esto agrupará las actividades de hoy y las preparará para guardarse en Sheets.</p>
-        <div class="flex w-full gap-3">
-          <button id="btnModalCancel" class="w-1/2 py-3 bg-[#F2F2F7] text-[#3A3A3C] font-semibold rounded-xl active:scale-[0.98] transition-all">Cancelar</button>
-          <button id="btnModalConfirm" class="w-1/2 py-3 bg-[#007AFF] text-white font-semibold rounded-xl active:scale-[0.98] transition-all">Aceptar</button>
+      ` : ''}
+    </div>
+
+    <!-- Shadcn-like Alert Dialog -->
+    <dialog id="confirmModal" class="bg-white rounded-lg p-0 shadow-lg backdrop:bg-zinc-950/80 outline-none border border-zinc-200 w-[90%] max-w-[400px]">
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-zinc-900 mb-2">¿Finalizar Jornada?</h3>
+        <p class="text-sm text-zinc-500 mb-6">Esta acción procesará las actividades abiertas y generará el reporte de campo para el cierre del día.</p>
+        <div class="flex w-full gap-2 justify-end">
+          <button id="btnModalCancel" class="px-4 py-2 bg-white text-zinc-900 font-medium rounded-md border border-zinc-200 hover:bg-zinc-100 transition-colors">Cancelar</button>
+          <button id="btnModalConfirm" class="px-4 py-2 bg-zinc-900 text-white font-medium rounded-md hover:bg-zinc-800 transition-colors">Continuar</button>
         </div>
       </div>
     </dialog>
-  ` : '';
-
-  return `
-    <div class="px-5 py-4">
-      <button id="btnGoToForm" class="w-full flex items-center justify-center gap-2 py-3.5 bg-[#007AFF] rounded-xl text-[15px] font-semibold text-white active:scale-[0.98] transition-all mb-4 shadow-sm shadow-[#007AFF]/20">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Añadir Actividad
-      </button>
-      ${activitiesHtml}
-      ${actionButtons}
-    </div>
   `;
 }
 
@@ -1673,9 +1718,8 @@ function renderActivityFormBody() {
 function renderActivityHistoryList() {
   if (appState.historyLoading) {
     return `
-      <div class="flex flex-col items-center justify-center p-12 text-center animate-pulse">
-        <div class="h-10 w-10 border-4 border-[#C6C6C8] border-t-[#007AFF] rounded-full animate-spin mb-4"></div>
-        <p class="text-[#8E8E93] font-medium">Sincronizando con Sheets...</p>
+      <div class="flex items-center justify-center py-20">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
       </div>
     `;
   }
@@ -1686,53 +1730,35 @@ function renderActivityHistoryList() {
 
   if (filteredHistory.length === 0) {
     return `
-      <div class="flex flex-col items-center justify-center p-12 text-center mt-10">
-        <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-sm mb-6">
-          <svg class="w-10 h-10 text-[#C6C6C8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <p class="text-black font-black text-xl mb-1">Sin historial</p>
-        <p class="text-[#8E8E93] text-sm">No hay reportes recientes para mostrar.</p>
+      <div class="bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200 p-12 text-center my-6">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-zinc-300 mb-3"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        <h3 class="text-zinc-900 font-medium mb-1">Sin historial</h3>
+        <p class="text-sm text-zinc-500">Las jornadas cerradas aparecerán aquí.</p>
       </div>
     `;
   }
 
   return `
-    <div class="px-5 py-4 space-y-6 animate-in fade-in duration-500">
+    <div class="space-y-4">
       ${filteredHistory.map((jor, idx) => `
-        <div class="ios-group !mb-4">
-          <div class="ios-item bg-gray-50/30">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-[13px] font-black text-[#007AFF]">${jor.activitiesCount} Actividades</span>
-              <span class="text-[11px] font-bold text-[#8E8E93]">${jor.date}</span>
+        <div class="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+          <button class="w-full flex items-center justify-between p-5 hover:bg-zinc-50 transition-colors text-left" onclick="showHistoryDetail('${encodeURIComponent(JSON.stringify(jor))}')">
+            <div>
+              <h4 class="font-bold text-zinc-900 capitalize">${jor.date}</h4>
+              <div class="flex flex-wrap items-center gap-2 mt-2">
+                <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-700 bg-zinc-100">${jor.activitiesCount} actividades</span>
+                <span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-500">${jor.totals?.captados || 0} captados</span>
+                ${jor.totals?.solicitudes > 0 ? `<span class="inline-flex items-center border border-transparent px-2 py-0.5 text-xs font-semibold rounded-md text-white bg-blue-600">${jor.totals?.solicitudes} solicitudes</span>` : ''}
+                ${jor.totals?.volantes > 0 ? `<span class="inline-flex items-center border border-zinc-200 px-2 py-0.5 text-xs font-semibold rounded-md text-zinc-500">${jor.totals?.volantes} volantes</span>` : ''}
+                <span class="text-xs text-violet-500 font-medium ml-1">${jor.asesor}</span>
+              </div>
             </div>
-            <h3 class="text-[18px] font-black text-black leading-tight">${jor.asesor}</h3>
-          </div>
-          
-          <div class="grid grid-cols-3">
-            <div class="ios-item">
-              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Captados</label>
-              <span class="text-[15px] font-bold text-black">${jor.totals?.captados || 0}</span>
-            </div>
-            <div class="ios-item">
-              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Solicitudes</label>
-              <span class="text-[15px] font-bold text-black">${jor.totals?.solicitudes || 0}</span>
-            </div>
-            <div class="ios-item">
-              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Volantes</label>
-              <span class="text-[15px] font-bold text-black">${jor.totals?.volantes || 0}</span>
-            </div>
-          </div>
-          
-          <div class="px-4 py-3 bg-white border-t border-[#E5E5EA]/40 grid grid-cols-2 gap-2">
-            <button onclick="showHistoryDetail('${encodeURIComponent(JSON.stringify(jor))}')" 
-                    class="py-3 bg-[#F2F2F7] text-black rounded-xl text-[13px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-              Ver Detalles
-            </button>
-            <button onclick="sendHistoryReportToWhatsapp('${encodeURIComponent(jor.reporteWhatsapp || '')}')" 
-                    class="py-3 bg-[#34C759] text-white rounded-xl text-[13px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-              WhatsApp
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400 shrink-0"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-100 flex gap-2">
+            <button onclick="sendHistoryReportToWhatsapp('${encodeURIComponent(jor.reporteWhatsapp || '')}')" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Enviar por WhatsApp
             </button>
           </div>
         </div>
@@ -2327,165 +2353,358 @@ function renderSolicitudFormBody() {
           <p class="ios-label uppercase">Detalles del Servicio</p>
           <div class="ios-group">
               <div class="ios-item">
-                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Tipo</label>
-                <div class="flex items-center gap-1 mt-1 bg-[#F2F2F7] p-1 rounded-xl h-[36px]">
-                  <button type="button" id="btnDomic" class="flex-1 h-full text-[12px] font-bold rounded-lg transition-all duration-300">Domic.</button>
-                  <button type="button" id="btnEmp" class="flex-1 h-full text-[12px] font-bold rounded-lg transition-all duration-300 text-[#8E8E93]">Empres.</button>
+  const isSupervisor = false; // logic placeholder
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+  
+  return `
+    <div class="min-h-screen bg-zinc-50 pb-20">
+      <div class="bg-white border-b border-zinc-200">
+        <div class="max-w-3xl mx-auto px-4 py-8 flex items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <button id="btnCancelSolicitud" class="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-medium text-sm bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Volver
+              </button>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Nueva Solicitud</h1>
+            <p class="text-zinc-500 text-sm mt-1">Registro de un nuevo prospecto de servicio.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-3xl mx-auto px-4 py-6">
+        <form id="solicitudForm" class="space-y-6">
+          
+          <!-- Cliente Info -->
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+              <h3 class="font-bold text-zinc-900">Información del Cliente</h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-zinc-700">Nombres *</label>
+                <input type="text" id="sNombres" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-zinc-700">Apellidos *</label>
+                <input type="text" id="sApellidos" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+              </div>
+              
+              <div class="grid grid-cols-3 gap-4">
+                <div class="space-y-2 col-span-1">
+                  <label class="text-sm font-medium text-zinc-700">Tipo</label>
+                  <select id="sCedulaTipo" class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+                    <option value="V-">V</option>
+                    <option value="J-">J</option>
+                    <option value="E-">E</option>
+                    <option value="G-">G</option>
+                  </select>
                 </div>
-                <input type="hidden" id="sTipoServicio" value="Domiciliario" required>
+                <div class="space-y-2 col-span-2">
+                  <label class="text-sm font-medium text-zinc-700">Identificación *</label>
+                  <input type="number" id="sCedulaNum" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" placeholder="Ej. 12345678">
+                </div>
               </div>
-            <div class="ios-item">
-              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Plan a Contratar</label>
-              <div class="relative w-full custom-dropdown-container">
-                <select id="sPlan" required class="hidden-real-select">
-                  <option value="" disabled selected>Seleccione plan...</option>
-                </select>
-                <button type="button" class="custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Seleccione plan...</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Género *</label>
+                  <select id="sGenero" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+                    <option value="" disabled selected>Seleccione...</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Empresa">Empresa</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">F. Nacimiento *</label>
+                  <input type="date" id="sFechaNac" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all text-zinc-500">
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- CONTACTO Y FUENTE -->
-          <p class="ios-label uppercase">Contacto y Varios</p>
-          <div class="ios-group">
-            <div class="grid grid-cols-2">
-              <div class="ios-item border-r border-[#E5E5EA]/60">
-                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Teléf. Principal</label>
-                <input type="tel" id="sTelefonoP" required placeholder="0414-0000000" class="ios-input">
+          <!-- Ubicación Info -->
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+              <h3 class="font-bold text-zinc-900">Ubicación del Servicio</h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Estado *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sEstado" required class="hidden-real-select loc-estado">
+                      <option value="" disabled selected>Seleccionar...</option>
+                      ${window.getEstadosHtml ? window.getEstadosHtml() : ''}
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Municipio *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sMunicipio" required disabled class="hidden-real-select loc-municipio">
+                      <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm opacity-50 cursor-not-allowed">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
               </div>
-              <div class="ios-item">
-                <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Teléf. Secundario</label>
-                <input type="tel" id="sTelefonoS" placeholder="Opcional" class="ios-input">
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Parroquia *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sParroquia" required disabled class="hidden-real-select loc-parroquia">
+                      <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm opacity-50 cursor-not-allowed">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Sector *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sSector" required disabled class="hidden-real-select loc-sector">
+                      <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm opacity-50 cursor-not-allowed">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-zinc-700">Dirección Exacta *</label>
+                <textarea id="sDireccion" rows="2" required class="flex w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none" placeholder="Avenida, Calle, Casa/Apto, Punto de referencia..."></textarea>
               </div>
             </div>
-            <div class="ios-item">
-              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Correo Electrónico</label>
-              <input type="email" id="sCorreo" placeholder="cliente@correo.com" class="ios-input">
-            </div>
-            <div class="ios-item">
-              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">¿Cómo nos conoció?</label>
-              <div class="relative w-full custom-dropdown-container">
-                <select id="sFuente" required class="hidden-real-select">
-                  <option value="" disabled selected>Seleccionar...</option>
-                  <option value="Volante">📄 Volante</option>
-                  <option value="Instagram">📸 Instagram / Redes</option>
-                  <option value="Visita a Condominio">🏢 Visita a Condominio</option>
-                  <option value="Recorrido">🚶 Recorrido (Solo)</option>
-                  <option value="Recorrido con Instaladores">🚐 Recorrido con Instaladores</option>
-                  <option value="Recorrido con Distribución">📦 Recorrido con Distribución</option>
-                  <option value="Stand Publicitario">🎪 Stand Publicitario</option>
-                  <option value="Iglu Publicitario">🛖 Iglu Publicitario</option>
-                  <option value="Caravana">📣 Caravana</option>
-                  <option value="Referido">🤝 Referido / Recomendación</option>
-                  <option value="Otro">❓ Otro</option>
-                </select>
-                <button type="button" class="custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] font-medium">Seleccionar...</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
-              </div>
-            </div>
-            
-            <!-- Actividad Vinculada -->
-            <div class="ios-item">
-              <label class="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider flex items-center justify-between w-full">
-                <span>Vincular a Actividad <span class="text-[9px] font-normal lowercase">(opc)</span></span>
-              </label>
-              <div class="relative w-full custom-dropdown-container mt-1">
-                <select id="sActividadUid" class="hidden-real-select">
-                  <option value="" selected>Sin vincular...</option>
-                  ${appState.activities.map(act => `<option value="${act.uid}">${act.activityType} (${act.time})</option>`).join('')}
-                </select>
-                <button type="button" class="custom-dd-btn">
-                  <span class="custom-dd-text text-[#8E8E93] font-medium truncate">Sin vincular...</span>
-                  <svg class="h-4 w-4 text-[#8E8E93] custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                <div class="absolute z-50 w-full mt-2 bg-white border border-[#E5E5EA] rounded-2xl shadow-2xl opacity-0 invisible scale-95 origin-top transition-all duration-300 hidden max-h-[250px] overflow-y-auto custom-scrollbar custom-dd-options overflow-hidden"></div>
-              </div>
-            </div>
-            
           </div>
 
-            <button type="submit" class="btn-ios-primary">
-              <span>Guardar y Enviar WhatsApp</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          <!-- Servicio y Contacto -->
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+              <h3 class="font-bold text-zinc-900">Servicio y Contacto</h3>
+            </div>
+            <div class="p-6 space-y-4">
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Tipo de Servicio *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sTipoServicio" required class="hidden-real-select">
+                      <option value="Domiciliario" selected>🏠 Domiciliario</option>
+                      <option value="Pyme">🏢 Pyme</option>
+                      <option value="Dedicado">⚡ Dedicado</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                      <span class="custom-dd-text text-zinc-900 truncate">🏠 Domiciliario</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Plan a Contratar *</label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sPlan" required class="hidden-real-select">
+                      <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between py-2 border-b border-zinc-100 mb-2">
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-zinc-700">Incluir Televisión (PowerGO)</span>
+                  <span class="text-xs text-zinc-500">¿El cliente desea TV digital?</span>
+                </div>
+                <div class="relative shrink-0 w-11 h-6">
+                  <input type="checkbox" id="sIncluyeTv" class="peer sr-only">
+                  <div class="block w-full h-full bg-zinc-200 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
+                  <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-300 peer-checked:translate-x-5"></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Teléfono Principal *</label>
+                  <input type="tel" id="sTelefonoP" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" placeholder="04141234567">
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-zinc-700">Teléfono Secundario</label>
+                  <input type="tel" id="sTelefonoS" class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" placeholder="Opcional">
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-zinc-700">Correo Electrónico *</label>
+                <input type="email" id="sCorreo" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" placeholder="ejemplo@correo.com">
+              </div>
+            </div>
+          </div>
+
+          <!-- Fuente y Vinculación -->
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden mb-8">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+              <h3 class="font-bold text-zinc-900">Cierre de Venta</h3>
+            </div>
+            <div class="p-6 space-y-4">
+              
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-zinc-700">Fuente de la Venta *</label>
+                <div class="relative w-full custom-dropdown-container">
+                  <select id="sFuente" required class="hidden-real-select">
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <option value="Actividad">Actividad del Día</option>
+                    <option value="Llamada">Llamada Telefónica</option>
+                    <option value="WhatsApp">Mensajería (WhatsApp)</option>
+                    <option value="Instagram">Instagram / Redes</option>
+                    <option value="Referido">Referido / Recomendación</option>
+                    <option value="Volante">Volante</option>
+                    <option value="Stand">Stand Publicitario</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                    <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
+                    <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-[60] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                </div>
+              </div>
+              
+              <div class="space-y-2 pb-2">
+                <label class="text-sm font-medium text-zinc-700 flex items-center justify-between">
+                  <span>Vincular a Actividad</span>
+                  <span class="text-xs text-zinc-400 font-normal">Opcional</span>
+                </label>
+                <div class="relative w-full custom-dropdown-container">
+                  <select id="sActividadUid" class="hidden-real-select">
+                    <option value="" selected>Sin vincular...</option>
+                    ${appState.activities.map(act => `<option value="${act.uid}">${act.activityType} (${act.time})</option>`).join('')}
+                  </select>
+                  <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                    <span class="custom-dd-text text-zinc-500 truncate">Sin vincular...</span>
+                    <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  <div class="absolute z-[70] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                </div>
+                <p class="text-[11px] text-zinc-500 mt-1">Si la venta provino de una actividad registrada hoy, selecciónala aquí para conectarlas en el reporte.</p>
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-xl text-base font-semibold text-white transition-all shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Guardar y Enviar a WhatsApp
             </button>
           </div>
         </form>
       </div>
+    </div>
   `;
 }
 
 function renderSolicitudHistoryList() {
   if (appState.solicitudesLoading) {
     return `
-      <div class="flex flex-col items-center justify-center p-12 text-center animate-pulse">
-        <div class="h-10 w-10 border-4 border-[#C6C6C8] border-t-[#007AFF] rounded-full animate-spin mb-4"></div>
-        <p class="text-[#8E8E93] font-medium">Cargando tus solicitudes...</p>
+      <div class="flex items-center justify-center py-20">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-[#007AFF]"></div>
       </div>
     `;
   }
 
   if (appState.solicitudesHistory.length === 0) {
     return `
-      <div class="flex flex-col items-center justify-center p-12 text-center mt-10">
-        <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-sm mb-6">
-          <svg class="w-10 h-10 text-[#C6C6C8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 00-2-2V5a2 2 0 002-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <p class="text-black font-black text-xl mb-1">Sin solicitudes</p>
-        <p class="text-[#8E8E93] text-sm">Aún no has registrado clientes en este dispositivo.</p>
+      <div class="bg-zinc-50/50 rounded-2xl border-2 border-dashed border-zinc-200 p-12 text-center mt-6 mx-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mx-auto text-zinc-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h3 class="text-zinc-900 font-medium mb-1">No hay solicitudes</h3>
+        <p class="text-sm text-zinc-500">Crea una nueva solicitud para empezar.</p>
       </div>
     `;
   }
 
   return `
-    <div class="px-5 py-4 space-y-6 animate-in fade-in duration-500">
+    <div class="px-4 py-4 space-y-3 animate-in fade-in duration-500 max-w-3xl mx-auto">
+      <p class="text-sm text-zinc-500 px-1">${appState.solicitudesHistory.length} solicitudes encontradas</p>
       ${appState.solicitudesHistory.map((s, idx) => `
-        <div class="ios-group !mb-4">
-          <div class="ios-item bg-gray-50/30">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-[13px] font-black text-[#007AFF]">${s.plan}</span>
-              <span class="text-[11px] font-bold text-[#8E8E93]">${new Date(s.fecha_solicitud || s.created_at).toLocaleDateString()}</span>
-            </div>
-            <h3 class="text-[18px] font-black text-black leading-tight">${s.nombres} ${s.apellidos}</h3>
-            <p class="text-[14px] font-medium text-[#3A3A3C] mt-0.5">${s.cedula}</p>
-          </div>
+        <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden mb-4 relative">
           
-          <div class="grid grid-cols-2">
-            <div class="ios-item">
-              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Estado</label>
-              <span class="text-[13px] font-bold text-black truncate">${s.estado}</span>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h4 class="font-bold text-zinc-900 text-lg">
+                  ${s.nombres} ${s.apellidos}
+                </h4>
+                <p class="text-sm text-zinc-500">
+                  ${s.cedula} · ${s.telefono_principal}
+                </p>
+              </div>
+              <span class="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-800 shrink-0">
+                ${new Date(s.fecha_solicitud || s.created_at).toLocaleDateString()}
+              </span>
             </div>
-            <div class="ios-item">
-              <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Municipio</label>
-              <span class="text-[13px] font-bold text-black truncate">${s.municipio}</span>
+            
+            <div class="flex flex-wrap items-center gap-2 mt-3">
+              <span class="inline-flex items-center rounded-md border border-zinc-200 px-2.5 py-0.5 text-xs font-semibold text-zinc-800">
+                ${s.plan}
+              </span>
+              <span class="inline-flex items-center rounded-md border border-zinc-200 px-2.5 py-0.5 text-xs font-semibold text-zinc-800">
+                ${s.tipo_servicio}
+              </span>
+              ${s.power_go ? `
+                <span class="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 border-0">
+                  TV
+                </span>
+              ` : ''}
+              <span class="text-xs text-zinc-400 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                ${s.parroquia}${s.sector ? `, ${s.sector}` : ""}
+              </span>
+              ${s.actividad_id ? `
+                <span class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                  Vinculada
+                </span>
+              ` : ''}
             </div>
-          </div>
-          
-          <div class="ios-item">
-            <label class="text-[10px] font-black text-[#C6C6C8] uppercase tracking-tighter">Dirección</label>
-            <span class="text-[12px] font-medium text-[#3A3A3C] line-clamp-2">${s.sector || ''}, ${s.direccion}</span>
           </div>
 
-          <div class="px-4 py-3 bg-white border-t border-[#E5E5EA]/40">
-            <button class="btn-open-copy-history w-full py-3 bg-black text-white rounded-xl text-[14px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
+          <!-- Acciones -->
+          <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-100 flex gap-2">
+            <button class="btn-open-copy-history flex-1 flex items-center justify-center gap-2 py-2 bg-white border border-zinc-200 hover:bg-zinc-100 text-zinc-900 rounded-xl text-sm font-semibold transition-all shadow-sm" 
                     data-id="${s.id}" data-index="${idx}">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              Copiar para App Externa
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              Copiar
             </button>
-            <button class="btn-send-wa-history w-full py-3 bg-[#34C759] text-white rounded-xl text-[14px] font-black active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2" 
+            <button class="btn-send-wa-history flex-1 flex items-center justify-center gap-2 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl text-sm font-semibold transition-all shadow-sm" 
                     data-id="${s.id}" data-index="${idx}">
-              <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-2.32 0-4.208 1.888-4.208 4.208 0 .744.192 1.448.528 2.064l-.56 2.056 2.104-.552c.6.32 1.288.512 2.024.512 2.32 0 4.208-1.888 4.208-4.208 0-2.32-1.888-4.208-4.208-4.208zm2.424 6.008c-.104.288-.6.552-.824.584-.224.032-.44.048-1.24-.272-.968-.384-1.592-1.368-1.64-1.432-.048-.064-.4-.536-.4-.992 0-.464.24-.688.328-.792.088-.104.192-.128.256-.128.064 0 .128.008.184.008.056 0 .128-.024.2-.2.088-.208.304-.736.328-.792.032-.056.048-.12.016-.184-.032-.064-.144-.152-.216-.24-.072-.088-.16-.176-.232-.24-.072-.072-.152-.152-.064-.304.088-.152.392-.648.84-1.04.448-.392.824-.512 1.056-.512.232 0 .432.112.552.264.12.152.176.32.256.496.08.176.104.344.056.448-.048.104-.216.168-.344.232-.128.064-.208.088-.112.248.096.16.424.696.912 1.128.424.376.784.496 1.056.336.272-.16.44-.392.512-.512.072-.12.152-.16.272-.112.12.048.768.36.904.424.136.064.224.096.256.152.032.056.032.328-.072.616z"/></svg>
-              Enviar por WhatsApp
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
             </button>
           </div>
         </div>
@@ -2696,8 +2915,19 @@ function attachSolicitudEvents() {
     updatePlanes();
   }
 
-  btnDomic?.addEventListener('click', () => setTs('Domiciliario'));
-  btnEmp?.addEventListener('click', () => setTs('Empresarial'));
+  // Trigger initial Plannes update
+  if(tipoSrv) setTs(tipoSrv.value);
+  else updatePlanes();
+
+  // Handle Tipo de Servicio real-select change
+  tipoSrv?.addEventListener('change', (e) => {
+    updatePlanes();
+  });
+
+  const geoBlock = document.getElementById('solicitudForm');
+  if(geoBlock && window.setupGeoCascading) {
+    window.setupGeoCascading(geoBlock, appState.geoHierarchy);
+  }
 
   if (appState.solicitudSubView === 'history') {
     // Delegated listener for Copy from History
