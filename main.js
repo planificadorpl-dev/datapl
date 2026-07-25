@@ -2353,12 +2353,12 @@ function renderSolicitudFormBody() {
                   <label class="text-sm font-medium text-zinc-700">Tipo de Servicio *</label>
                   <div class="relative w-full custom-dropdown-container">
                     <select id="sTipoServicio" required class="hidden-real-select">
-                      <option value="Domiciliario" selected>🏠 Domiciliario</option>
-                      <option value="Pyme">🏢 Pyme</option>
-                      <option value="Dedicado">⚡ Dedicado</option>
+                      <option value="Domiciliario" selected>Domiciliario</option>
+                      <option value="Corporativo">Corporativo</option>
+                      <option value="Dedicado">Dedicado</option>
                     </select>
                     <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
-                      <span class="custom-dd-text text-zinc-900 truncate">🏠 Domiciliario</span>
+                      <span class="custom-dd-text text-zinc-900 truncate">Domiciliario</span>
                       <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     <div class="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
@@ -2702,9 +2702,10 @@ function attachSolicitudEvents() {
   const planSelect = document.getElementById('sPlan');
 
   function updatePlanes() {
-    const tipo = tipoSrv.value;
+    const selectedValue = tipoSrv.value;
+    const dbTipo = selectedValue === 'Corporativo' ? 'Pyme' : selectedValue;
     const availablePlanes = appState.planes.filter(p => p.activo !== false);
-    const filtered = availablePlanes.filter(p => p.tipo === tipo);
+    const filtered = availablePlanes.filter(p => p.tipo === dbTipo);
 
     planSelect.innerHTML = '<option value="" disabled selected>Seleccione plan...</option>';
     
@@ -2717,7 +2718,7 @@ function attachSolicitudEvents() {
         planSelect.appendChild(opt);
       });
     } else {
-      const fallbackPlanes = tipo === 'Domiciliario' ? 
+      const fallbackPlanes = dbTipo === 'Domiciliario' ? 
         ['400MB', '600MB', '1GB', '400MB + TV', '600MB + TV', '1GB + TV'] : 
         ['50MB', '100MB', '200MB', 'Plan Dedicado'];
       fallbackPlanes.forEach(p => {
