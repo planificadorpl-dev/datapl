@@ -2281,7 +2281,7 @@ function renderSolicitudFormBody() {
                   <div class="relative w-full custom-dropdown-container">
                     <select id="sEstado" required class="hidden-real-select loc-estado">
                       <option value="" disabled selected>Seleccionar...</option>
-                      ${window.getEstadosHtml ? window.getEstadosHtml() : ''}
+                      ${window.getGeoStatesOptionsHTML ? window.getGeoStatesOptionsHTML() : ''}
                     </select>
                     <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
                       <span class="custom-dd-text text-zinc-500 truncate">Seleccionar...</span>
