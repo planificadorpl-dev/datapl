@@ -2412,18 +2412,6 @@ function renderSolicitudFormBody() {
                 </div>
               </div>
 
-              <div class="flex items-center justify-between py-2 border-b border-zinc-100 mb-2">
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-zinc-700">Incluir Televisión (PowerGO)</span>
-                  <span class="text-xs text-zinc-500">¿El cliente desea TV digital?</span>
-                </div>
-                <div class="relative shrink-0 w-11 h-6">
-                  <input type="checkbox" id="sIncluyeTv" class="peer sr-only">
-                  <div class="block w-full h-full bg-zinc-200 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
-                  <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-300 peer-checked:translate-x-5"></div>
-                </div>
-              </div>
-
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
                   <label class="text-sm font-medium text-zinc-700">Teléfono Principal *</label>
@@ -2731,6 +2719,7 @@ function initCustomFormDropdowns(parentContainerId) {
 
     btn.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleDd(); });
     realSelect.addEventListener('refreshCustomUI', () => updateVis());
+    realSelect.addEventListener('change', () => updateVis());
     document.addEventListener('click', (ev) => { if (isOpen && !dd.contains(ev.target)) toggleDd(); });
     updateVis();
   });
