@@ -13,13 +13,13 @@ let ventasState = {
 
 export async function renderVentasPanel(container, appState, renderApp) {
   if (ventasState.currentSubView === 'dashboard') {
-    renderDashboard(container, renderApp);
+    renderDashboard(container, appState, renderApp);
   } else if (ventasState.currentSubView === 'competencia') {
     await renderCompetencia(container, appState, renderApp);
   }
 }
 
-function renderDashboard(container, renderApp) {
+function renderDashboard(container, appState, renderApp) {
   container.innerHTML = `
     <div class="min-h-screen bg-zinc-50 pb-20">
       <div class="bg-white border-b border-zinc-200">
