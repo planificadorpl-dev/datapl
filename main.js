@@ -2453,23 +2453,34 @@ function renderSolicitudFormBody() {
                 </div>
               </div>
               
-              <div class="space-y-2 pb-2">
-                <label class="text-sm font-medium text-zinc-700 flex items-center justify-between">
-                  <span>Vincular a Actividad</span>
-                  <span class="text-xs text-zinc-400 font-normal">Opcional</span>
-                </label>
-                <div class="relative w-full custom-dropdown-container">
-                  <select id="sActividadUid" class="hidden-real-select">
-                    <option value="" selected>Sin vincular...</option>
-                    ${appState.activities.map(act => `<option value="${act.uid}">${act.activityType} (${act.time})</option>`).join('')}
-                  </select>
-                  <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
-                    <span class="custom-dd-text text-zinc-500 truncate">Sin vincular...</span>
-                    <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                  <div class="absolute z-[70] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
-                </div>
-                <p class="text-[11px] text-zinc-500 mt-1">Si la venta provino de una actividad registrada hoy, selecciónala aquí para conectarlas en el reporte.</p>
+                <div class="space-y-2 pb-2">
+                  ${appState.pendingActivityUid ? `
+                    <input type="hidden" id="sActividadUid" value="${appState.pendingActivityUid}">
+                    <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-2">
+                       <svg class="h-5 w-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                       <div>
+                         <p class="text-sm font-semibold text-blue-900">Vinculada a Actividad</p>
+                         <p class="text-xs text-blue-700 mt-0.5">${pendingActText}</p>
+                       </div>
+                    </div>
+                  ` : `
+                  <label class="text-sm font-medium text-zinc-700 flex items-center justify-between">
+                    <span>Vincular a Actividad</span>
+                    <span class="text-xs text-zinc-400 font-normal">Opcional</span>
+                  </label>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sActividadUid" class="hidden-real-select">
+                      <option value="" selected>Sin vincular...</option>
+                      ${appState.activities.map(act => `<option value="${act.uid}">${act.activityType} (${act.time})</option>`).join('')}
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm">
+                      <span class="custom-dd-text text-zinc-500 truncate">Sin vincular...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="absolute z-[70] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
+                  <p class="text-[11px] text-zinc-500 mt-1">Si la venta provino de una actividad registrada hoy, selecciónala aquí para conectarlas en el reporte.</p>
+                  `}
               </div>
               
             </div>
@@ -2885,7 +2896,7 @@ function attachSolicitudEvents() {
 
     try {
       const formData = {
-        fecha_disp: document.getElementById('sFechaDisp').value,
+        fecha_disp: document.getElementById('sFechaDisp') ? document.getElementById('sFechaDisp').value : new Date().toLocaleDateString('en-CA'),
         promotor: appState.currentAsesor,
         nombres: document.getElementById('sNombres').value.trim(),
         apellidos: document.getElementById('sApellidos').value.trim(),
