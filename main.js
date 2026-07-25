@@ -26,6 +26,10 @@ let appState = {
     level: 0,
     selection: { estado: '', municipio: '', parroquia: '' },
     newItem: ''
+  },
+  planesAdmin: {
+    showForm: false,
+    editId: null
   }
 };
 
@@ -327,66 +331,94 @@ function attachAdminEvents() {
   };
 
   // PLANES
+  document.getElementById('btnTogglePlanForm')?.addEventListener('click', () => {
+     appState.planesAdmin.showForm = !appState.planesAdmin.showForm;
+     render();
+  });
+
   document.getElementById('btnAddPlan')?.addEventListener('click', async (e) => {
      const nombre = document.getElementById('pNombre').value.trim();
      const tipo = document.getElementById('pTipo').value;
+     const activo = document.getElementById('pActivo').checked;
      const has_tv = document.getElementById('pHasTV').checked;
      
      if(nombre) {
         const btn = e.currentTarget;
         setLoading(btn, true);
-        const { data, error } = await supabase.from('planes_config').insert([{ nombre, tipo, has_tv }]).select();
+        const { data, error } = await supabase.from('planes_config').insert([{ nombre, tipo, activo, has_tv }]).select();
         setLoading(btn, false);
         
         if(error) {
            showToast('Error: ' + error.message);
         } else {
            if(data) appState.planes.push(data[0]);
+           appState.planesAdmin.showForm = false;
            render();
         }
+     } else {
+        showToast('El nombre del plan es requerido');
      }
   });
 
   // GLOBAL DELEGATION FOR ADMIN (Check if already attached to avoid duplicates)
   if (!window._adminClickAttached) {
     document.addEventListener('click', async (e) => {
-      // Toggle Active
-      if (e.target.closest('.btn-toggle-plan-active')) {
-         const btn = e.target.closest('.btn-toggle-plan-active');
-         const id = btn.dataset.id;
-         const plan = appState.planes.find(p => p.id == id);
-         if(plan) {
-            const newStatus = !plan.activo;
-            const { error } = await supabase.from('planes_config').update({ activo: newStatus }).eq('id', id);
-            if(!error) {
-               plan.activo = newStatus;
-               render();
+      // Planes: Enter edit mode
+      if (e.target.closest('.btn-edit-plan')) {
+         const btn = e.target.closest('.btn-edit-plan');
+         appState.planesAdmin.editId = parseInt(btn.dataset.id);
+         render();
+      }
+      
+      // Planes: Cancel edit mode
+      if (e.target.closest('.btn-cancel-edit-plan')) {
+         appState.planesAdmin.editId = null;
+         render();
+      }
+      
+      // Planes: Save edit
+      if (e.target.closest('.btn-save-edit-plan')) {
+         const btn = e.target.closest('.btn-save-edit-plan');
+         const id = parseInt(btn.dataset.id);
+         const nombre = document.getElementById(`edit-plan-nombre-${id}`).value.trim();
+         const tipo = document.getElementById(`edit-plan-tipo-${id}`).value;
+         const activo = document.getElementById(`edit-plan-activo-${id}`).checked;
+         const has_tv = document.getElementById(`edit-plan-tv-${id}`).checked;
+         
+         if(!nombre) {
+            showToast('El nombre no puede estar vacío');
+            return;
+         }
+         
+         setLoading(btn, true);
+         const { error } = await supabase.from('planes_config').update({ nombre, tipo, activo, has_tv }).eq('id', id);
+         setLoading(btn, false);
+         
+         if(error) {
+            showToast('Error al actualizar: ' + error.message);
+         } else {
+            const planIdx = appState.planes.findIndex(p => p.id === id);
+            if(planIdx !== -1) {
+               appState.planes[planIdx] = { ...appState.planes[planIdx], nombre, tipo, activo, has_tv };
             }
+            appState.planesAdmin.editId = null;
+            render();
+            showToast('Plan actualizado');
          }
       }
-      // Toggle TV
-      if (e.target.closest('.btn-toggle-plan-tv')) {
-         const btn = e.target.closest('.btn-toggle-plan-tv');
-         const id = btn.dataset.id;
-         const plan = appState.planes.find(p => p.id == id);
-         if(plan) {
-            const newTV = !plan.has_tv;
-            const { error } = await supabase.from('planes_config').update({ has_tv: newTV }).eq('id', id);
-            if(!error) {
-               plan.has_tv = newTV;
-               render();
-            }
-         }
-      }
-      // Delete Plan
+
+      // Planes: Delete Plan
       if (e.target.closest('.btn-delete-plan')) {
          if(await showConfirm('¿Estás seguro de eliminar este plan?', 'Eliminar')) {
             const btn = e.target.closest('.btn-delete-plan');
-            const id = btn.dataset.id;
+            const id = parseInt(btn.dataset.id);
             const { error } = await supabase.from('planes_config').delete().eq('id', id);
             if(!error) {
-               appState.planes = appState.planes.filter(p => p.id != id);
+               appState.planes = appState.planes.filter(p => p.id !== id);
                render();
+               showToast('Plan eliminado');
+            } else {
+               showToast('Error al eliminar: ' + error.message);
             }
          }
       }

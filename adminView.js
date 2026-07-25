@@ -22,46 +22,87 @@ export function renderAdminPanel(appState) {
   `).join('');
 
   // 2. PLANES LISTS
-  const planesDomList = (appState.planes || [])
-    .filter(p => p.tipo === 'Domiciliario')
-    .map(p => `
-      <div class="flex items-center justify-between p-2.5 hover:bg-white rounded-xl transition-all group border border-transparent hover:border-[#E5E5EA] hover:shadow-sm">
-        <div class="flex flex-col">
-          <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
-          <span class="text-[10px] text-[#8E8E93] font-medium tracking-tight">${p.has_tv ? '⚡ DUAL (TV + INTERNET)' : '🌐 SOLO INTERNET'}</span>
-        </div>
-        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button class="btn-toggle-plan-tv p-1.5 hover:bg-blue-50 rounded-md ${p.has_tv ? 'text-[#007AFF]' : 'text-gray-300'}" data-id="${p.id}" title="Alternar TV">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-          </button>
-          <button class="btn-toggle-plan-active relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${p.activo === false ? 'bg-[#E5E5EA]' : 'bg-[#34C759]'}" data-id="${p.id}" title="Toggle Activo">
-            <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${p.activo === false ? 'translate-x-0' : 'translate-x-4'}"></span>
-          </button>
-          <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-[#FF3B30]" data-id="${p.id}">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </button>
-        </div>
-      </div>
-    `).join('');
+  const planesAdmin = appState.planesAdmin || { showForm: false, editId: null };
+  const domiciliarios = (appState.planes || []).filter(p => p.tipo === "Domiciliario");
+  const empresariales = (appState.planes || []).filter(p => p.tipo === "Empresarial");
+  const tvLabel = 'TV';
 
-  const planesEmpList = (appState.planes || [])
-    .filter(p => p.tipo === 'Empresarial')
-    .map(p => `
-      <div class="flex items-center justify-between p-2.5 hover:bg-white rounded-xl transition-all group border border-transparent hover:border-[#E5E5EA] hover:shadow-sm">
-        <div class="flex flex-col">
-          <span class="text-sm font-semibold ${p.activo === false ? 'text-gray-400 line-through' : 'text-black'}">${p.nombre}</span>
-          <span class="text-[10px] text-[#8E8E93] font-medium tracking-tight">🏢 EMPRESARIAL - DEDICADO</span>
-        </div>
-        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button class="btn-toggle-plan-active relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${p.activo === false ? 'bg-[#E5E5EA]' : 'bg-[#34C759]'}" data-id="${p.id}" title="Toggle Activo">
-            <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${p.activo === false ? 'translate-x-0' : 'translate-x-4'}"></span>
+  const renderPlanRow = (p) => {
+    if (planesAdmin.editId === p.id) {
+       return `
+          <div class="flex-1 space-y-3 py-1">
+             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="text" id="edit-plan-nombre-${p.id}" value="${p.nombre}" class="bg-[#F2F2F7] border border-transparent focus:border-[#007AFF]/50 rounded-xl px-3 py-2 text-sm text-black outline-none transition-all w-full font-bold" placeholder="Nombre del Plan">
+                <select id="edit-plan-tipo-${p.id}" class="bg-[#F2F2F7] border border-transparent focus:border-[#007AFF]/50 rounded-xl px-3 py-2 text-sm text-black outline-none transition-all w-full appearance-none font-bold">
+                   <option value="Domiciliario" ${p.tipo === 'Domiciliario' ? 'selected' : ''}>Domiciliario</option>
+                   <option value="Empresarial" ${p.tipo === 'Empresarial' ? 'selected' : ''}>Empresarial</option>
+                </select>
+             </div>
+             <div class="flex flex-wrap items-center gap-4 mt-2">
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                  <div class="relative">
+                    <input type="checkbox" id="edit-plan-activo-${p.id}" class="peer sr-only" ${p.activo ? 'checked' : ''}>
+                    <div class="w-10 h-6 bg-[#E5E5EA] rounded-full peer-checked:bg-[#34C759] transition-all"></div>
+                    <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-4 shadow-sm"></div>
+                  </div>
+                  <span class="text-[11px] font-bold text-[#8E8E93] uppercase">Activo</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                  <div class="relative">
+                    <input type="checkbox" id="edit-plan-tv-${p.id}" class="peer sr-only" ${p.has_tv ? 'checked' : ''}>
+                    <div class="w-10 h-6 bg-[#E5E5EA] rounded-full peer-checked:bg-[#007AFF] transition-all"></div>
+                    <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-4 shadow-sm"></div>
+                  </div>
+                  <span class="text-[11px] font-bold text-[#8E8E93] uppercase">Incluye ${tvLabel}</span>
+                </label>
+                <div class="flex gap-2 ml-auto">
+                   <button class="btn-save-edit-plan bg-[#007AFF] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0066D6] transition-colors flex items-center gap-1 shadow-sm shadow-[#007AFF]/20" data-id="${p.id}">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg> Guardar
+                   </button>
+                   <button class="btn-cancel-edit-plan bg-white border border-[#E5E5EA] text-[#8E8E93] px-2.5 py-1.5 rounded-lg hover:bg-[#F2F2F7] transition-colors shadow-sm" data-id="${p.id}">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                   </button>
+                </div>
+             </div>
+          </div>
+       `;
+    }
+
+    return `
+       <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+             <span class="font-bold text-[14px] ${p.activo === false ? 'text-[#C6C6C8] line-through' : 'text-black'}">${p.nombre}</span>
+             ${p.has_tv ? `<span class="bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">+ ${tvLabel}</span>` : ''}
+             ${p.activo === false ? `<span class="bg-[#F2F2F7] text-[#8E8E93] border border-[#E5E5EA] text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">Inactivo</span>` : ''}
+          </div>
+       </div>
+       <div class="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+          <button class="btn-edit-plan text-[#8E8E93] hover:text-[#007AFF] hover:bg-blue-50 p-2 rounded-lg transition-colors" data-id="${p.id}" title="Editar">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </button>
-          <button class="btn-delete-plan p-1.5 hover:bg-red-50 rounded-md text-[#FF3B30]" data-id="${p.id}">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          <button class="btn-delete-plan text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" data-id="${p.id}" title="Eliminar">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
-        </div>
-      </div>
-    `).join('');
+       </div>
+    `;
+  };
+
+  const renderPlanCard = (title, data, iconSvg) => `
+    <div class="bg-white rounded-3xl border border-[#E5E5EA] shadow-sm overflow-hidden flex flex-col h-full">
+       <div class="px-5 py-4 border-b border-[#E5E5EA] flex items-center gap-2 bg-[#F8F8F8]/50">
+          <div class="text-[#8E8E93]">${iconSvg}</div>
+          <h3 class="text-xs font-black uppercase tracking-widest text-[#8E8E93]">Planes ${title}</h3>
+       </div>
+       <div class="p-4 space-y-2 flex-1 max-h-[350px] overflow-y-auto custom-scrollbar">
+          ${data.length === 0 ? `<p class="text-sm text-[#C6C6C8] italic text-center py-6 font-bold">No hay planes configurados.</p>` : ''}
+          ${data.map(p => `
+             <div class="group flex items-center justify-between p-3 rounded-2xl bg-white border border-transparent hover:border-[#E5E5EA] hover:shadow-sm hover:bg-[#F8F8F8] transition-all">
+                ${renderPlanRow(p)}
+             </div>
+          `).join('')}
+       </div>
+    </div>
+  `;
 
 
   // 3. ZONAS (GRID VIEW - OPPL2026 STYLE)
@@ -170,60 +211,65 @@ export function renderAdminPanel(appState) {
 
       <!-- SECCIÓN PLANES -->
       <section id="sec-planes" class="mb-14 scroll-mt-32">
-        <div class="flex justify-between items-end mb-4 px-1">
+        <div class="flex justify-between items-end mb-6 px-1">
           <div>
             <h2 class="text-[10px] font-black text-[#8E8E93] uppercase tracking-[0.3em] mb-1">Servicios</h2>
             <h3 class="text-2xl font-black text-black tracking-tighter uppercase">Oferta Comercial</h3>
           </div>
+          <button id="btnTogglePlanForm" class="bg-white border border-[#E5E5EA] shadow-sm text-black px-4 py-2 rounded-xl font-bold text-xs hover:bg-[#F2F2F7] active:scale-95 transition-all flex items-center gap-2">
+             ${planesAdmin.showForm ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Cancelar` : `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg> Nuevo Plan`}
+          </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div class="bg-white/70 backdrop-blur-sm p-5 rounded-[2.5rem] border border-[#007AFF]/10 shadow-sm">
-            <h3 class="text-[11px] font-black text-[#007AFF] uppercase tracking-[0.15em] mb-5 flex items-center gap-2">
-               <span class="w-1.5 h-1.5 bg-[#007AFF] rounded-full"></span> RESIDENCIALES
-            </h3>
-            <div class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-               ${planesDomList || '<p class="text-xs text-gray-400 italic p-2">Sin planes residenciales.</p>'}
-            </div>
-          </div>
-          <div class="bg-white/70 backdrop-blur-sm p-5 rounded-[2.5rem] border border-[#5856D6]/10 shadow-sm">
-            <h3 class="text-[11px] font-black text-[#5856D6] uppercase tracking-[0.15em] mb-5 flex items-center gap-2">
-               <span class="w-1.5 h-1.5 bg-[#5856D6] rounded-full"></span> CORPORATIVOS
-            </h3>
-            <div class="space-y-1.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-               ${planesEmpList || '<p class="text-xs text-gray-400 italic p-2">Sin planes corporativos.</p>'}
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-black text-white p-6 rounded-[2.5rem] shadow-2xl space-y-5">
-          <div class="flex items-center gap-4 mb-2">
-             <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white">
-               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v12m6-6H6" /></svg>
-             </div>
-             <div>
-               <p class="text-xl font-black tracking-tighter uppercase">Crear Nuevo Plan</p>
-               <p class="text-[10px] text-white/40 font-bold tracking-widest uppercase">Añade servicios a la cartera</p>
-             </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input type="text" id="pNombre" class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white placeholder-white/20 focus:bg-white/10 focus:outline-none transition-all text-sm font-bold" placeholder="Nombre (ej: 400MB)">
-            <select id="pTipo" class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-white focus:bg-white/10 focus:outline-none transition-all appearance-none text-sm font-bold">
-              <option value="Domiciliario" class="text-black">Domiciliario</option>
-              <option value="Empresarial" class="text-black">Empresarial</option>
-            </select>
-          </div>
-          <div class="flex items-center justify-between pt-2">
-            <label class="flex items-center space-x-4 cursor-pointer group">
-              <div class="relative">
-                <input type="checkbox" id="pHasTV" class="peer sr-only">
-                <div class="w-12 h-7 bg-white/5 rounded-full peer-checked:bg-[#34C759] transition-all border border-white/5"></div>
-                <div class="absolute left-1.5 top-1.5 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5 shadow-lg"></div>
+        ${planesAdmin.showForm ? `
+        <div class="bg-white rounded-3xl border border-[#007AFF]/30 shadow-sm overflow-hidden mb-6 animate-slide-up">
+           <div class="px-5 py-4 border-b border-[#E5E5EA] bg-[#F8F8F8]/50">
+              <h3 class="text-xs font-black uppercase tracking-widest text-[#007AFF]">Nuevo Plan</h3>
+           </div>
+           <div class="p-5 space-y-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div>
+                    <label class="text-[10px] uppercase text-[#8E8E93] font-bold block mb-1.5 tracking-wider">Nombre del Plan</label>
+                    <input type="text" id="pNombre" class="w-full bg-[#F2F2F7] border border-transparent focus:border-[#007AFF]/50 rounded-xl px-4 py-3 text-sm text-black outline-none transition-all font-bold" placeholder="Ej: 400MB">
+                 </div>
+                 <div>
+                    <label class="text-[10px] uppercase text-[#8E8E93] font-bold block mb-1.5 tracking-wider">Tipo</label>
+                    <select id="pTipo" class="w-full bg-[#F2F2F7] border border-transparent focus:border-[#007AFF]/50 rounded-xl px-4 py-3 text-sm text-black outline-none transition-all appearance-none font-bold">
+                      <option value="Domiciliario">Domiciliario</option>
+                      <option value="Empresarial">Empresarial</option>
+                    </select>
+                 </div>
               </div>
-              <span class="text-xs font-black text-white/60 group-hover:text-white transition-colors tracking-widest">INCLUYE TELEVISIÓN</span>
-            </label>
-            <button id="btnAddPlan" class="bg-white text-black px-10 py-4 rounded-2xl font-black text-xs hover:bg-[#F2F2F7] active:scale-95 transition-all shadow-xl shadow-white/5">GUARDAR PLAN</button>
-          </div>
+              <div class="flex flex-wrap items-center gap-8 pt-2">
+                 <label class="flex items-center space-x-3 cursor-pointer group">
+                   <div class="relative">
+                     <input type="checkbox" id="pActivo" class="peer sr-only" checked>
+                     <div class="w-12 h-7 bg-[#E5E5EA] rounded-full peer-checked:bg-[#34C759] transition-all"></div>
+                     <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-all peer-checked:translate-x-5 shadow-sm"></div>
+                   </div>
+                   <span class="text-sm font-bold text-[#3A3A3C]">Activo</span>
+                 </label>
+                 <label class="flex items-center space-x-3 cursor-pointer group">
+                   <div class="relative">
+                     <input type="checkbox" id="pHasTV" class="peer sr-only">
+                     <div class="w-12 h-7 bg-[#E5E5EA] rounded-full peer-checked:bg-[#007AFF] transition-all"></div>
+                     <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-all peer-checked:translate-x-5 shadow-sm"></div>
+                   </div>
+                   <span class="text-sm font-bold text-[#3A3A3C]">Incluye ${tvLabel}</span>
+                 </label>
+              </div>
+              <div class="flex justify-end pt-2 border-t border-[#E5E5EA]">
+                 <button id="btnAddPlan" class="bg-[#007AFF] text-white px-6 py-2.5 rounded-xl font-black text-xs hover:bg-[#0066D6] active:scale-95 transition-all shadow-md shadow-[#007AFF]/20 flex items-center justify-center gap-2 mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg> Crear Plan
+                 </button>
+              </div>
+           </div>
+        </div>
+        ` : ''}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+           ${renderPlanCard("Domiciliarios", domiciliarios, `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`)}
+           ${renderPlanCard("Empresariales", empresariales, `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>`)}
         </div>
       </section>
 
