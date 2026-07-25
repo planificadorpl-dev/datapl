@@ -2257,12 +2257,19 @@ function renderSolicitudFormBody() {
               <div class="grid grid-cols-3 gap-4">
                 <div class="space-y-2 col-span-1">
                   <label class="text-sm font-medium text-zinc-700">Tipo</label>
-                  <select id="sCedulaTipo" class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
-                    <option value="V-">V</option>
-                    <option value="J-">J</option>
-                    <option value="E-">E</option>
-                    <option value="G-">G</option>
-                  </select>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sCedulaTipo" class="hidden-real-select">
+                      <option value="V-" selected>V-</option>
+                      <option value="J-">J-</option>
+                      <option value="E-">E-</option>
+                      <option value="G-">G-</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+                      <span class="custom-dd-text text-zinc-500 truncate">V-</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="absolute z-[70] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
                 </div>
                 <div class="space-y-2 col-span-2">
                   <label class="text-sm font-medium text-zinc-700">Identificación *</label>
@@ -2273,12 +2280,19 @@ function renderSolicitudFormBody() {
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
                   <label class="text-sm font-medium text-zinc-700">Género *</label>
-                  <select id="sGenero" required class="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
-                    <option value="" disabled selected>Seleccione...</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Empresa">Empresa</option>
-                  </select>
+                  <div class="relative w-full custom-dropdown-container">
+                    <select id="sGenero" required class="hidden-real-select">
+                      <option value="" disabled selected>Seleccione...</option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Empresa">Empresa</option>
+                    </select>
+                    <button type="button" class="custom-dd-btn flex h-10 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
+                      <span class="custom-dd-text text-zinc-500 truncate">Seleccione...</span>
+                      <svg class="h-4 w-4 text-zinc-400 custom-dd-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="absolute z-[70] w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top transition-all duration-200 hidden max-h-[250px] overflow-y-auto custom-dd-options overflow-hidden"></div>
+                  </div>
                 </div>
                 <div class="space-y-2">
                   <label class="text-sm font-medium text-zinc-700">F. Nacimiento *</label>
