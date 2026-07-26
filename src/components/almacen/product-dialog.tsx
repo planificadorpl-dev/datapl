@@ -1,0 +1,430 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
+import type { Product } from "@/app/almacen/productos/page"
+
+const productSchema = z.object({
+    sku: z.string().min(2, "El código debe tener al menos 2 caracteres"),
+    name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+    description: z.string().optional(),
+    category: z.string().optional(),
+    min_stock: z.coerce.number().min(0, "El stock mínimo no puede ser negativo"),
+    location: z.string().optional(),
+    initial_stock: z.coerce.number().min(0).optional(),
+    is_bundle: z.boolean().default(false),
+    requires_serial: z.boolean().default(false),
+    bundle_items: z.array(z.object({
+        child_product_id: z.string(),
+        quantity: z.coerce.number().min(1)
+    })).default([]),
+    initial_serials: z.array(z.string()).optional()
+})
+
+interface ProductDialogProps {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    product?: Product
+    onSave: () => void
+}
+
+export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDialogProps) {
+    const [loading, setLoading] = useState(false)
+    const [inputMode, setInputMode] = useState<"individual" | "masiva">("individual")
+    const supabase = createClient()
+
+    const [availableProducts, setAvailableProducts] = useState<Product[]>([])
+
+    // Load available products for bundle creation
+    useEffect(() => {
+        const loadProducts = async () => {
+            const { data } = await supabase
+                .from("inventory_products")
+                .select("*")
+                .eq("is_bundle", false) // Prevent bundles inside bundles for now to avoid cycles
+                .order("name")
+            if (data) setAvailableProducts(data)
+        }
+        if (open) loadProducts()
+    }, [open])
+
+    const form = useForm({
+        resolver: zodResolver(productSchema),
+        defaultValues: {
+            sku: "",
+            name: "",
+            description: "",
+            category: "",
+            min_stock: 5,
+            location: "",
+            initial_stock: 0,
+            is_bundle: false,
+            requires_serial: false,
+            bundle_items: [],
+            initial_serials: [],
+        },
+    })
+
+
+
+    useEffect(() => {
+        if (product) {
+            form.reset({
+                sku: product.sku,
+                name: product.name,
+                description: product.description || "",
+                category: product.category || "",
+                min_stock: product.min_stock,
+                location: product.location || "",
+                requires_serial: product.requires_serial || false,
+                initial_stock: 0,
+            })
+        } else {
+            form.reset({
+                sku: "",
+                name: "",
+                description: "",
+                category: "",
+                min_stock: 5,
+                location: "",
+                requires_serial: false,
+                initial_stock: 0,
+                initial_serials: [],
+            })
+        }
+    }, [product, form, open])
+
+    const onSubmit = async (values: z.infer<typeof productSchema>) => {
+        setLoading(true)
+        try {
+            // Validation for serials BEFORE creating product
+            let serialsArray: string[] = []
+            if (!product && values.requires_serial && values.initial_stock && values.initial_stock > 0) {
+                 serialsArray = (values.initial_serials || []).slice(0, values.initial_stock).filter(s => s?.trim() !== '')
+                 
+                 if (serialsArray.length !== values.initial_stock) {
+                      toast.error(`Ingresó ${serialsArray.length} seriales, pero el stock inicial es de ${values.initial_stock}.`)
+                      setLoading(false)
+                      return
+                 }
+                 const unique = new Set(serialsArray)
+                 if (unique.size !== serialsArray.length) {
+                      toast.error("Hay seriales duplicados en la lista ingresada.")
+                      setLoading(false)
+                      return
+                 }
+            }
+
+            let productId = product?.id
+
+            if (product) {
+                // Update
+                const { error } = await supabase
+                    .from("inventory_products")
+                    .update({
+                        sku: values.sku,
+                        name: values.name,
+                        description: values.description,
+                        category: values.category,
+                        min_stock: values.min_stock,
+                        location: values.location,
+                        is_bundle: values.is_bundle,
+                        requires_serial: values.requires_serial,
+                    })
+                    .eq("id", product.id)
+                if (error) throw error
+            } else {
+                // Create
+                const { data, error } = await supabase
+                    .from("inventory_products")
+                    .insert({
+                        sku: values.sku,
+                        name: values.name,
+                        description: values.description,
+                        category: values.category,
+                        min_stock: values.min_stock,
+                        location: values.location,
+                        current_stock: values.initial_stock || 0,
+                        is_bundle: values.is_bundle,
+                        requires_serial: values.requires_serial,
+                    })
+                    .select("id")
+                    .single()
+
+                if (error) throw error
+                productId = data.id
+
+                // IF initial_stock was provided and it's > 0, insert transaction
+                if (values.initial_stock && values.initial_stock > 0) {
+                    const { data: userData } = await supabase.auth.getUser()
+                    
+                    if (userData.user) {
+                        await supabase.from("inventory_transactions").insert({
+                            product_id: productId,
+                            type: 'IN',
+                            quantity: values.initial_stock,
+                            previous_stock: 0,
+                            new_stock: values.initial_stock,
+                            reason: 'STOCK INICIAL',
+                            user_id: userData.user.id,
+                            serials: serialsArray.length > 0 ? serialsArray : null
+                        })
+                        
+                        if (values.requires_serial && serialsArray.length > 0) {
+                            const serialRows = serialsArray.map(s => ({
+                                serial_number: s,
+                                product_id: productId,
+                                status: 'AVAILABLE',
+                                location: values.location
+                            }))
+                            await supabase.from("inventory_serials").insert(serialRows)
+                        }
+                    }
+                }
+            }
+
+            toast.success(product ? "Producto actualizado" : "Producto creado")
+            onSave()
+        } catch (error) {
+            console.error(error)
+            toast.error("No se pudieron guardar los cambios del producto.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{product ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
+                    <DialogDescription>
+                        {product ? "Modifique los detalles del producto." : "Complete la información para registrar un nuevo item."}
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="sku"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Código Interno</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej. ONU-001" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="category"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Categoría</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="General" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nombre del Producto</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej. Cable UTP Cat6" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Descripción</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Detalles adicionales..." className="resize-none" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="min_stock"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Stock Mínimo</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} value={(field.value as number) ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Ubicación</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Pasillo A, Estante 2" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+
+
+                        <FormField
+                            control={form.control}
+                            name="requires_serial"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base">Requiere Serial</FormLabel>
+                                        <div className="text-sm text-muted-foreground">
+                                            Habilita el seguimiento de números de serie para este item.
+                                        </div>
+                                    </div>
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="initial_stock"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stock Inicial</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" disabled={!!product} {...field} value={(field.value as number) ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {!product && form.watch("requires_serial") && (form.watch("initial_stock") || 0) > 0 && (
+                            <div className="space-y-3 pt-2 border-t dark:border-zinc-800">
+                                <div className="flex items-center justify-between">
+                                    <FormLabel className="text-blue-600 dark:text-blue-400">Números de Serie</FormLabel>
+                                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-md">
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode("individual")}
+                                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${inputMode === "individual" ? "bg-white dark:bg-zinc-700 shadow-sm font-medium" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+                                        >
+                                            Cuadros
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode("masiva")}
+                                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${inputMode === "masiva" ? "bg-white dark:bg-zinc-700 shadow-sm font-medium" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+                                        >
+                                            Lista
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {inputMode === "individual" ? (
+                                    <div className="grid grid-cols-2 gap-3 max-h-[160px] overflow-y-auto p-1 pr-2">
+                                        {Array.from({ length: form.watch("initial_stock") || 0 }).map((_, index) => (
+                                            <FormField
+                                                key={index}
+                                                control={form.control}
+                                                name={`initial_serials.${index}`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder={`Serial #${index + 1}`}
+                                                                {...field}
+                                                                value={field.value || ""}
+                                                                className="h-8 border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder={`Pegue o escriba aquí los ${form.watch("initial_stock")} seriales (Uno por línea)...`}
+                                            className="min-h-[100px] max-h-[160px] font-mono resize-none border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                            value={(form.watch("initial_serials") || []).join('\n')}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                form.setValue("initial_serials", val ? val.split('\n') : [])
+                                            }}
+                                        />
+                                    </FormControl>
+                                )}
+                                
+                                <p className="text-xs text-zinc-500 text-right">
+                                    {(form.watch("initial_serials") || []).filter(s => s.trim() !== "").length} / {form.watch("initial_stock")} ingresados
+                                </p>
+                            </div>
+                        )}
+
+                        <DialogFooter>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? "Guardando..." : "Guardar"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog >
+    )
+}
