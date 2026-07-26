@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ interface OpcionInstalacion {
   precio: string;
 }
 
-export default function NuevaOfertaCompetencia() {
+function NuevaOfertaCompetenciaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlOperador = searchParams.get("operador");
@@ -950,5 +950,13 @@ export default function NuevaOfertaCompetencia() {
         ))}
       </datalist>
     </PremiumPageLayout>
+  );
+}
+
+export default function NuevaOfertaCompetencia() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+      <NuevaOfertaCompetenciaContent />
+    </Suspense>
   );
 }
