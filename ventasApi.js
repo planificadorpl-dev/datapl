@@ -48,6 +48,31 @@ export const VentasAPI = {
     return true;
   },
 
+  // -- OFERTAS BATCH --
+  async saveOfertasBatch(ofertas) {
+    const { data, error } = await supabase
+      .from("ofertas_competencia")
+      .insert(ofertas)
+      .select();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async deleteOfertaZona(operador_id, estado, municipio, parroquia) {
+    let query = supabase
+      .from("ofertas_competencia")
+      .delete()
+      .eq("operador_id", operador_id)
+      .eq("estado", estado)
+      .eq("municipio", municipio);
+    if (parroquia !== "Todas") {
+      query = query.eq("parroquia", parroquia);
+    }
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return true;
+  },
+
   // -- OFERTAS --
 
   async getOfertasRecientes(estado, municipio, parroquia) {

@@ -2,17 +2,24 @@ import { VentasAPI } from './ventasApi.js';
 import { supabase } from './supabaseClient.js';
 
 let ventasState = {
-  currentSubView: 'dashboard', // dashboard, competencia
+  loadingOfertas: true,
   ofertas: [],
-  operadores: [],
-  loadingOfertas: false,
-  filterEstado: '',
-  filterMunicipio: '',
-  filterParroquia: '',
+  currentSubView: 'competencia', // competencia, operadorDashboard, nuevaOferta
+  selectedOperadorId: null,
+  snapshot: null,
+  historial: []
 };
 
 export async function renderVentasPanel(container, appState, renderApp) {
-  await renderCompetencia(container, appState, renderApp);
+  if (ventasState.currentSubView === 'competencia') {
+    await renderCompetencia(container, appState, renderApp);
+  } else if (ventasState.currentSubView === 'operadorDashboard') {
+    await renderOperadorDashboard(container, appState, renderApp);
+  } else if (ventasState.currentSubView === 'nuevaOferta') {
+    // Wait for form module implementation
+    const formModule = await import('./ventasFormView.js');
+    await formModule.renderNuevaOfertaForm(container, appState, renderApp, ventasState);
+  }
 }
 
 
@@ -70,7 +77,7 @@ async function renderCompetencia(container, appState, renderApp) {
       
       if (oferta.isEmpty) {
         return `
-          <div onclick="window.showToast('Módulo de registro en construcción. Pronto podrás registrar las ofertas aquí.', 'info')" class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 flex items-center justify-between cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
+          <div data-opid="${oferta.operador_id}" data-action="new" class="op-card bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 flex items-center justify-between cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
             <div class="flex items-center gap-3">
                ${iconHtml}
                <div>
@@ -84,7 +91,7 @@ async function renderCompetencia(container, appState, renderApp) {
       }
 
       return `
-        <div onclick="window.showToast('Módulo de edición en construcción. Pronto podrás editar estas ofertas.', 'info')" class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
+        <div data-opid="${oferta.operador_id}" data-action="dashboard" class="op-card bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
           <div class="flex items-center gap-3 mb-3">
              ${iconHtml}
              <h3 class="font-bold text-zinc-900">${opName}</h3>
@@ -143,6 +150,21 @@ async function renderCompetencia(container, appState, renderApp) {
     renderApp();
   });
 
+  // Attach click events to cards
+  document.querySelectorAll('.op-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      const opId = card.getAttribute('data-opid');
+      const action = card.getAttribute('data-action');
+      ventasState.selectedOperadorId = opId;
+      if (action === 'new') {
+        ventasState.currentSubView = 'nuevaOferta';
+      } else {
+        ventasState.currentSubView = 'operadorDashboard';
+      }
+      renderVentasPanel(container, appState, renderApp);
+    });
+  });
+
   document.getElementById('btnNewOp')?.addEventListener('click', () => {
     // Basic interaction just to register operator, using native prompt for now
     const name = prompt("Nombre de la nueva operadora:");
@@ -151,5 +173,50 @@ async function renderCompetencia(container, appState, renderApp) {
         renderCompetencia(container, appState, renderApp);
       }).catch(e => alert("Error: " + e.message));
     }
+  });
+}
+
+async function renderOperadorDashboard(container, appState, renderApp) {
+  const opId = ventasState.selectedOperadorId;
+  const operador = (await VentasAPI.getOperadores()).find(o => o.id == opId);
+  if (!operador) return;
+  
+  // Basic shell for the dashboard
+  container.innerHTML = `
+    <div class="min-h-screen bg-zinc-50 pb-20">
+      <div class="bg-white border-b border-zinc-200">
+        <div class="max-w-3xl mx-auto px-4 py-8 flex items-center gap-4">
+          <button id="btnOpBack" class="text-zinc-600 hover:text-zinc-900 transition-colors bg-zinc-100 hover:bg-zinc-200 p-2 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="flex items-center gap-3">
+             ${operador.logo_url ? `<img src="${operador.logo_url}" class="w-10 h-10 rounded-full object-contain border border-zinc-200" />` : `<div class="w-10 h-10 rounded-full" style="background-color: ${operador.color_hex}"></div>`}
+             <div>
+               <h1 class="text-2xl font-bold tracking-tight text-zinc-900">${operador.nombre}</h1>
+               <p class="text-sm text-zinc-500 mt-1">Dashboard de Operadora</p>
+             </div>
+          </div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto px-4 py-6">
+        <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm p-8 text-center">
+           <h2 class="text-xl font-bold text-zinc-800 mb-2">Vista en Construcción</h2>
+           <p class="text-zinc-500 mb-6">El dashboard de operadora para ver historial y snapshot de planes estará disponible pronto.</p>
+           <button id="btnNuevaOfertaOp" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl transition-colors">
+              Registrar Nueva Oferta
+           </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btnOpBack').addEventListener('click', () => {
+    ventasState.currentSubView = 'competencia';
+    renderVentasPanel(container, appState, renderApp);
+  });
+
+  document.getElementById('btnNuevaOfertaOp').addEventListener('click', () => {
+    ventasState.currentSubView = 'nuevaOferta';
+    renderVentasPanel(container, appState, renderApp);
   });
 }
