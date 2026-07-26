@@ -50,6 +50,8 @@ export function SolicitudForm() {
     plan: "",
     fuente: "",
     actividad_uid: initialActividadUid,
+    contrato_anterior: "No",
+    observaciones: "",
   })
 
   // Load Config (Planes)
@@ -128,6 +130,8 @@ export function SolicitudForm() {
         promotor: currentAsesor,
         fecha_solicitud: new Date().toISOString().split('T')[0],
         fuente: formData.fuente,
+        contrato_anterior: formData.contrato_anterior,
+        observaciones: formData.observaciones,
         actividad_uid: formData.actividad_uid
       }
 
@@ -172,19 +176,26 @@ export function SolicitudForm() {
       const dateDisp = formatDate(payload.fecha_disponibilidad);
 
       let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
-      waMsg += `Fecha de solicitud: ${dateSol}\n`;
-      waMsg += `Fecha de Disponibilidad: ${dateDisp}\n\n`;
-      waMsg += `Nombres y Apellido: ${payload.nombres} ${payload.apellidos}\n`;
+      waMsg += `Fecha de Solicitud: ${dateSol}\n`;
+      waMsg += `Disponibilidad: ${dateDisp}\n`;
+      waMsg += `Nombre y Apellido: ${payload.nombres} ${payload.apellidos}\n`;
       waMsg += `Cédula/RIF: ${payload.cedula}\n`;
-      waMsg += `Teléfono principal: ${payload.telefono_principal}\n`;
-      if (payload.telefono_secundario) {
-        waMsg += `Teléfono secundario: ${payload.telefono_secundario}\n`;
+      waMsg += `Contacto 1: ${payload.telefono_principal}\n`;
+      waMsg += `Contacto 2: ${payload.telefono_secundario || ""}\n`;
+      waMsg += `Ubicación: ${payload.direccion}\n`;
+      waMsg += `Tipo de Servicio: ${payload.plan}\n`;
+      waMsg += `Asesor: ${payload.promotor}\n`;
+      if (payload.correo) {
+        waMsg += `Correo: ${payload.correo}\n`;
       }
-      waMsg += `Ubicación: ${payload.estado}, ${payload.municipio}, ${payload.parroquia}, ${payload.sector}, ${payload.direccion}\n`;
-      waMsg += `Tipo de Servicio: ${payload.plan} ${payload.tipo_servicio}\n`;
-      waMsg += `Promotor/a: ${payload.promotor}\n`;
-      waMsg += `Correo Electrónico: ${payload.correo}\n`;
-      waMsg += `Fuente: ${payload.fuente}\n`;
+      if (formData.fecha_nac) {
+        waMsg += `Fecha de Nacimiento: ${formatDate(formData.fecha_nac)}\n`;
+      }
+      waMsg += `¿Posee contrato anterior?: ${payload.contrato_anterior}\n`;
+      waMsg += `Fuente: ${payload.fuente}`;
+      if (payload.observaciones) {
+        waMsg += `\nObservaciones: ${payload.observaciones}`;
+      }
 
       let actName = "";
       if (formData.actividad_uid && formData.actividad_uid !== "none") {
@@ -208,7 +219,7 @@ export function SolicitudForm() {
       setFormData(prev => ({
         ...prev,
         nombres: "", apellidos: "", cedula: "", telefono_principal: "", telefono_secundario: "", correo: "",
-        direccion: "", genero: "", fecha_nac: "", fecha_disponibilidad: new Date().toISOString().split('T')[0], plan: "", fuente: "", actividad_uid: ""
+        direccion: "", genero: "", fecha_nac: "", fecha_disponibilidad: new Date().toISOString().split('T')[0], plan: "", fuente: "", actividad_uid: "", contrato_anterior: "No", observaciones: ""
       }))
     } catch (error: any) {
       toast.error(`Error al enviar: ${error.message}`)
@@ -428,6 +439,26 @@ export function SolicitudForm() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>¿Posee contrato anterior? *</Label>
+                <Select required value={formData.contrato_anterior} onValueChange={v => setFormData(p => ({ ...p, contrato_anterior: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sí">Sí</SelectItem>
+                    <SelectItem value="No">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>Observaciones</Label>
+                <Textarea 
+                  value={formData.observaciones} 
+                  onChange={e => setFormData(p => ({ ...p, observaciones: e.target.value }))} 
+                  placeholder="Detalles adicionales, indicaciones para llegar..." 
+                  rows={2}
+                />
               </div>
             </div>
           </div>

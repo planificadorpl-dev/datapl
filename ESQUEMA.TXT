@@ -38,6 +38,8 @@ CREATE TABLE public.solicitudes (
   fecha_solicitud timestamp with time zone DEFAULT now(),
   power_go boolean DEFAULT false,
   sector text,
+  contrato_anterior text,
+  observaciones text,
   CONSTRAINT solicitudes_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.planes_config (
