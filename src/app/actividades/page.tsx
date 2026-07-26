@@ -349,8 +349,26 @@ export default function ActividadesPage() {
                           {jor.totals?.volantes} volantes
                         </span>
                       )}
+                      {jor.totals?.solicitudes > 0 && (
+                        <span className="inline-flex items-center border border-green-200 dark:border-green-900/50 px-2 py-0.5 text-xs font-semibold rounded-md text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">
+                          {jor.totals?.solicitudes} ventas
+                        </span>
+                      )}
                       <span className="text-xs text-violet-500 dark:text-violet-400 font-medium ml-1">{jor.asesor}</span>
                     </div>
+                    {jor.details && jor.details.length > 0 && (
+                      <div className="mt-4 space-y-2 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                        {jor.details.map((det: any, dIdx: number) => (
+                          <div key={dIdx} className="text-sm flex items-start gap-2">
+                             <div className="w-12 shrink-0 text-zinc-400 text-xs mt-0.5">{det.time.substring(0,5)}</div>
+                             <div>
+                                <p className="font-semibold text-zinc-700 dark:text-zinc-300">{det.type}</p>
+                                {det.location && <p className="text-xs text-zinc-500">{det.location}</p>}
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="px-5 py-3 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-100 dark:border-zinc-800 flex gap-2">
                     <Button 
