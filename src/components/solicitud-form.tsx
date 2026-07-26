@@ -37,6 +37,7 @@ export function SolicitudForm() {
     cedula: "",
     genero: "",
     fecha_nac: "",
+    fecha_disponibilidad: new Date().toISOString().split('T')[0],
     telefono_principal: "",
     telefono_secundario: "",
     correo: "",
@@ -113,6 +114,7 @@ export function SolicitudForm() {
         cedula: `${formData.cedula_prefix}${formData.cedula}`,
         genero: formData.genero,
         fecha_nacimiento: formData.fecha_nac,
+        fecha_disponibilidad: formData.fecha_disponibilidad,
         telefono_principal: formData.telefono_principal,
         telefono_secundario: formData.telefono_secundario,
         correo: formData.correo,
@@ -160,15 +162,44 @@ export function SolicitudForm() {
       }
       
       // Generate WhatsApp Link
+      const formatDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        const [y, m, d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
+      };
+
+      const dateSol = formatDate(payload.fecha_solicitud);
+      const dateDisp = formatDate(payload.fecha_disponibilidad);
+
       let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
-      waMsg += `Fecha de solicitud: ${payload.fecha_solicitud}\n`;
-      waMsg += `Cliente: ${payload.nombres} ${payload.apellidos}\n`;
+      waMsg += `Fecha de solicitud: ${dateSol}\n`;
+      waMsg += `Fecha de Disponibilidad: ${dateDisp}\n\n`;
+      waMsg += `Nombres y Apellido: ${payload.nombres} ${payload.apellidos}\n`;
       waMsg += `Cédula/RIF: ${payload.cedula}\n`;
-      waMsg += `Teléfono: ${payload.telefono_principal}\n`;
+      waMsg += `Teléfono principal: ${payload.telefono_principal}\n`;
+      if (payload.telefono_secundario) {
+        waMsg += `Teléfono secundario: ${payload.telefono_secundario}\n`;
+      }
       waMsg += `Ubicación: ${payload.estado}, ${payload.municipio}, ${payload.parroquia}, ${payload.sector}, ${payload.direccion}\n`;
-      waMsg += `Servicio: ${payload.tipo_servicio} - ${payload.plan}\n`;
-      waMsg += `Fuente: ${payload.fuente}\n`;
+      waMsg += `Tipo de Servicio: ${payload.plan} ${payload.tipo_servicio}\n`;
       waMsg += `Promotor/a: ${payload.promotor}\n`;
+      waMsg += `Correo Electrónico: ${payload.correo}\n`;
+      waMsg += `Fuente: ${payload.fuente}\n`;
+
+      let actName = "";
+      if (formData.actividad_uid && formData.actividad_uid !== "none") {
+        const stored = localStorage.getItem('appState_activities');
+        if (stored) {
+           const activities = JSON.parse(stored);
+           const act = activities.find((a: any) => a.uid === formData.actividad_uid);
+           if (act) {
+              actName = act.activityType; // e.g. "Recorrido (Solo)"
+           }
+        }
+      }
+      if (actName) {
+        waMsg += `Actividad vinculada: ${actName}\n`;
+      }
       
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(waMsg)}`
       window.open(whatsappUrl, '_blank')
@@ -177,7 +208,7 @@ export function SolicitudForm() {
       setFormData(prev => ({
         ...prev,
         nombres: "", apellidos: "", cedula: "", telefono_principal: "", telefono_secundario: "", correo: "",
-        direccion: "", genero: "", fecha_nac: "", plan: "", fuente: "", actividad_uid: ""
+        direccion: "", genero: "", fecha_nac: "", fecha_disponibilidad: new Date().toISOString().split('T')[0], plan: "", fuente: "", actividad_uid: ""
       }))
     } catch (error: any) {
       toast.error(`Error al enviar: ${error.message}`)
@@ -248,6 +279,10 @@ export function SolicitudForm() {
               <div className="space-y-2">
                 <Label>F. Nacimiento *</Label>
                 <Input required type="date" value={formData.fecha_nac} onChange={e => setFormData(p => ({ ...p, fecha_nac: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>F. Disponibilidad *</Label>
+                <Input required type="date" value={formData.fecha_disponibilidad} onChange={e => setFormData(p => ({ ...p, fecha_disponibilidad: e.target.value }))} />
               </div>
             </div>
           </div>
