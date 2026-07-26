@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import { useAsesor } from "@/components/providers/asesor-provider"
 import { geoHierarchy } from "@/lib/geo_hierarchy"
 import { createClient } from "@/lib/supabase/client"
+import { getTvLabel } from "@/app/admin/settings-actions"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +24,7 @@ export function SolicitudForm() {
   const [loading, setLoading] = useState(false)
   const [allPlanes, setAllPlanes] = useState<any[]>([])
   const [pendingActivities, setPendingActivities] = useState<any[]>([])
+  const [tvLabel, setTvLabel] = useState("TV")
   
   const searchParams = useSearchParams()
   const initialActividadUid = searchParams.get('actividad_uid') || ""
@@ -56,6 +58,12 @@ export function SolicitudForm() {
       const { data } = await supabase.from('planes_config').select('*').eq('activo', true)
       if (data) {
         setAllPlanes(data)
+      }
+      try {
+        const label = await getTvLabel()
+        setTvLabel(label)
+      } catch (e) {
+        console.error("Error fetching tv label", e)
       }
     }
     fetchPlanes()
@@ -322,7 +330,10 @@ export function SolicitudForm() {
                 <Select required value={formData.plan} onValueChange={v => setFormData(p => ({ ...p, plan: v }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent>
-                    {filteredPlanes.map((p, idx) => <SelectItem key={`plan-${idx}`} value={p.nombre}>{p.nombre}</SelectItem>)}
+                    {filteredPlanes.map((p, idx) => {
+                      const displayName = p.has_tv ? `${p.nombre} + ${tvLabel}` : p.nombre;
+                      return <SelectItem key={`plan-${idx}`} value={displayName}>{displayName}</SelectItem>
+                    })}
                   </SelectContent>
                 </Select>
               </div>
