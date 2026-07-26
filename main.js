@@ -2682,10 +2682,10 @@ function initCustomFormDropdowns(parentContainerId) {
       }
       
       if (realSelect.disabled) {
-        btn.classList.add('opacity-40', 'pointer-events-none');
-        btn.classList.remove('bg-white', 'hover:bg-gray-50');
+        btn.classList.add('opacity-40', 'pointer-events-none', 'cursor-not-allowed');
+        btn.classList.remove('bg-white', 'hover:bg-gray-50', 'bg-transparent', 'hover:bg-gray-50/50');
       } else {
-        btn.classList.remove('opacity-40', 'pointer-events-none');
+        btn.classList.remove('opacity-40', 'pointer-events-none', 'cursor-not-allowed', 'opacity-50');
         btn.classList.add('bg-transparent', 'hover:bg-gray-50/50');
       }
     }
