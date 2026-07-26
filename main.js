@@ -2240,8 +2240,8 @@ function renderSolicitudFormBody() {
         <form id="solicitudForm" class="space-y-6">
           
           <!-- Cliente Info -->
-          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 rounded-t-2xl px-6 py-4">
               <h3 class="font-bold text-zinc-900">Información del Cliente</h3>
             </div>
             <div class="p-6 space-y-4">
@@ -2303,8 +2303,8 @@ function renderSolicitudFormBody() {
           </div>
 
           <!-- Ubicación Info -->
-          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 rounded-t-2xl px-6 py-4">
               <h3 class="font-bold text-zinc-900">Ubicación del Servicio</h3>
             </div>
             <div class="p-6 space-y-4">
@@ -2375,8 +2375,8 @@ function renderSolicitudFormBody() {
           </div>
 
           <!-- Servicio y Contacto -->
-          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 rounded-t-2xl px-6 py-4">
               <h3 class="font-bold text-zinc-900">Servicio y Contacto</h3>
             </div>
             <div class="p-6 space-y-4">
@@ -2431,8 +2431,8 @@ function renderSolicitudFormBody() {
           </div>
 
           <!-- Fuente y Vinculación -->
-          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden mb-8">
-            <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
+          <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm mb-8">
+            <div class="border-b border-zinc-100 bg-zinc-50/50 rounded-t-2xl px-6 py-4">
               <h3 class="font-bold text-zinc-900">Cierre de Venta</h3>
             </div>
             <div class="p-6 space-y-4">
