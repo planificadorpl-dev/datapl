@@ -236,8 +236,8 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
     for (const row of filteredData) {
       if (row.estado === 'Nacional') continue; // No cuenta como presencia local
       const matchEstado = !estado || row.estado === estado;
-      const matchMunicipio = !municipio || row.municipio === municipio;
-      const matchParroquia = !parroquia || row.parroquia === parroquia;
+      const matchMunicipio = !municipio || row.municipio === municipio || row.municipio === 'Todos';
+      const matchParroquia = !parroquia || row.parroquia === parroquia || row.parroquia === 'Todas';
       if (matchEstado && matchMunicipio && matchParroquia) {
         opsInZone.add(row.operador_id);
       }
@@ -248,8 +248,8 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
       const isNacional = row.estado === 'Nacional';
       if (isNacional) return true;
       const matchEstado = !estado || row.estado === estado;
-      const matchMunicipio = !municipio || row.municipio === municipio;
-      const matchParroquia = !parroquia || row.parroquia === parroquia;
+      const matchMunicipio = !municipio || row.municipio === municipio || row.municipio === 'Todos';
+      const matchParroquia = !parroquia || row.parroquia === parroquia || row.parroquia === 'Todas';
       return matchEstado && matchMunicipio && matchParroquia;
     });
   }
