@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { SolicitudForm } from "@/components/solicitud-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,7 +72,9 @@ export default function SolicitudesPage() {
 
         <TabsContent value="registro" className="space-y-4">
           <div className="max-w-4xl mx-auto">
-            <SolicitudForm />
+            <Suspense fallback={<div className="p-8 text-center text-zinc-500">Cargando formulario...</div>}>
+              <SolicitudForm />
+            </Suspense>
           </div>
         </TabsContent>
 
