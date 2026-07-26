@@ -73,45 +73,74 @@ export default function ActividadesPage() {
     
     setIsClosing(true);
     
-    // Generate Report String
-    let msg = `*Reporte de Campo* 📊\n`;
-    msg += `Asesor: ${currentAsesor}\n`;
-    msg += `Fecha: ${new Date().toLocaleDateString('es-VE')}\n\n`;
-    msg += `*Actividades Realizadas:*\n`;
-
-    let totalSolicitudes = 0;
-    let totalCaptados = 0;
-    let totalVolantes = 0;
-
-    activities.forEach((act, idx) => {
-      msg += `\n${idx + 1}. *${act.activityType}* (${act.time})\n`;
-      let locParts = [];
-      if (act.ubicaciones) {
-        if(act.ubicaciones.parroquia) locParts.push(act.ubicaciones.parroquia);
-        if(act.ubicaciones.sector) locParts.push(act.ubicaciones.sector);
-      }
-      if (locParts.length > 0) {
-         msg += `Ubicación: ${locParts.join(' > ')}\n`;
-      }
-      if (act.condominio) msg += `Condominio: ${act.condominio}\n`;
-      if (act.notes) msg += `Nota: ${act.notes}\n`;
-
-      if (act.solicitudes > 0) msg += `Ventas: ${act.solicitudes} ✅\n`;
-      if (act.clientesCaptados > 0) msg += `Captados: ${act.clientesCaptados} 👤\n`;
-      if (act.volantes > 0) msg += `Volantes: ${act.volantes} 📄\n`;
-
-      totalSolicitudes += parseInt(act.solicitudes || 0);
-      totalCaptados += parseInt(act.clientesCaptados || 0);
-      totalVolantes += parseInt(act.volantes || 0);
+    // Generate Report String EXACTLY like the original project
+    const TAB = '   ';
+    let totalSoli = 0, totalCap = 0, totalVol = 0, totalInfo = 0, totalAgenda = 0;
+    
+    activities.forEach(a => {
+      totalSoli   += parseInt(a.solicitudes       || 0);
+      totalCap    += parseInt(a.clientesCaptados  || 0);
+      totalVol    += parseInt(a.volantes          || 0);
+      totalInfo   += parseInt(a.llamadasInfo      || 0);
+      totalAgenda += parseInt(a.llamadasAgenda    || 0);
     });
 
-    msg += `\n*Resumen del Día:*\n`;
-    msg += `Total Actividades: ${activities.length}\n`;
-    msg += `Total Ventas: ${totalSolicitudes}\n`;
-    msg += `Total Captados: ${totalCaptados}\n`;
-    if(totalVolantes > 0) msg += `Total Volantes: ${totalVolantes}\n`;
+    let msg = '';
+    msg += `*REPORTE DIARIO*\n`;
+    msg += `Fecha: ${new Date().toLocaleDateString('es-VE')}\n`;
+    msg += `Asesor: ${currentAsesor}\n\n`;
 
-    msg += `\n_Reporte generado automáticamente por DataPL._`;
+    msg += `*RESUMEN*\n`;
+    msg += `Solicitudes confirmadas: ${totalSoli}\n`;
+    msg += `Clientes captados: ${totalCap}\n`;
+    if (totalVol > 0)
+      msg += `Volantes entregados: ${totalVol}\n`;
+    if (totalInfo > 0 || totalAgenda > 0) {
+      msg += `Llamadas (info): ${totalInfo}\n`;
+      msg += `Llamadas (agenda): ${totalAgenda}\n`;
+    }
+
+    msg += `\nACTIVIDADES (${activities.length})\n`;
+
+    activities.forEach((act, idx) => {
+      const type = act.activityType || 'Actividad';
+      msg += `\n${idx + 1}. ${type} (${act.time})\n`;
+
+      // Location
+      if (act.ubicaciones && (act.ubicaciones.parroquia || act.ubicaciones.sector)) {
+        const locStr = [act.ubicaciones.estado, act.ubicaciones.municipio, act.ubicaciones.parroquia, act.ubicaciones.sector].filter(v => v && v !== 'N/A').join(', ');
+        msg += `${TAB}Ubicación: ${locStr}\n`;
+      }
+
+      // Type-specific: Condominio
+      if (type === 'Visita a Condominio' && act.condominio) {
+        msg += `${TAB}Condominio: ${act.condominio}\n`;
+      }
+
+      // Metrics
+      msg += `${TAB}Clientes captados: ${act.clientesCaptados || 0}\n`;
+      msg += `${TAB}Solicitudes enviadas: ${act.solicitudes || 0}\n`;
+      if (act.linkedClients && act.linkedClients.length > 0) {
+        act.linkedClients.forEach((c: any) => {
+          msg += `${TAB}  - ${c.name} (C.I: ${c.ci})\n`;
+        });
+      }
+      msg += `${TAB}Volantes entregados: ${act.volantes || 0}\n`;
+
+      // Calls
+      if (act.receivedCalls) {
+        msg += `${TAB}Llamadas recibidas:\n`;
+        msg += `${TAB}· Info: ${act.llamadasInfo || 0}\n`;
+        msg += `${TAB}· Agenda: ${act.llamadasAgenda || 0}\n`;
+      }
+
+      // Notes
+      if (act.notes && act.notes.trim()) {
+        msg += `${TAB}Obs: ${act.notes.trim()}\n`;
+      }
+    });
+
+    msg = msg.trim();
 
     const payload = {
       date: new Date().toLocaleDateString('es-VE'),

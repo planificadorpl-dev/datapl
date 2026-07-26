@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { ChevronLeft, Save, FilePlus, MapPin, CheckCircle, BarChart3, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { geoHierarchy } from "@/lib/geo_hierarchy";
+import { getOfertasRecientes } from "@/app/actions/competencia";
 import { toast } from "sonner";
 
 export default function NuevaActividadPage() {
@@ -28,6 +29,7 @@ export default function NuevaActividadPage() {
     phoneAgenda: "",
     condominio: "",
     captados: "",
+    solicitudes: "",
     volantes: "",
     estado: "",
     municipio: "",
@@ -36,6 +38,9 @@ export default function NuevaActividadPage() {
     notes: ""
   });
 
+  const [ofertasCompetencia, setOfertasCompetencia] = useState<any[]>([]);
+  const [loadingCompetencia, setLoadingCompetencia] = useState(false);
+
   useEffect(() => {
     // Set time on mount
     setFormData(prev => ({
@@ -43,6 +48,22 @@ export default function NuevaActividadPage() {
       time: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })
     }));
   }, []);
+
+  useEffect(() => {
+    if (formData.estado) {
+      setLoadingCompetencia(true);
+      getOfertasRecientes(
+        formData.estado || undefined,
+        formData.municipio || undefined,
+        formData.parroquia || undefined
+      )
+        .then(data => setOfertasCompetencia(data))
+        .catch(console.error)
+        .finally(() => setLoadingCompetencia(false));
+    } else {
+      setOfertasCompetencia([]);
+    }
+  }, [formData.estado, formData.municipio, formData.parroquia]);
 
   // Derived Geo Options
   const estados = useMemo(() => Object.keys(geoHierarchy).sort(), []);
@@ -75,8 +96,8 @@ export default function NuevaActividadPage() {
       return;
     }
 
-    if (formData.captados === "" || formData.captados === undefined || formData.volantes === "" || formData.volantes === undefined) {
-      toast.error("Debe rellenar los campos de Captados y Volantes Entregados");
+    if (formData.captados === "" || formData.captados === undefined || formData.volantes === "" || formData.volantes === undefined || formData.solicitudes === "" || formData.solicitudes === undefined) {
+      toast.error("Debe rellenar los campos de Ventas, Captados y Volantes Entregados");
       return;
     }
 
@@ -93,7 +114,7 @@ export default function NuevaActividadPage() {
         sector: formData.sector
       },
       clientesCaptados: formData.captados || 0,
-      solicitudes: 0,
+      solicitudes: formData.solicitudes || 0,
       condominio: formData.condominio || '',
       volantes: formData.volantes || 0,
       receivedCalls: formData.receivedCalls,
@@ -132,7 +153,7 @@ export default function NuevaActividadPage() {
       setFormData(prev => ({
         ...prev,
         type: "", receivedCalls: false, phoneInfo: "", phoneAgenda: "",
-        condominio: "", captados: "", volantes: "",
+        condominio: "", captados: "", solicitudes: "", volantes: "",
         estado: "", municipio: "", parroquia: "", sector: "", notes: "",
         time: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true })
       }));
@@ -255,9 +276,15 @@ export default function NuevaActividadPage() {
                       </div>
                     )}
 
-                    <div className="p-4 flex flex-col gap-1">
-                      <Label className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Captados</Label>
-                      <Input type="number" min="0" placeholder="0" value={formData.captados} onChange={e => setFormData(p => ({ ...p, captados: e.target.value }))} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 shadow-none text-base" />
+                    <div className="bg-[#F2F2F7]/50 dark:bg-zinc-950/50 grid grid-cols-2 divide-x divide-[#E5E5EA] dark:divide-zinc-800 animate-in slide-in-from-top-2">
+                      <div className="p-4 flex flex-col gap-1">
+                        <Label className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Ventas (Solicitudes)</Label>
+                        <Input type="number" min="0" placeholder="0" value={formData.solicitudes} onChange={e => setFormData(p => ({ ...p, solicitudes: e.target.value }))} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 shadow-none text-base" />
+                      </div>
+                      <div className="p-4 flex flex-col gap-1">
+                        <Label className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider">Captados</Label>
+                        <Input type="number" min="0" placeholder="0" value={formData.captados} onChange={e => setFormData(p => ({ ...p, captados: e.target.value }))} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 shadow-none text-base" />
+                      </div>
                     </div>
 
                     <div className="p-4 flex flex-col gap-1">
@@ -310,6 +337,62 @@ export default function NuevaActividadPage() {
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* REFERENCIA COMPETENCIA */}
+          {formData.type && formData.estado && (
+            <div className="animate-in fade-in slide-in-from-top-2">
+              <p className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider mb-2 px-2 md:px-0 flex items-center gap-2">
+                <BarChart3 className="h-3.5 w-3.5" />
+                Estudio de Mercado (Competencia)
+              </p>
+              <Card className="rounded-2xl border-[#E5E5EA] dark:border-zinc-800 dark:bg-zinc-900 shadow-sm overflow-hidden md:rounded-lg">
+                <CardContent className="p-0 bg-white dark:bg-zinc-950">
+                  {loadingCompetencia ? (
+                    <div className="p-4 text-center text-sm text-zinc-500">Cargando datos del mercado...</div>
+                  ) : ofertasCompetencia.length === 0 || ofertasCompetencia.every(o => o.isEmpty) ? (
+                    <div className="p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                        <BarChart3 className="h-5 w-5 text-zinc-400" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-semibold text-black dark:text-zinc-100">Sin presencia confirmada</span>
+                        <span className="text-[11px] text-[#8E8E93]">Solo están registradas las operadoras base en Supabase.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col divide-y divide-[#E5E5EA] dark:divide-zinc-800">
+                      {ofertasCompetencia.filter(o => !o.isEmpty).map((oferta, idx) => (
+                        <div key={idx} className="p-4 flex items-center gap-3">
+                          {oferta.operadores_competencia?.logo_url ? (
+                            <img src={oferta.operadores_competencia.logo_url} alt="Logo" className="w-8 h-8 object-contain rounded-md shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: oferta.operadores_competencia?.color_hex || '#ccc' }} />
+                          )}
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-[14px] font-bold text-black dark:text-white truncate">
+                              {oferta.operadores_competencia?.nombre}
+                            </span>
+                            <div className="flex items-center gap-3 mt-1">
+                              {oferta.min_precio > 0 && (
+                                <span className="text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-sm">
+                                  Desde ${oferta.min_precio}
+                                </span>
+                              )}
+                              {oferta.max_velocidad > 0 && (
+                                <span className="text-[12px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-2 py-0.5 rounded-sm">
+                                  Hasta {oferta.max_velocidad} Mbps
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

@@ -21,6 +21,7 @@ export function SolicitudForm() {
   const { currentAsesor } = useAsesor()
   const [loading, setLoading] = useState(false)
   const [planes, setPlanes] = useState<PlanType[]>([])
+  const [pendingActivities, setPendingActivities] = useState<any[]>([])
 
   // Form State
   const [formData, setFormData] = useState({
@@ -56,6 +57,16 @@ export function SolicitudForm() {
       }
     }
     fetchPlanes()
+
+    // Load Pending Activities from local storage
+    const saved = localStorage.getItem('appState_activities')
+    if (saved) {
+      try {
+        setPendingActivities(JSON.parse(saved))
+      } catch (e) {
+        console.error("Error loading pending activities", e)
+      }
+    }
   }, [])
 
   // Derived Geo Options
@@ -109,6 +120,29 @@ export function SolicitudForm() {
       if (error) throw error
 
       toast.success("Solicitud enviada exitosamente")
+
+      // Link to Activity if selected
+      if (formData.actividad_uid && formData.actividad_uid !== "none") {
+        try {
+          const stored = localStorage.getItem('appState_activities');
+          if (stored) {
+            const activities = JSON.parse(stored);
+            const actIndex = activities.findIndex((a: any) => a.uid === formData.actividad_uid);
+            if (actIndex >= 0) {
+              const act = activities[actIndex];
+              act.solicitudes = (parseInt(act.solicitudes) || 0) + 1;
+              act.linkedClients = act.linkedClients || [];
+              act.linkedClients.push({
+                name: `${formData.nombres} ${formData.apellidos}`.trim(),
+                ci: `${formData.cedula_prefix}${formData.cedula}`
+              });
+              localStorage.setItem('appState_activities', JSON.stringify(activities));
+            }
+          }
+        } catch (e) {
+          console.error("Error linking activity:", e);
+        }
+      }
       
       // Generate WhatsApp Link
       let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
@@ -334,7 +368,11 @@ export function SolicitudForm() {
                   <SelectTrigger><SelectValue placeholder="Sin vincular..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sin vincular...</SelectItem>
-                    {/* Las actividades irían aquí en el futuro */}
+                    {pendingActivities.map((act, idx) => (
+                      <SelectItem key={idx} value={act.uid || `act_${idx}`}>
+                        {act.activityType} ({act.time}) - {act.ubicaciones?.sector || act.ubicaciones?.parroquia || "Sin ubicación"}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
