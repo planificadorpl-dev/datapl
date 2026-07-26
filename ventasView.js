@@ -62,12 +62,17 @@ async function renderCompetencia(container, appState, renderApp) {
     cardsHtml = ventasState.ofertas.map(oferta => {
       const opName = oferta.operadores_competencia?.nombre || "Desconocido";
       const opColor = oferta.operadores_competencia?.color_hex || "#6b7280";
+      const opLogo = oferta.operadores_competencia?.logo_url || null;
+      
+      const iconHtml = opLogo 
+        ? `<img src="${opLogo}" alt="${opName}" class="w-10 h-10 rounded-full object-contain bg-white border border-zinc-100 shrink-0" />`
+        : `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-zinc-100 bg-white"><div class="w-3 h-3 rounded-full" style="background-color: ${opColor}"></div></div>`;
       
       if (oferta.isEmpty) {
         return `
-          <div class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 flex items-center justify-between cursor-pointer hover:border-zinc-300 transition-colors">
+          <div onclick="window.showToast('Módulo de registro en construcción. Pronto podrás registrar las ofertas aquí.', 'info')" class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 flex items-center justify-between cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
             <div class="flex items-center gap-3">
-               <div class="w-3 h-3 rounded-full" style="background-color: ${opColor}"></div>
+               ${iconHtml}
                <div>
                  <h3 class="font-bold text-zinc-900">${opName}</h3>
                  <p class="text-xs text-zinc-500">Sin planes reportados</p>
@@ -79,9 +84,9 @@ async function renderCompetencia(container, appState, renderApp) {
       }
 
       return `
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200">
-          <div class="flex items-center gap-2 mb-3">
-             <div class="w-3 h-3 rounded-full" style="background-color: ${opColor}"></div>
+        <div onclick="window.showToast('Módulo de edición en construcción. Pronto podrás editar estas ofertas.', 'info')" class="bg-white rounded-2xl p-5 shadow-sm border border-zinc-200 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all">
+          <div class="flex items-center gap-3 mb-3">
+             ${iconHtml}
              <h3 class="font-bold text-zinc-900">${opName}</h3>
           </div>
           <div class="flex items-end gap-2 mb-3">
