@@ -126,8 +126,7 @@ export function SolicitudForm() {
         promotor: currentAsesor,
         fecha_solicitud: new Date().toISOString().split('T')[0],
         fuente: formData.fuente,
-        actividad_uid: formData.actividad_uid,
-        status: "Pendiente"
+        actividad_uid: formData.actividad_uid
       }
 
       // Omitir campos que no existen en la base de datos si es que fallan, pero los metemos
