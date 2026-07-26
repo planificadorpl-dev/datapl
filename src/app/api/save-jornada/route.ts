@@ -5,12 +5,12 @@ import path from 'path';
 
 // This handles the Cierre de Jornada: saving to Google Sheets & Supabase
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 export async function POST(req: Request) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const jornada = await req.json();
 
     if (!jornada || !jornada.activitiesDetail || !Array.isArray(jornada.activitiesDetail)) {
