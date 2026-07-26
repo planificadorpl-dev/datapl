@@ -2810,22 +2810,18 @@ function attachSolicitudEvents() {
   if (appState.solicitudSubView === 'history') {
     // Delegated listener for Copy from History
     document.querySelectorAll('.btn-open-copy-history').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const idx = btn.dataset.index;
         const s = appState.solicitudesHistory[idx];
         if (!s) return;
 
-        const data = {
-          nombres: s.nombres || 'No definido',
-          apellidos: s.apellidos || 'No definido',
-          cedula: s.cedula || 'No definido',
-          telefono_principal: s.telefono_principal || 'No definido',
-          telefono_secundario: s.telefono_secundario || '',
-          correo: s.correo || ''
-        };
-
-        document.body.insertAdjacentHTML('beforeend', renderCopyDrawer(data));
-        initCopyDrawerLogic();
+        const waMsg = generateSolicitudWAMsg(s);
+        try {
+          await navigator.clipboard.writeText(waMsg);
+          showToast('Reporte copiado al portapapeles', 'success');
+        } catch(e) {
+          showToast('Error al copiar el reporte', 'error');
+        }
       });
     });
 
