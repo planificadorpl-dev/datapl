@@ -80,6 +80,6 @@ export async function scrapeBCVRate(): Promise<ExchangeRate | null> {
 }
 
 export async function forceRevalidateRates() {
-    revalidateTag('bcv-rate');
-    revalidateTag('binance-rate');
+    revalidateTag('bcv-rate', 'max');
+    revalidateTag('binance-rate', 'max');
 }
