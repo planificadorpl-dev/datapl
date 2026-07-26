@@ -240,9 +240,15 @@ export default function ActividadesPage() {
                         <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-base leading-tight">{act.activityType}</h4>
                         <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{act.time} · Hoy</p>
                       </div>
-                      <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => deleteActivity(idx)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 gap-1 h-8 px-2" onClick={() => router.push(`/solicitudes?actividad_uid=${act.uid}`)}>
+                          <Plus className="h-3.5 w-3.5" />
+                          <span className="text-xs font-semibold">Solicitud</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8" onClick={() => deleteActivity(idx)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <CardContent className="px-5 pb-3 space-y-1.5 pt-0">
                       {locStr && (

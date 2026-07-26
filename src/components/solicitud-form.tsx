@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Send, MapPin, User, Package, CheckCircle } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 type PlanType = {
   id: string
@@ -22,6 +23,9 @@ export function SolicitudForm() {
   const [loading, setLoading] = useState(false)
   const [planes, setPlanes] = useState<PlanType[]>([])
   const [pendingActivities, setPendingActivities] = useState<any[]>([])
+  
+  const searchParams = useSearchParams()
+  const initialActividadUid = searchParams.get('actividad_uid') || ""
 
   // Form State
   const [formData, setFormData] = useState({
@@ -42,7 +46,7 @@ export function SolicitudForm() {
     tipo_servicio: "Domiciliario",
     plan: "",
     fuente: "",
-    actividad_uid: "",
+    actividad_uid: initialActividadUid,
   })
 
   // Load Config (Planes)
