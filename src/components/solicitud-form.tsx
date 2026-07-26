@@ -21,7 +21,7 @@ type PlanType = {
 export function SolicitudForm() {
   const { currentAsesor } = useAsesor()
   const [loading, setLoading] = useState(false)
-  const [planes, setPlanes] = useState<PlanType[]>([])
+  const [allPlanes, setAllPlanes] = useState<any[]>([])
   const [pendingActivities, setPendingActivities] = useState<any[]>([])
   
   const searchParams = useSearchParams()
@@ -53,11 +53,9 @@ export function SolicitudForm() {
   useEffect(() => {
     const fetchPlanes = async () => {
       const supabase = createClient()
-      const { data } = await supabase.from('planes_config').select('*').order('nombre')
+      const { data } = await supabase.from('planes_config').select('*').eq('activo', true)
       if (data) {
-        // Filter out duplicate plan names
-        const uniquePlanes = Array.from(new Map(data.map(item => [item.nombre, item])).values());
-        setPlanes(uniquePlanes as PlanType[])
+        setAllPlanes(data)
       }
     }
     fetchPlanes()
@@ -73,11 +71,17 @@ export function SolicitudForm() {
     }
   }, [])
 
-  // Derived Geo Options
   const estados = useMemo(() => Object.keys(geoHierarchy).sort(), [])
   const municipios = useMemo(() => formData.estado ? Object.keys(geoHierarchy[formData.estado as keyof typeof geoHierarchy] || {}).sort() : [], [formData.estado])
   const parroquias = useMemo(() => formData.municipio ? Object.keys((geoHierarchy[formData.estado as keyof typeof geoHierarchy] as any)?.[formData.municipio] || {}).sort() : [], [formData.estado, formData.municipio])
   const sectores = useMemo(() => formData.parroquia ? ((geoHierarchy[formData.estado as keyof typeof geoHierarchy] as any)?.[formData.municipio]?.[formData.parroquia] || []).sort() : [], [formData.estado, formData.municipio, formData.parroquia])
+
+  const filteredPlanes = useMemo(() => {
+    const mappedType = formData.tipo_servicio === 'Corporativo' ? 'Empresarial' : formData.tipo_servicio;
+    return allPlanes
+      .filter(p => p.tipo === mappedType)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [allPlanes, formData.tipo_servicio]);
 
   const handleStateChange = (val: string) => setFormData(prev => ({ ...prev, estado: val, municipio: "", parroquia: "", sector: "" }))
   const handleMunicipioChange = (val: string) => setFormData(prev => ({ ...prev, municipio: val, parroquia: "", sector: "" }))
@@ -318,7 +322,7 @@ export function SolicitudForm() {
                 <Select required value={formData.plan} onValueChange={v => setFormData(p => ({ ...p, plan: v }))}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent>
-                    {planes.map((p, idx) => <SelectItem key={`plan-${idx}`} value={p.nombre}>{p.nombre}</SelectItem>)}
+                    {filteredPlanes.map((p, idx) => <SelectItem key={`plan-${idx}`} value={p.nombre}>{p.nombre}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
