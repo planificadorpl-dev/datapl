@@ -1,0 +1,121 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.asesores_config (
+  activo boolean DEFAULT true,
+  nombre text NOT NULL UNIQUE,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  CONSTRAINT asesores_config_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.geodata_config (
+  parroquia text NOT NULL,
+  sector text NOT NULL,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  estado text,
+  municipio text,
+  CONSTRAINT geodata_config_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.solicitudes (
+  actividad_uid text,
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  fecha_disponibilidad date,
+  nombres text NOT NULL,
+  apellidos text NOT NULL,
+  cedula text NOT NULL,
+  genero text NOT NULL,
+  estado text NOT NULL,
+  municipio text NOT NULL,
+  parroquia text NOT NULL,
+  direccion text NOT NULL,
+  tipo_servicio text NOT NULL,
+  plan text NOT NULL,
+  promotor text NOT NULL,
+  telefono_principal text NOT NULL,
+  telefono_secundario text,
+  correo text,
+  fecha_nacimiento date,
+  fuente text NOT NULL,
+  fecha_solicitud timestamp with time zone DEFAULT now(),
+  power_go boolean DEFAULT false,
+  sector text,
+  CONSTRAINT solicitudes_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.planes_config (
+  nombre text NOT NULL,
+  tipo text NOT NULL,
+  id integer NOT NULL DEFAULT nextval('planes_config_id_seq'::regclass),
+  activo boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  has_tv boolean DEFAULT false,
+  CONSTRAINT planes_config_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.actividades (
+  id integer NOT NULL DEFAULT nextval('actividades_id_seq'::regclass),
+  fecha date NOT NULL,
+  hora time without time zone NOT NULL,
+  asesor text NOT NULL,
+  tipo text NOT NULL,
+  estado text,
+  municipio text,
+  parroquia text,
+  sector text,
+  condominio text,
+  notas text,
+  reporte_wa text,
+  solicitudes integer DEFAULT 0,
+  clientes_captados integer DEFAULT 0,
+  volantes integer DEFAULT 0,
+  llamadas_info integer DEFAULT 0,
+  llamadas_agenda integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  uid text,
+  CONSTRAINT actividades_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.operadores_competencia (
+  nombre text NOT NULL UNIQUE,
+  logo_url text,
+  sitio_web text,
+  telefono text,
+  rif text,
+  instagram text,
+  cobertura_estados ARRAY,
+  id integer NOT NULL DEFAULT nextval('operadores_competencia_id_seq'::regclass),
+  color_hex text DEFAULT '#6b7280'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  tecnologia text DEFAULT 'Fibra Óptica'::text,
+  CONSTRAINT operadores_competencia_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.ofertas_competencia (
+  operador_id integer,
+  estado text NOT NULL,
+  municipio text NOT NULL,
+  parroquia text NOT NULL,
+  tipo_novedad text NOT NULL,
+  velocidad_mb integer,
+  precio_mensual numeric,
+  modalidad_instalacion text,
+  detalle_tv text,
+  notas text,
+  asesor_nombre text NOT NULL,
+  duracion_promo_meses integer,
+  fecha_fin_promo date,
+  precio_regular numeric,
+  instalacion_metraje integer,
+  logo_url text,
+  velocidad_subida integer,
+  nombre_plan text,
+  id integer NOT NULL DEFAULT nextval('ofertas_competencia_id_seq'::regclass),
+  costo_instalacion numeric DEFAULT 0,
+  incluye_tv boolean DEFAULT false,
+  fecha_reporte date DEFAULT CURRENT_DATE,
+  created_at timestamp with time zone DEFAULT now(),
+  es_promocion boolean DEFAULT false,
+  servicios_adicionales jsonb DEFAULT '[]'::jsonb,
+  instalacion_opciones jsonb DEFAULT '[]'::jsonb,
+  tecnologia text DEFAULT 'FTTH'::text,
+  incluye_iptv boolean DEFAULT false,
+  es_simetrico boolean DEFAULT true,
+  fuente text DEFAULT 'scraping_web'::text,
+  CONSTRAINT ofertas_competencia_pkey PRIMARY KEY (id),
+  CONSTRAINT ofertas_competencia_operador_id_fkey FOREIGN KEY (operador_id) REFERENCES public.operadores_competencia(id)
+);

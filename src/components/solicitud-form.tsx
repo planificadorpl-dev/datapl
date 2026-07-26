@@ -100,7 +100,7 @@ export function SolicitudForm() {
         apellidos: formData.apellidos,
         cedula: `${formData.cedula_prefix}${formData.cedula}`,
         genero: formData.genero,
-        fecha_nac: formData.fecha_nac,
+        fecha_nacimiento: formData.fecha_nac,
         telefono_principal: formData.telefono_principal,
         telefono_secundario: formData.telefono_secundario,
         correo: formData.correo,
