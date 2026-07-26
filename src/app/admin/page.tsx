@@ -8,7 +8,7 @@ const adminSections = [
     {
         name: "Gestión de Asesores",
         description: "Añadir, editar o remover asesores de ventas del sistema.",
-        href: "#", // Add routes if you build them later, or embed them here
+        href: "/admin/asesores",
         icon: UserCog,
         colorClass: "text-blue-600",
         bgClass: "bg-blue-50 dark:bg-blue-900/20",

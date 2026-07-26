@@ -10,23 +10,27 @@ import {
   Check 
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const DEFAULT_ASESORES = [
-  "Eduardo Gonzalez", "Ricardo Padrino", "Andres Gonzalez", "Julio Mejia", 
-  "Jeferson Oropeza", "David Aranguren", "Miguel Fuenmayor", "Jesus Monrroy", 
-  "Maria Jimenez", "Genesis Blanco"
-];
+import { getAsesores } from "@/app/actions/asesores";
 
 export default function Home() {
   const { currentAsesor, setCurrentAsesor } = useAsesor();
   const [isOpen, setIsOpen] = useState(false);
+  const [asesoresList, setAsesoresList] = useState<string[]>([]);
+
+  useEffect(() => {
+    getAsesores(true).then((data) => {
+      setAsesoresList(data.map((a: any) => a.nombre));
+    }).catch(() => {
+      setAsesoresList([]);
+    });
+  }, []);
 
   return (
     <PremiumPageLayout 
@@ -51,7 +55,7 @@ export default function Home() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[300px] overflow-y-auto">
-              {DEFAULT_ASESORES.map((a) => (
+              {asesoresList.map((a) => (
                 <DropdownMenuItem 
                   key={a} 
                   onSelect={() => setCurrentAsesor(a)}
