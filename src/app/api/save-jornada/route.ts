@@ -23,14 +23,22 @@ export async function POST(req: Request) {
     let sheetsError = null;
 
     try {
-      // Look for credentials.json in the project root or parent directory
-      // Since next runs in datapl-next, credentials.json might be in datapl (..)
-      const credentialsPath = path.resolve(process.cwd(), '../credentials.json');
-      
-      const auth = new google.auth.GoogleAuth({
-        keyFile: credentialsPath,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-      });
+      let auth;
+      // First try to load from environment variable (Best for Vercel)
+      if (process.env.GOOGLE_CREDENTIALS) {
+        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+        auth = new google.auth.GoogleAuth({
+          credentials,
+          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+      } else {
+        // Fallback to local file for development
+        const credentialsPath = path.resolve(process.cwd(), '../credentials.json');
+        auth = new google.auth.GoogleAuth({
+          keyFile: credentialsPath,
+          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+      }
 
       authClient = await auth.getClient();
       
